@@ -17,6 +17,9 @@ export function Navbar() {
               <Link href="/" className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100">
                 Home
               </Link>
+              <Link href="/posts" className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100">
+                Posts
+              </Link>
               <Link href="/about" className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100">
                 About
               </Link>

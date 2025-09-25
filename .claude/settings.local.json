@@ -7,9 +7,26 @@
       "Bash(npm test)",
       "Bash(npm run lint)",
       "Bash(npm run build:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(npx vercel:*)",
+      "Bash(npm run test:*)",
+      "mcp__shadcn__get_project_registries",
+      "mcp__shadcn__search_items_in_registries",
+      "mcp__shadcn__get_add_command_for_items",
+      "Bash(npx:*)",
+      "mcp__shadcn__get_item_examples_from_registries",
+      "Bash(npm run setup:*)",
+      "Bash(grep:*)",
+      "mcp__socket__depscore",
+      "Bash(npm audit:*)"
     ],
     "deny": [],
     "ask": []
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "shadcn"
+  ]
 }

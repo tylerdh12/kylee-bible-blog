@@ -10,23 +10,19 @@ export async function GET() {
     }
 
     const totalPosts = dbStorage.posts.length
+    const publishedPosts = dbStorage.posts.filter(p => p.published).length
+    const totalGoals = dbStorage.goals.length
     const activeGoals = dbStorage.goals.filter(g => !g.completed).length
-    const totalDonations = dbStorage.donations.reduce((sum, d) => sum + d.amount, 0)
-
-    // Calculate this month's donations
-    const now = new Date()
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-    const monthlyDonations = dbStorage.donations
-      .filter(d => d.createdAt >= startOfMonth)
-      .reduce((sum, d) => sum + d.amount, 0)
+    const totalDonations = dbStorage.donations.length
+    const totalDonationAmount = dbStorage.donations.reduce((sum, d) => sum + d.amount, 0)
 
     return NextResponse.json({
-      stats: {
-        totalPosts,
-        activeGoals,
-        totalDonations,
-        monthlyDonations
-      }
+      totalPosts,
+      publishedPosts,
+      totalGoals,
+      activeGoals,
+      totalDonations,
+      totalDonationAmount
     })
   } catch (error) {
     console.error('Error fetching stats:', error)

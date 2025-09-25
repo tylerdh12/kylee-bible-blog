@@ -1,21 +1,20 @@
 import bcryptjs from 'bcryptjs'
-import { mockDb } from './mock-db'
 import jwt from 'jsonwebtoken'
 import { cookies } from 'next/headers'
 import { NextRequest } from 'next/server'
+import { DatabaseService } from './services/database'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key'
+const db = DatabaseService.getInstance()
 
 export async function createUser(email: string, password: string, name?: string) {
   const hashedPassword = await bcryptjs.hash(password, 12)
 
-  return mockDb.user.create({
-    data: {
-      email,
-      password: hashedPassword,
-      name,
-      role: 'admin'
-    },
+  return db.createUser({
+    email,
+    password: hashedPassword,
+    name: name || null,
+    role: 'admin'
   })
 }
 
@@ -24,9 +23,7 @@ export async function verifyPassword(password: string, hashedPassword: string) {
 }
 
 export async function getUserByEmail(email: string) {
-  return mockDb.user.findUnique({
-    where: { email },
-  })
+  return db.findUserByEmail(email)
 }
 
 export function createAuthToken(userId: string) {
@@ -51,9 +48,7 @@ export async function getAuthenticatedUser() {
     const payload = verifyAuthToken(token)
     if (!payload) return null
 
-    return mockDb.user.findUnique({
-      where: { id: payload.userId }
-    })
+    return db.findUserById(payload.userId)
   } catch {
     return null
   }

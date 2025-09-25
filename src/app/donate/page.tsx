@@ -23,7 +23,7 @@ function DonateForm() {
   const goalId = searchParams.get('goal')
   
   const [goals, setGoals] = useState<Goal[]>([])
-  const [selectedGoal, setSelectedGoal] = useState<string>("")
+  const [selectedGoal, setSelectedGoal] = useState<string>("general")
   const [amount, setAmount] = useState("")
   const [donorName, setDonorName] = useState("")
   const [message, setMessage] = useState("")
@@ -65,7 +65,7 @@ function DonateForm() {
           donorName: anonymous ? null : donorName,
           message,
           anonymous,
-          goalId: selectedGoal || null,
+          goalId: selectedGoal === "general" ? null : selectedGoal,
         }),
       })
 
@@ -75,7 +75,7 @@ function DonateForm() {
         setAmount("")
         setDonorName("")
         setMessage("")
-        setSelectedGoal("")
+        setSelectedGoal("general")
       } else {
         alert('Failed to process donation. Please try again.')
       }
@@ -86,7 +86,7 @@ function DonateForm() {
     }
   }
 
-  const selectedGoalData = goals.find(goal => goal.id === selectedGoal)
+  const selectedGoalData = selectedGoal !== "general" ? goals.find(goal => goal.id === selectedGoal) : null
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
@@ -116,7 +116,7 @@ function DonateForm() {
                     <SelectValue placeholder="Choose a goal or leave blank for general donation" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">General Donation</SelectItem>
+                    <SelectItem value="general">General Donation</SelectItem>
                     {goals.map((goal) => (
                       <SelectItem key={goal.id} value={goal.id}>
                         {goal.title}
