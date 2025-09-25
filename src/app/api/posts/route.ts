@@ -1,55 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
-import slugify from 'slugify'
+import { getAuthenticatedUser } from '@/lib/auth'
+import { mockDb } from '@/lib/mock-db'
 
 export async function POST(request: NextRequest) {
   try {
+    const user = await getAuthenticatedUser()
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const { title, content, excerpt, published, tags } = await request.json()
 
-    if (!title || !content) {
+    if (!title?.trim() || !content?.trim()) {
       return NextResponse.json(
         { error: 'Title and content are required' },
         { status: 400 }
       )
     }
 
-    // For now, we'll use a hardcoded user ID. In production, you'd get this from authentication
-    const authorId = await getOrCreateDefaultUser()
+    const slug = title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '')
 
-    const slug = slugify(title, { lower: true, strict: true })
-    
-    // Handle tags
-    const tagConnections = await Promise.all(
-      tags.map(async (tagName: string) => {
-        const tag = await prisma.tag.upsert({
-          where: { name: tagName },
-          update: {},
-          create: { name: tagName },
-        })
-        return { id: tag.id }
-      })
-    )
-
-    const post = await prisma.post.create({
+    const post = await mockDb.post.create({
       data: {
-        title,
-        slug,
-        content,
-        excerpt,
-        published,
+        title: title.trim(),
+        content: content.trim(),
+        excerpt: excerpt?.trim() || null,
+        published: Boolean(published),
         publishedAt: published ? new Date() : null,
-        authorId,
-        tags: {
-          connect: tagConnections,
-        },
-      },
-      include: {
-        author: { select: { name: true, email: true } },
-        tags: true,
-      },
+        slug,
+        tags: tags || [],
+        authorId: user.id
+      }
     })
 
-    return NextResponse.json({ post }, { status: 201 })
+    return NextResponse.json({
+      message: 'Post created successfully',
+      post
+    })
   } catch (error) {
     console.error('Error creating post:', error)
     return NextResponse.json(
@@ -59,19 +49,24 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function getOrCreateDefaultUser() {
-  let user = await prisma.user.findFirst()
-  
-  if (!user) {
-    user = await prisma.user.create({
-      data: {
-        email: 'kylee@example.com',
-        password: '$2b$12$dummyhash', // This should be properly hashed in production
-        name: 'Kylee',
-        role: 'admin',
-      },
+export async function GET() {
+  try {
+    const user = await getAuthenticatedUser()
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const posts = await mockDb.post.findMany({
+      include: { author: true, tags: true },
+      orderBy: { createdAt: 'desc' }
     })
+
+    return NextResponse.json({ posts })
+  } catch (error) {
+    console.error('Error fetching posts:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
   }
-  
-  return user.id
 }

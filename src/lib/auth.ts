@@ -1,14 +1,20 @@
 import bcryptjs from 'bcryptjs'
-import { prisma } from './db'
+import { mockDb } from './mock-db'
+import jwt from 'jsonwebtoken'
+import { cookies } from 'next/headers'
+import { NextRequest } from 'next/server'
+
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key'
 
 export async function createUser(email: string, password: string, name?: string) {
   const hashedPassword = await bcryptjs.hash(password, 12)
-  
-  return prisma.user.create({
+
+  return mockDb.user.create({
     data: {
       email,
       password: hashedPassword,
       name,
+      role: 'admin'
     },
   })
 }
@@ -18,7 +24,41 @@ export async function verifyPassword(password: string, hashedPassword: string) {
 }
 
 export async function getUserByEmail(email: string) {
-  return prisma.user.findUnique({
+  return mockDb.user.findUnique({
     where: { email },
   })
+}
+
+export function createAuthToken(userId: string) {
+  return jwt.sign({ userId }, JWT_SECRET, { expiresIn: '7d' })
+}
+
+export function verifyAuthToken(token: string) {
+  try {
+    return jwt.verify(token, JWT_SECRET) as { userId: string }
+  } catch {
+    return null
+  }
+}
+
+export async function getAuthenticatedUser() {
+  try {
+    const cookieStore = await cookies()
+    const token = cookieStore.get('auth-token')?.value
+
+    if (!token) return null
+
+    const payload = verifyAuthToken(token)
+    if (!payload) return null
+
+    return mockDb.user.findUnique({
+      where: { id: payload.userId }
+    })
+  } catch {
+    return null
+  }
+}
+
+export function getAuthTokenFromRequest(request: NextRequest) {
+  return request.cookies.get('auth-token')?.value || null
 }

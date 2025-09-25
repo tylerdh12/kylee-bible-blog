@@ -1,17 +1,16 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
+import { getAuthenticatedUser } from '@/lib/auth'
+import { mockDb } from '@/lib/mock-db'
 
 export async function GET() {
   try {
-    const donations = await prisma.donation.findMany({
-      include: {
-        goal: {
-          select: {
-            id: true,
-            title: true,
-          },
-        },
-      },
+    const user = await getAuthenticatedUser()
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const donations = await mockDb.donation.findMany({
+      include: { goal: true },
       orderBy: { createdAt: 'desc' },
     })
 

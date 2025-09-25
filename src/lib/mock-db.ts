@@ -158,14 +158,30 @@ export const mockDb = {
         updatedAt: new Date(),
         tags: []
       }
-      
-      // Handle tags
-      if (data.tags?.connect) {
-        newPost.tags = data.tags.connect.map((t: { id: string }) => 
-          storage.tags.find(tag => tag.id === t.id)
-        ).filter(Boolean)
+
+      // Handle tags - support both array of strings and connect format
+      if (data.tags) {
+        if (Array.isArray(data.tags) && typeof data.tags[0] === 'string') {
+          // Handle array of tag names
+          newPost.tags = data.tags.map((tagName: string) => {
+            let tag = storage.tags.find(t => t.name === tagName)
+            if (!tag) {
+              tag = {
+                id: `tag${storage.tags.length + 1}`,
+                name: tagName
+              }
+              storage.tags.push(tag)
+            }
+            return tag
+          })
+        } else if (data.tags?.connect) {
+          // Handle connect format
+          newPost.tags = data.tags.connect.map((t: { id: string }) =>
+            storage.tags.find(tag => tag.id === t.id)
+          ).filter(Boolean)
+        }
       }
-      
+
       storage.posts.push(newPost)
       return newPost
     }
@@ -281,3 +297,6 @@ export const mockDb = {
 }
 
 export const mockPrisma = mockDb
+
+// Export storage for direct access (useful for statistics)
+export const dbStorage = storage

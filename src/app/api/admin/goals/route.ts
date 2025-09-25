@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
+import { getAuthenticatedUser } from '@/lib/auth'
+import { mockDb } from '@/lib/mock-db'
 
 export async function POST(request: NextRequest) {
   try {
+    const user = await getAuthenticatedUser()
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const { title, description, targetAmount, deadline } = await request.json()
 
     if (!title || !targetAmount || targetAmount <= 0) {
@@ -12,7 +18,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const goal = await prisma.goal.create({
+    const goal = await mockDb.goal.create({
       data: {
         title,
         description: description || null,
@@ -23,7 +29,10 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    return NextResponse.json({ goal }, { status: 201 })
+    return NextResponse.json({
+      message: 'Goal created successfully',
+      goal
+    })
   } catch (error) {
     console.error('Error creating goal:', error)
     return NextResponse.json(
@@ -35,10 +44,13 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   try {
-    const goals = await prisma.goal.findMany({
-      include: {
-        donations: true,
-      },
+    const user = await getAuthenticatedUser()
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const goals = await mockDb.goal.findMany({
+      include: { donations: true },
       orderBy: [
         { completed: 'asc' },
         { createdAt: 'desc' },

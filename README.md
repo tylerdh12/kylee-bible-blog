@@ -1,26 +1,31 @@
-# Kylee's Blog - Bible Study Platform
+# Kylee's Bible Blog Platform
 
-A modern, full-featured blog platform built for Bible study enthusiasts with donation tracking and goal management capabilities.
+A modern, production-ready blog platform built specifically for Bible study enthusiasts with comprehensive donation tracking and goal management capabilities.
 
-## Features
+## 🌟 Features
 
-- **📝 Rich Text Editor**: User-friendly WYSIWYG editor for non-technical users
-- **🎯 Goal Tracking**: Set and track ministry/donation goals with progress bars
+- **📝 Rich Text Editor**: User-friendly WYSIWYG editor with TipTap
+- **🎯 Goal Tracking**: Set and track ministry/donation goals with visual progress bars
 - **💰 Donation System**: Accept donations with optional goal targeting
 - **🏷️ Tag System**: Organize posts with custom tags
-- **📱 Responsive Design**: Beautiful UI that works on all devices
-- **🌙 Dark Mode**: Built-in theme switching
-- **👨‍💼 Admin Dashboard**: Easy-to-use admin interface for content management
-- **🔐 Authentication**: Secure admin login system
+- **📱 Responsive Design**: Beautiful, mobile-first UI that works on all devices
+- **🌙 Dark Mode**: Built-in theme switching with system preference detection
+- **👨‍💼 Admin Dashboard**: Comprehensive admin interface for content management
+- **🔐 Authentication**: Secure JWT-based admin login system
+- **🧪 Full Test Coverage**: Unit, integration, and E2E tests
+- **⚡ Performance**: Optimized with Next.js 15 and Turbopack
+- **🚀 Production Ready**: Complete CI/CD pipeline and deployment configurations
 
-## Tech Stack
+## 🛠️ Tech Stack
 
-- **Framework**: Next.js 15 with App Router
-- **Database**: SQLite with Prisma ORM
-- **Styling**: Tailwind CSS + ShadCN UI
+- **Framework**: Next.js 15 with App Router and Turbopack
+- **Database**: SQLite with Prisma ORM (PostgreSQL ready)
+- **Styling**: Tailwind CSS + ShadCN UI components
 - **Editor**: TipTap rich text editor
-- **Authentication**: Custom auth with bcryptjs
+- **Authentication**: Custom JWT auth with bcryptjs
+- **Testing**: Jest + React Testing Library + Playwright
 - **Language**: TypeScript
+- **Deployment**: Vercel optimized with security headers
 
 ## Getting Started
 
@@ -60,55 +65,77 @@ A modern, full-featured blog platform built for Bible study enthusiasts with don
 
 6. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Environment Variables
+## 🧪 Testing
 
-Create a `.env` file in the root directory:
+This project includes comprehensive testing:
 
-```env
-DATABASE_URL="file:./dev.db"
-NEXTAUTH_SECRET="your-secret-key-change-this-in-production"
-NEXTAUTH_URL="http://localhost:3000"
+### Unit Tests
+```bash
+npm test                # Run unit tests
+npm run test:watch      # Run tests in watch mode
+npm run test:coverage   # Run tests with coverage report
 ```
 
-For production, make sure to:
-- Use a strong, random `NEXTAUTH_SECRET`
-- Update `NEXTAUTH_URL` to your domain
-- Consider using PostgreSQL instead of SQLite
+### End-to-End Tests
+```bash
+npm run test:e2e        # Run Playwright E2E tests
+npm run test:e2e:ui     # Run E2E tests with UI
+```
 
-## Deployment
+### Run All Tests
+```bash
+npm run test:all        # Run both unit and E2E tests
+```
 
-### Netlify
+## 🌍 Environment Variables
 
-1. Connect your GitHub repository to Netlify
-2. Set build command: `npm run build`
-3. Set publish directory: `.next`
-4. Add environment variables in Netlify dashboard
-5. For database, consider using:
-   - PlanetScale (MySQL)
-   - Supabase (PostgreSQL)
-   - Railway (PostgreSQL)
+Copy `.env.example` to `.env.local` and update the values:
 
-### Cloudflare Pages
+```env
+# Database Configuration
+DATABASE_URL="file:./dev.db"
 
-1. Connect your GitHub repository to Cloudflare Pages
-2. Set build command: `npm run build`
-3. Set build output directory: `.next`
-4. Add environment variables in Cloudflare dashboard
-5. For database, use:
-   - Cloudflare D1 (SQLite)
-   - External PostgreSQL service
+# Authentication (Generate strong secrets for production)
+JWT_SECRET="your-super-secure-jwt-secret-key"
+NEXTAUTH_SECRET="your-nextauth-secret"
+NEXTAUTH_URL="http://localhost:3000"
 
-### Database Migration for Production
+# Next.js Configuration
+NODE_ENV="development"
+NEXT_PUBLIC_BASE_URL="http://localhost:3000"
 
-If moving from SQLite to PostgreSQL/MySQL:
+# Admin Configuration
+ADMIN_EMAIL="admin@example.com"
+ADMIN_PASSWORD="change-this-password"
+```
 
-1. Update your `DATABASE_URL` in `.env`
-2. Update `prisma/schema.prisma` provider
-3. Run migrations:
+For production deployment, see [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed instructions.
+
+## 🚀 Deployment
+
+### Quick Deploy to Vercel
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/kylee-blog)
+
+### Manual Deployment
+
+1. **Set up environment variables** in your hosting platform
+2. **Configure database** (PostgreSQL for production)
+3. **Run build and deployment**:
    ```bash
-   npx prisma migrate deploy
-   npx prisma generate
+   npm run build
+   npm start
    ```
+
+### Supported Platforms
+
+- **Vercel** ⭐ (Recommended - optimized configuration included)
+- **Netlify**
+- **Cloudflare Pages**
+- **Traditional VPS/Server**
+- **Docker** (Dockerfile included)
+
+For detailed deployment instructions, see [DEPLOYMENT.md](./DEPLOYMENT.md).
 
 ## Usage
 
