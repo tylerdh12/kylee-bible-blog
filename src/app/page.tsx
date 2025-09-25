@@ -1,103 +1,151 @@
-import Image from "next/image";
+import { prisma } from "@/lib/db"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import Link from "next/link"
+import { format } from "date-fns"
 
-export default function Home() {
+async function getRecentPosts() {
+  return prisma.post.findMany({
+    where: { published: true },
+    include: {
+      author: { select: { name: true } },
+      tags: true,
+    },
+    orderBy: { publishedAt: 'desc' },
+    take: 6,
+  })
+}
+
+async function getActiveGoals() {
+  return prisma.goal.findMany({
+    where: { completed: false },
+    orderBy: { createdAt: 'desc' },
+    take: 3,
+  })
+}
+
+export default async function Home() {
+  const [posts, goals] = await Promise.all([
+    getRecentPosts(),
+    getActiveGoals(),
+  ])
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="container mx-auto px-4 py-8">
+      {/* Hero Section */}
+      <div className="text-center mb-12">
+        <h1 className="text-4xl font-bold mb-4">Welcome to Kylee's Blog</h1>
+        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          Join me on my Bible study journey as I explore God&apos;s word, share insights, 
+          and grow in faith. Together, we can support ministry goals and build community.
+        </p>
+      </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      {/* Recent Posts Section */}
+      <div className="mb-12">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-3xl font-semibold">Recent Posts</h2>
+          <Link href="/posts" className="text-primary hover:underline">
+            View all posts →
+          </Link>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        {posts.length === 0 ? (
+          <Card>
+            <CardContent className="py-8 text-center">
+              <p className="text-muted-foreground">No posts yet. Check back soon!</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {posts.map((post: any) => (
+              <Card key={post.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <CardTitle className="line-clamp-2">{post.title}</CardTitle>
+                  <CardDescription>
+                    {post.publishedAt && format(new Date(post.publishedAt), 'PPP')}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground mb-4 line-clamp-3">
+                    {post.excerpt || post.content.substring(0, 150) + '...'}
+                  </p>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {post.tags.map((tag: any) => (
+                      <Badge key={tag.id} variant="secondary">
+                        {tag.name}
+                      </Badge>
+                    ))}
+                  </div>
+                  <Link
+                    href={`/posts/${post.slug}`}
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Read more →
+                  </Link>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Goals Section */}
+      <div>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-3xl font-semibold">Current Goals</h2>
+          <Link href="/goals" className="text-primary hover:underline">
+            View all goals →
+          </Link>
+        </div>
+
+        {goals.length === 0 ? (
+          <Card>
+            <CardContent className="py-8 text-center">
+              <p className="text-muted-foreground">No active goals at the moment.</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {goals.map((goal: any) => {
+              const progress = (goal.currentAmount / goal.targetAmount) * 100
+              return (
+                <Card key={goal.id}>
+                  <CardHeader>
+                    <CardTitle className="line-clamp-1">{goal.title}</CardTitle>
+                    <CardDescription className="line-clamp-2">
+                      {goal.description}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="mb-4">
+                      <div className="flex justify-between text-sm mb-2">
+                        <span>${goal.currentAmount.toFixed(2)}</span>
+                        <span>${goal.targetAmount.toFixed(2)}</span>
+                      </div>
+                      <div className="w-full bg-secondary rounded-full h-2">
+                        <div
+                          className="bg-primary h-2 rounded-full transition-all"
+                          style={{ width: `${Math.min(progress, 100)}%` }}
+                        />
+                      </div>
+                      <p className="text-center text-sm text-muted-foreground mt-2">
+                        {progress.toFixed(1)}% completed
+                      </p>
+                    </div>
+                    <Link
+                      href={`/donate?goal=${goal.id}`}
+                      className="text-primary hover:underline font-medium"
+                    >
+                      Support this goal →
+                    </Link>
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
+        )}
+      </div>
     </div>
-  );
+  )
 }
