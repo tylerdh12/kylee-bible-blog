@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
+import Link from "next/link"
 
 export default function AdminPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -134,10 +135,18 @@ export default function AdminPage() {
             <CardTitle>Quick Actions</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button className="w-full">Create New Post</Button>
-            <Button variant="outline" className="w-full">Create New Goal</Button>
-            <Button variant="outline" className="w-full">View Donations</Button>
-            <Button variant="outline" className="w-full">Manage Tags</Button>
+            <Link href="/admin/posts/new">
+              <Button className="w-full">Create New Post</Button>
+            </Link>
+            <Link href="/admin/goals/new">
+              <Button variant="outline" className="w-full">Create New Goal</Button>
+            </Link>
+            <Link href="/admin/donations">
+              <Button variant="outline" className="w-full">View Donations</Button>
+            </Link>
+            <Link href="/admin/goals">
+              <Button variant="outline" className="w-full">Manage Goals</Button>
+            </Link>
           </CardContent>
         </Card>
         

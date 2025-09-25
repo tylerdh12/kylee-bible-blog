@@ -24,25 +24,30 @@ export async function POST(request: NextRequest) {
 
     // If donation is for a specific goal, update the goal's current amount
     if (goalId) {
-      await prisma.goal.update({
-        where: { id: goalId },
-        data: {
-          currentAmount: {
-            increment: parseFloat(amount)
-          }
-        }
-      })
-
-      // Check if goal is now completed
-      const updatedGoal = await prisma.goal.findUnique({
-        where: { id: goalId }
-      })
-
-      if (updatedGoal && updatedGoal.currentAmount >= updatedGoal.targetAmount) {
+      try {
         await prisma.goal.update({
           where: { id: goalId },
-          data: { completed: true }
+          data: {
+            currentAmount: {
+              increment: parseFloat(amount)
+            }
+          }
         })
+
+        // Check if goal is now completed
+        const updatedGoal = await prisma.goal.findUnique({
+          where: { id: goalId }
+        })
+
+        if (updatedGoal && updatedGoal.currentAmount >= updatedGoal.targetAmount) {
+          await prisma.goal.update({
+            where: { id: goalId },
+            data: { completed: true }
+          })
+        }
+      } catch (goalError) {
+        console.error('Error updating goal:', goalError)
+        // Continue anyway - donation was created successfully
       }
     }
 

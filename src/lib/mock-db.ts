@@ -134,6 +134,22 @@ export const mockDb = {
       }))
     },
     
+    findFirst: async ({ where, include }: { where?: any, include?: any } = {}) => {
+      const post = storage.posts.find(p => {
+        if (where?.slug && p.slug !== where.slug) return false
+        if (where?.published !== undefined && p.published !== where.published) return false
+        return true
+      })
+      
+      if (!post) return null
+      
+      return {
+        ...post,
+        author: storage.users.find(u => u.id === post.authorId),
+        tags: post.tags || []
+      }
+    },
+    
     create: async ({ data, include }: { data: any, include?: any }) => {
       const newPost: Post = {
         ...data,
@@ -181,6 +197,16 @@ export const mockDb = {
         filteredGoals.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
       }
       
+      if (orderBy && Array.isArray(orderBy)) {
+        filteredGoals.sort((a, b) => {
+          // Sort by completed first (false first), then by createdAt desc
+          if (a.completed !== b.completed) {
+            return a.completed ? 1 : -1
+          }
+          return b.createdAt.getTime() - a.createdAt.getTime()
+        })
+      }
+      
       if (take) {
         filteredGoals = filteredGoals.slice(0, take)
       }
@@ -193,6 +219,20 @@ export const mockDb = {
     
     findUnique: async ({ where }: { where: { id: string } }) => {
       return storage.goals.find(g => g.id === where.id) || null
+    },
+    
+    create: async ({ data }: { data: any }) => {
+      const newGoal: Goal = {
+        ...data,
+        id: `goal${storage.goals.length + 1}`,
+        currentAmount: data.currentAmount || 0,
+        completed: data.completed || false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        donations: []
+      }
+      storage.goals.push(newGoal)
+      return newGoal
     },
     
     update: async ({ where, data }: { where: { id: string }, data: any }) => {
@@ -212,6 +252,22 @@ export const mockDb = {
   },
   
   donation: {
+    findMany: async ({ include, orderBy }: { include?: any, orderBy?: any } = {}) => {
+      const donations = [...storage.donations]
+      
+      if (orderBy?.createdAt === 'desc') {
+        donations.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      }
+      
+      return donations.map(donation => {
+        const result = { ...donation }
+        if (include?.goal && donation.goalId) {
+          result.goal = storage.goals.find(g => g.id === donation.goalId) || undefined
+        }
+        return result
+      })
+    },
+    
     create: async ({ data }: { data: any }) => {
       const newDonation: Donation = {
         ...data,
