@@ -168,7 +168,7 @@ class PrismaAdapter implements DatabaseAdapter {
 	async createPost(
 		data: Omit<Post, 'id' | 'createdAt' | 'updatedAt'>
 	): Promise<Post> {
-		const { tags, author: _, ...postData } = data;
+		const { tags, author: _author, ...postData } = data;
 		const result = await this.prisma.post.create({
 			data: {
 				...postData,
@@ -188,7 +188,7 @@ class PrismaAdapter implements DatabaseAdapter {
 		id: string,
 		data: Partial<Post>
 	): Promise<Post | null> {
-		const { tags, author: _, ...postData } = data;
+		const { tags, author: _author, ...postData } = data;
 		return this.prisma.post.update({
 			where: { id },
 			data: {
@@ -203,7 +203,7 @@ class PrismaAdapter implements DatabaseAdapter {
 				author: true,
 				tags: true,
 			},
-		});
+		}) as Promise<Post>;
 	}
 
 	async deletePost(id: string): Promise<boolean> {
@@ -616,7 +616,10 @@ export class DatabaseService {
 	private constructor() {
 		// Use real Prisma client for production functionality
 		const prisma = new PrismaClient({
-			log: process.env.NODE_ENV === 'development' ? ['query'] : [],
+			log:
+				process.env.NODE_ENV === 'development'
+					? ['query']
+					: [],
 		});
 		this.adapter = new PrismaAdapter(prisma);
 	}
