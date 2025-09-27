@@ -1,10 +1,10 @@
-import { prisma } from "@/lib/db"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { format } from "date-fns"
 import { Metadata } from "next"
+import { DatabaseService } from "@/lib/services/database"
 
 export const metadata: Metadata = {
   title: "Ministry Goals - Support Kylee's Bible Study Mission",
@@ -24,14 +24,10 @@ export const metadata: Metadata = {
 }
 
 async function getGoals() {
-  return prisma.goal.findMany({
-    include: {
-      donations: true,
-    },
-    orderBy: [
-      { completed: 'asc' },
-      { createdAt: 'desc' },
-    ],
+  const db = DatabaseService.getInstance()
+  return db.findGoals({
+    includeDonations: true,
+    sort: { field: 'createdAt', order: 'desc' },
   })
 }
 
