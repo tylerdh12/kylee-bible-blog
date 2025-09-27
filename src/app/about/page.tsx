@@ -1,6 +1,24 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "About Kylee - Bible Study Teacher & Christian Writer",
+  description: "Learn about Kylee's faith journey and mission to make Bible study accessible to everyone. Discover her passion for biblical truth, spiritual growth, and building Christian community.",
+  keywords: ["about Kylee", "Bible study teacher", "Christian writer", "faith journey", "biblical education", "Christian ministry"],
+  openGraph: {
+    title: "About Kylee - Bible Study Teacher & Christian Writer",
+    description: "Learn about Kylee's faith journey and mission to make Bible study accessible to everyone. Discover her passion for biblical truth and spiritual growth.",
+    type: "profile",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "About Kylee - Bible Study Teacher & Christian Writer",
+    description: "Learn about Kylee's faith journey and mission to make Bible study accessible to everyone.",
+  },
+}
 
 export default function AboutPage() {
   return (

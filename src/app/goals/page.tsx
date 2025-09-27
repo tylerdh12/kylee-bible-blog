@@ -4,6 +4,24 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { format } from "date-fns"
+import { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Ministry Goals - Support Kylee's Bible Study Mission",
+  description: "Support Kylee's ministry goals and help further God's work. View current fundraising goals for Bible study resources, ministry outreach, and spreading God's love in the community.",
+  keywords: ["ministry goals", "Christian fundraising", "Bible study support", "ministry donations", "Christian giving", "spiritual support"],
+  openGraph: {
+    title: "Ministry Goals - Support Kylee's Bible Study Mission",
+    description: "Support Kylee's ministry goals and help further God's work. View current fundraising goals for Bible study resources and ministry outreach.",
+    type: "website",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Ministry Goals - Support Kylee's Bible Study Mission",
+    description: "Support Kylee's ministry goals and help further God's work through Bible study resources and ministry outreach.",
+  },
+}
 
 async function getGoals() {
   return prisma.goal.findMany({

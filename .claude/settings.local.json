@@ -29,7 +29,8 @@
       "Bash(git merge:*)",
       "Bash(git stash:*)",
       "Bash(npm test:*)",
-      "Bash(ADMIN_EMAIL=\"test@example.com\" ADMIN_PASSWORD=\"testsecurepassword123\" ADMIN_NAME=\"Test Admin\" node scripts/create-production-admin.js)"
+      "Bash(ADMIN_EMAIL=\"test@example.com\" ADMIN_PASSWORD=\"testsecurepassword123\" ADMIN_NAME=\"Test Admin\" node scripts/create-production-admin.js)",
+      "mcp__linear__list_issues"
     ],
     "deny": [],
     "ask": []
