@@ -130,7 +130,13 @@ describe('AdminPage', () => {
         .mockResolvedValueOnce({
           ok: true,
           json: async () => ({
-            stats: { totalPosts: 10, activeGoals: 3, totalDonations: 500, monthlyDonations: 150 }
+            stats: {
+              totalPosts: 10,
+              activeGoals: 3,
+              totalDonations: 500,
+              monthlyDonations: 150,
+              totalDonationAmount: 500.00
+            }
           }),
         } as Response)
     })
@@ -184,7 +190,13 @@ describe('AdminPage', () => {
         .mockResolvedValueOnce({
           ok: true,
           json: async () => ({
-            stats: { totalPosts: 10, activeGoals: 3, totalDonations: 500, monthlyDonations: 150 }
+            stats: {
+              totalPosts: 10,
+              activeGoals: 3,
+              totalDonations: 500,
+              monthlyDonations: 150,
+              totalDonationAmount: 500.00
+            }
           }),
         } as Response)
 
