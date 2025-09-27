@@ -41,10 +41,6 @@ export async function POST(request: NextRequest) {
 		}
 
 		// Create post with validated data
-			tags: tagObjects,
-			authorId: user.id,
-		});
-
 		const post = await db.createPost({
 			title: title.trim(),
 			content: content.trim(),
