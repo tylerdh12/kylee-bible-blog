@@ -1,9 +1,9 @@
-import { prisma } from "@/lib/db"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { format } from "date-fns"
 import { Metadata } from "next"
+import { DatabaseService } from "@/lib/services/database"
 
 export const metadata: Metadata = {
   title: "Kylee's Bible Blog - Bible Study Journey & Christian Insights",
@@ -27,21 +27,21 @@ export const metadata: Metadata = {
 }
 
 async function getRecentPosts() {
-  return prisma.post.findMany({
-    where: { published: true },
-    include: {
-      author: { select: { name: true } },
-      tags: true,
-    },
-    orderBy: { publishedAt: 'desc' },
+  const db = DatabaseService.getInstance()
+  return db.findPosts({
+    published: true,
+    includeAuthor: true,
+    includeTags: true,
+    sort: { field: 'publishedAt', order: 'desc' },
     take: 6,
   })
 }
 
 async function getActiveGoals() {
-  return prisma.goal.findMany({
-    where: { completed: false },
-    orderBy: { createdAt: 'desc' },
+  const db = DatabaseService.getInstance()
+  return db.findGoals({
+    completed: false,
+    sort: { field: 'createdAt', order: 'desc' },
     take: 3,
   })
 }
