@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { useSearchParams } from "next/navigation"
+import { Loading } from "@/components/loading"
+import { useLoading } from "@/hooks/use-loading"
 
 interface Goal {
   id: string
@@ -21,14 +23,15 @@ interface Goal {
 function DonateForm() {
   const searchParams = useSearchParams()
   const goalId = searchParams.get('goal')
-  
+
   const [goals, setGoals] = useState<Goal[]>([])
   const [selectedGoal, setSelectedGoal] = useState<string>("general")
   const [amount, setAmount] = useState("")
   const [donorName, setDonorName] = useState("")
   const [message, setMessage] = useState("")
   const [anonymous, setAnonymous] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const { isLoading: loading, withLoading } = useLoading()
+  const { isLoading: goalsLoading, withLoading: withGoalsLoading } = useLoading()
 
   useEffect(() => {
     fetchGoals()
@@ -38,52 +41,52 @@ function DonateForm() {
   }, [goalId])
 
   const fetchGoals = async () => {
-    try {
-      const response = await fetch('/api/goals')
-      const data = await response.json()
-      setGoals(data.goals || [])
-    } catch (error) {
-      console.error('Error fetching goals:', error)
-    }
+    await withGoalsLoading(async () => {
+      try {
+        const response = await fetch('/api/goals')
+        const data = await response.json()
+        setGoals(data.goals || [])
+      } catch (error) {
+        console.error('Error fetching goals:', error)
+      }
+    })
   }
 
   const handleDonate = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!amount || parseFloat(amount) <= 0) {
       alert('Please enter a valid donation amount')
       return
     }
 
-    setLoading(true)
-    try {
-      const response = await fetch('/api/donations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount: parseFloat(amount),
-          donorName: anonymous ? null : donorName,
-          message,
-          anonymous,
-          goalId: selectedGoal === "general" ? null : selectedGoal,
-        }),
-      })
+    await withLoading(async () => {
+      try {
+        const response = await fetch('/api/donations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount: parseFloat(amount),
+            donorName: anonymous ? null : donorName,
+            message,
+            anonymous,
+            goalId: selectedGoal === "general" ? null : selectedGoal,
+          }),
+        })
 
-      if (response.ok) {
-        alert('Thank you for your donation! 🙏')
-        // Reset form
-        setAmount("")
-        setDonorName("")
-        setMessage("")
-        setSelectedGoal("general")
-      } else {
-        alert('Failed to process donation. Please try again.')
+        if (response.ok) {
+          alert('Thank you for your donation! 🙏')
+          setAmount("")
+          setDonorName("")
+          setMessage("")
+          setSelectedGoal("general")
+        } else {
+          alert('Failed to process donation. Please try again.')
+        }
+      } catch {
+        alert('Error processing donation')
       }
-    } catch {
-      alert('Error processing donation')
-    } finally {
-      setLoading(false)
-    }
+    })
   }
 
   const selectedGoalData = selectedGoal !== "general" ? goals.find(goal => goal.id === selectedGoal) : null
@@ -108,7 +111,12 @@ function DonateForm() {
         
         <CardContent>
           <form onSubmit={handleDonate} className="space-y-6">
-            {goals.length > 0 && (
+            {goalsLoading ? (
+              <div className="space-y-2">
+                <Label>Support a Specific Goal (Optional)</Label>
+                <div className="h-10 bg-muted animate-pulse rounded-md"></div>
+              </div>
+            ) : goals.length > 0 && (
               <div className="space-y-2">
                 <Label>Support a Specific Goal (Optional)</Label>
                 <Select value={selectedGoal} onValueChange={setSelectedGoal}>
@@ -213,7 +221,14 @@ function DonateForm() {
             </div>
 
             <Button type="submit" className="w-full" disabled={loading} aria-describedby={loading ? "donation-status" : undefined}>
-              {loading ? 'Processing...' : `Donate $${amount || '0.00'}`}
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <Loading size="sm" />
+                  Processing...
+                </span>
+              ) : (
+                `Donate $${amount || '0.00'}`
+              )}
               {loading && <span className="sr-only" id="donation-status">Processing your donation, please wait</span>}
             </Button>
           </form>
@@ -236,7 +251,11 @@ function DonateForm() {
 
 export default function DonatePage() {
   return (
-    <Suspense fallback={<div className="container mx-auto px-4 py-8 text-center">Loading...</div>}>
+    <Suspense fallback={
+      <div className="container mx-auto px-4 py-8">
+        <Loading size="lg" text="Loading donation form..." />
+      </div>
+    }>
       <DonateForm />
     </Suspense>
   )
