@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -29,9 +29,9 @@ export default function EditPostPage({ params }: EditPostPageProps) {
 
   useEffect(() => {
     fetchPost()
-  }, [])
+  }, [fetchPost])
 
-  const fetchPost = async () => {
+  const fetchPost = useCallback(async () => {
     try {
       const response = await fetch(`/api/posts/${params.id}`)
       if (response.ok) {
@@ -53,7 +53,7 @@ export default function EditPostPage({ params }: EditPostPageProps) {
     } finally {
       setInitialLoading(false)
     }
-  }
+  }, [params.id, router])
 
   const addTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {

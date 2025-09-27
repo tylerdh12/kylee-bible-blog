@@ -6,7 +6,6 @@ import { usePathname } from 'next/navigation';
 import {
 	BookOpen,
 	Calendar,
-	ChartBar,
 	FileText,
 	Heart,
 	Home,

@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { DashboardLayout } from '@/components/dashboard-layout';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface Goal {
 	id: string;
 	title: string;
@@ -32,7 +33,6 @@ export default function EditGoalPage() {
 	const [user, setUser] = useState<any>(null);
 	const [loading, setLoading] = useState(true);
 	const [saving, setSaving] = useState(false);
-	const [goal, setGoal] = useState<Goal | null>(null);
 
 	const [title, setTitle] = useState('');
 	const [description, setDescription] = useState('');

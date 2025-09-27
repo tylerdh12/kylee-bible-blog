@@ -168,7 +168,7 @@ class PrismaAdapter implements DatabaseAdapter {
 	async createPost(
 		data: Omit<Post, 'id' | 'createdAt' | 'updatedAt'>
 	): Promise<Post> {
-		const { tags, author: _author, ...postData } = data;
+		const { tags, ...postData } = data;
 		const result = await this.prisma.post.create({
 			data: {
 				...postData,
@@ -188,7 +188,7 @@ class PrismaAdapter implements DatabaseAdapter {
 		id: string,
 		data: Partial<Post>
 	): Promise<Post | null> {
-		const { tags, author: _author, ...postData } = data;
+		const { tags, ...postData } = data;
 		return this.prisma.post.update({
 			where: { id },
 			data: {
@@ -275,6 +275,7 @@ class PrismaAdapter implements DatabaseAdapter {
 		id: string,
 		data: Partial<Goal>
 	): Promise<Goal | null> {
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		const { donations: _donations, ...goalData } = data;
 		return this.prisma.goal.update({
 			where: { id },
@@ -325,6 +326,7 @@ class PrismaAdapter implements DatabaseAdapter {
 	async createDonation(
 		data: Omit<Donation, 'id' | 'createdAt'>
 	): Promise<Donation> {
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		const { goal: _goal, ...donationData } = data;
 		const donation = await this.prisma.donation.create({
 			data: donationData,
@@ -401,6 +403,7 @@ class PrismaAdapter implements DatabaseAdapter {
 }
 
 // Mock adapter for development/testing (kept for reference)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 class MockAdapter implements DatabaseAdapter {
 	constructor(private mockDb: any) {}
 

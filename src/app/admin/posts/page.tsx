@@ -65,7 +65,6 @@ export default function PostsIndexPage() {
 				setPosts(data.posts || []);
 			}
 		} catch (err) {
-			// eslint-disable-next-line no-console
 			console.error('Failed to load posts', err);
 		}
 	};
