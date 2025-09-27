@@ -81,10 +81,10 @@ export default function AdminPage() {
 
 	if (isLoggedIn === null) {
 		return (
-			<div className='flex items-center justify-center min-h-screen'>
+			<div className='flex items-center justify-center min-h-screen' role="main" aria-label="Loading admin dashboard">
 				<div className='text-center'>
-					<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4'></div>
-					<p className='text-muted-foreground'>
+					<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4' role="status" aria-label="Loading"></div>
+					<p className='text-muted-foreground' aria-live="polite">
 						Loading...
 					</p>
 				</div>
@@ -94,11 +94,11 @@ export default function AdminPage() {
 
 	if (!isLoggedIn) {
 		return (
-			<div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-900 dark:to-slate-800'>
+			<div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-900 dark:to-slate-800' role="main">
 				<div className='w-full max-w-md'>
 					<Card className='shadow-xl'>
 						<CardHeader className='text-center pb-6'>
-							<div className='mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10'>
+							<div className='mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10' aria-hidden="true">
 								<div className='h-6 w-6 text-primary'>
 									📝
 								</div>
@@ -114,6 +114,8 @@ export default function AdminPage() {
 							<form
 								onSubmit={handleLogin}
 								className='space-y-4'
+								aria-labelledby="login-title"
+								aria-describedby="login-description"
 							>
 								<div className='space-y-2'>
 									<Label htmlFor='email'>Email</Label>
@@ -126,7 +128,12 @@ export default function AdminPage() {
 										}
 										placeholder='Enter your email'
 										required
+										aria-describedby="email-help"
+										autoComplete="email"
 									/>
+									<div id="email-help" className="sr-only">
+										Enter your registered email address
+									</div>
 								</div>
 								<div className='space-y-2'>
 									<Label htmlFor='password'>Password</Label>
@@ -139,17 +146,24 @@ export default function AdminPage() {
 										}
 										placeholder='Enter your password'
 										required
+										aria-describedby="password-help"
+										autoComplete="current-password"
 									/>
+									<div id="password-help" className="sr-only">
+										Enter your password to access the admin dashboard
+									</div>
 								</div>
 								<Button
 									type='submit'
 									className='w-full'
 									disabled={loading}
+									aria-describedby={loading ? "login-status" : undefined}
 								>
 									{loading ? (
 										<>
-											<div className='animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2'></div>
+											<div className='animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2' role="status" aria-hidden="true"></div>
 											Signing in...
+											<span className="sr-only" id="login-status">Processing your login request, please wait</span>
 										</>
 									) : (
 										'Sign In'
@@ -194,20 +208,21 @@ export default function AdminPage() {
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
-						<div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-							<Card className='p-4 hover:shadow-md transition-shadow cursor-pointer'>
+						<div className='grid grid-cols-1 md:grid-cols-3 gap-4' role="list">
+							<Card className='p-4 hover:shadow-md transition-shadow cursor-pointer' role="listitem">
 								<a
 									href='/admin/posts/new'
-									className='block'
+									className='block focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-md'
+									aria-describedby="post-action-desc"
 								>
 									<div className='text-center space-y-2'>
-										<div className='h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center mx-auto'>
+										<div className='h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center mx-auto' aria-hidden="true">
 											📝
 										</div>
 										<h4 className='font-medium'>
 											Write Your First Post
 										</h4>
-										<p className='text-sm text-muted-foreground'>
+										<p id="post-action-desc" className='text-sm text-muted-foreground'>
 											Share your thoughts and insights with
 											your readers
 										</p>
@@ -215,19 +230,20 @@ export default function AdminPage() {
 								</a>
 							</Card>
 
-							<Card className='p-4 hover:shadow-md transition-shadow cursor-pointer'>
+							<Card className='p-4 hover:shadow-md transition-shadow cursor-pointer' role="listitem">
 								<a
 									href='/admin/goals'
-									className='block'
+									className='block focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-md'
+									aria-describedby="goals-action-desc"
 								>
 									<div className='text-center space-y-2'>
-										<div className='h-8 w-8 bg-green-100 rounded-full flex items-center justify-center mx-auto'>
+										<div className='h-8 w-8 bg-green-100 rounded-full flex items-center justify-center mx-auto' aria-hidden="true">
 											🎯
 										</div>
 										<h4 className='font-medium'>
 											Set Up Goals
 										</h4>
-										<p className='text-sm text-muted-foreground'>
+										<p id="goals-action-desc" className='text-sm text-muted-foreground'>
 											Create fundraising goals for your
 											ministry
 										</p>
@@ -235,19 +251,20 @@ export default function AdminPage() {
 								</a>
 							</Card>
 
-							<Card className='p-4 hover:shadow-md transition-shadow cursor-pointer'>
+							<Card className='p-4 hover:shadow-md transition-shadow cursor-pointer' role="listitem">
 								<a
 									href='/admin/donations'
-									className='block'
+									className='block focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-md'
+									aria-describedby="donations-action-desc"
 								>
 									<div className='text-center space-y-2'>
-										<div className='h-8 w-8 bg-purple-100 rounded-full flex items-center justify-center mx-auto'>
+										<div className='h-8 w-8 bg-purple-100 rounded-full flex items-center justify-center mx-auto' aria-hidden="true">
 											💝
 										</div>
 										<h4 className='font-medium'>
 											Share Donation Page
 										</h4>
-										<p className='text-sm text-muted-foreground'>
+										<p id="donations-action-desc" className='text-sm text-muted-foreground'>
 											Let supporters contribute to your
 											ministry
 										</p>

@@ -139,11 +139,11 @@ function DonateForm() {
                           {selectedGoalData.description}
                         </p>
                       )}
-                      <div className="w-full bg-secondary rounded-full h-2 mt-3">
+                      <div className="w-full bg-secondary rounded-full h-2 mt-3" role="progressbar" aria-label={`Goal progress: ${Math.min((selectedGoalData.currentAmount / selectedGoalData.targetAmount) * 100, 100).toFixed(1)}% complete`} aria-valuenow={Math.min((selectedGoalData.currentAmount / selectedGoalData.targetAmount) * 100, 100)} aria-valuemin={0} aria-valuemax={100}>
                         <div
                           className="bg-primary h-2 rounded-full"
-                          style={{ 
-                            width: `${Math.min((selectedGoalData.currentAmount / selectedGoalData.targetAmount) * 100, 100)}%` 
+                          style={{
+                            width: `${Math.min((selectedGoalData.currentAmount / selectedGoalData.targetAmount) * 100, 100)}%`
                           }}
                         />
                       </div>
@@ -156,7 +156,7 @@ function DonateForm() {
             <div className="space-y-2">
               <Label htmlFor="amount">Donation Amount *</Label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" aria-hidden="true">
                   $
                 </span>
                 <Input
@@ -169,8 +169,12 @@ function DonateForm() {
                   className="pl-7"
                   placeholder="0.00"
                   required
+                  aria-describedby="amount-help"
                 />
               </div>
+              <p id="amount-help" className="text-sm text-muted-foreground">
+                Enter a donation amount in dollars (minimum $1.00)
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -208,8 +212,9 @@ function DonateForm() {
               />
             </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full" disabled={loading} aria-describedby={loading ? "donation-status" : undefined}>
               {loading ? 'Processing...' : `Donate $${amount || '0.00'}`}
+              {loading && <span className="sr-only" id="donation-status">Processing your donation, please wait</span>}
             </Button>
           </form>
         </CardContent>
