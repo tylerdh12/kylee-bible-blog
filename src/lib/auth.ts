@@ -4,7 +4,18 @@ import { cookies } from 'next/headers'
 import { NextRequest } from 'next/server'
 import { DatabaseService } from './services/database'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key'
+// Validate JWT_SECRET environment variable
+const JWT_SECRET = process.env.JWT_SECRET
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required')
+}
+if (JWT_SECRET.length < 32) {
+  throw new Error('JWT_SECRET must be at least 32 characters long for security')
+}
+
+// TypeScript assertion: JWT_SECRET is guaranteed to be a string at this point
+const VALIDATED_JWT_SECRET: string = JWT_SECRET
+
 const db = DatabaseService.getInstance()
 
 export async function createUser(email: string, password: string, name?: string) {
@@ -27,12 +38,12 @@ export async function getUserByEmail(email: string) {
 }
 
 export function createAuthToken(userId: string) {
-  return jwt.sign({ userId }, JWT_SECRET, { expiresIn: '7d' })
+  return jwt.sign({ userId }, VALIDATED_JWT_SECRET, { expiresIn: '7d' })
 }
 
 export function verifyAuthToken(token: string) {
   try {
-    return jwt.verify(token, JWT_SECRET) as { userId: string }
+    return jwt.verify(token, VALIDATED_JWT_SECRET) as { userId: string }
   } catch {
     return null
   }
