@@ -20,7 +20,10 @@
       "Bash(npm run setup:*)",
       "Bash(grep:*)",
       "mcp__socket__depscore",
-      "Bash(npm audit:*)"
+      "Bash(npm audit:*)",
+      "mcp__vercel__web_fetch_vercel_url",
+      "mcp__linear__create_project",
+      "mcp__linear__create_issue"
     ],
     "deny": [],
     "ask": []
