@@ -3,6 +3,24 @@ import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { format } from "date-fns"
 import { DatabaseService } from "@/lib/services/database"
+import { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "All Blog Posts - Kylee's Bible Study Journey",
+  description: "Explore all blog posts from Kylee's Bible study journey. Discover in-depth biblical insights, spiritual reflections, and practical applications of God's word for daily life.",
+  keywords: ["Bible study", "Christian blog", "spiritual growth", "biblical insights", "faith journey", "Scripture study"],
+  openGraph: {
+    title: "All Blog Posts - Kylee's Bible Study Journey",
+    description: "Explore all blog posts from Kylee's Bible study journey. Discover in-depth biblical insights, spiritual reflections, and practical applications of God's word.",
+    type: "website",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "All Blog Posts - Kylee's Bible Study Journey",
+    description: "Explore all blog posts from Kylee's Bible study journey. Discover in-depth biblical insights and spiritual reflections.",
+  },
+}
 
 async function getPosts() {
   const db = DatabaseService.getInstance()

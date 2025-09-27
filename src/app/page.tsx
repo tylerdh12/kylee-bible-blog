@@ -3,6 +3,28 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { format } from "date-fns"
+import { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Kylee's Bible Blog - Bible Study Journey & Christian Insights",
+  description: "Join Kylee's Bible study journey. Discover in-depth biblical insights, spiritual reflections, and practical applications of God's word. Support ministry goals and grow in faith together.",
+  keywords: ["Bible study", "Christian blog", "biblical insights", "faith journey", "Scripture study", "spiritual growth", "ministry", "Christian community"],
+  openGraph: {
+    title: "Kylee's Bible Blog - Bible Study Journey & Christian Insights",
+    description: "Join Kylee's Bible study journey. Discover in-depth biblical insights, spiritual reflections, and practical applications of God's word.",
+    type: "website",
+    locale: "en_US",
+    siteName: "Kylee's Bible Blog",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Kylee's Bible Blog - Bible Study Journey & Christian Insights",
+    description: "Join Kylee's Bible study journey. Discover biblical insights and spiritual reflections.",
+  },
+  alternates: {
+    canonical: "/",
+  },
+}
 
 async function getRecentPosts() {
   return prisma.post.findMany({
