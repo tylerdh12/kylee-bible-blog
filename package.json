@@ -16,6 +16,8 @@
     "setup": "prisma generate && prisma db push && node scripts/create-admin.js",
     "setup:production": "prisma generate && prisma db push && node scripts/create-production-admin.js",
     "vercel-build": "prisma generate && next build",
+    "verify-deployment": "node scripts/verify-deployment.js",
+    "postbuild": "npm run verify-deployment",
     "release": "semantic-release",
     "version:patch": "npm version patch",
     "version:minor": "npm version minor",
