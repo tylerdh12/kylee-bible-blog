@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, Suspense } from "react"
+import { useState, useEffect, useCallback, Suspense } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -33,14 +33,7 @@ function DonateForm() {
   const { isLoading: loading, withLoading } = useLoading()
   const { isLoading: goalsLoading, withLoading: withGoalsLoading } = useLoading()
 
-  useEffect(() => {
-    fetchGoals()
-    if (goalId) {
-      setSelectedGoal(goalId)
-    }
-  }, [goalId])
-
-  const fetchGoals = async () => {
+  const fetchGoals = useCallback(async () => {
     await withGoalsLoading(async () => {
       try {
         const response = await fetch('/api/goals')
@@ -50,7 +43,14 @@ function DonateForm() {
         console.error('Error fetching goals:', error)
       }
     })
-  }
+  }, [withGoalsLoading])
+
+  useEffect(() => {
+    fetchGoals()
+    if (goalId) {
+      setSelectedGoal(goalId)
+    }
+  }, [goalId, fetchGoals])
 
   const handleDonate = async (e: React.FormEvent) => {
     e.preventDefault()

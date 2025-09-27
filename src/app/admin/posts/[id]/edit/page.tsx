@@ -19,12 +19,13 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
 interface EditPostPageProps {
-	params: { id: string };
+	params: Promise<{ id: string }>;
 }
 
 export default function EditPostPage({
 	params,
 }: EditPostPageProps) {
+	const [id, setId] = useState<string>('');
 	const router = useRouter();
 	const [post, setPost] = useState<any>(null);
 	const [title, setTitle] = useState('');
@@ -39,7 +40,7 @@ export default function EditPostPage({
 	const fetchPost = useCallback(async () => {
 		try {
 			const response = await fetch(
-				`/api/posts/${params.id}`
+				`/api/posts/${id}`
 			);
 			if (response.ok) {
 				const data = await response.json();
@@ -64,11 +65,19 @@ export default function EditPostPage({
 		} finally {
 			setInitialLoading(false);
 		}
-	}, [params.id, router]);
+	}, [id, router]);
 
 	useEffect(() => {
-		fetchPost();
-	}, [fetchPost]);
+		params.then(({ id: paramId }) => {
+			setId(paramId);
+		});
+	}, [params]);
+
+	useEffect(() => {
+		if (id) {
+			fetchPost();
+		}
+	}, [fetchPost, id]);
 
 	const addTag = () => {
 		if (
@@ -103,7 +112,7 @@ export default function EditPostPage({
 				publish !== undefined ? publish : post.published;
 
 			const response = await fetch(
-				`/api/posts/${params.id}`,
+				`/api/posts/${id}`,
 				{
 					method: 'PUT',
 					headers: { 'Content-Type': 'application/json' },
@@ -146,7 +155,7 @@ export default function EditPostPage({
 		setLoading(true);
 		try {
 			const response = await fetch(
-				`/api/posts/${params.id}`,
+				`/api/posts/${id}`,
 				{
 					method: 'DELETE',
 				}

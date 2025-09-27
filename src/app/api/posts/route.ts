@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/auth';
 import { DatabaseService } from '@/lib/services/database';
-import type { PostsResponse, ApiResponse } from '@/types';
+import type { PostsResponse } from '@/types';
 
 const db = DatabaseService.getInstance();
 
