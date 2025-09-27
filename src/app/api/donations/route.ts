@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { DatabaseService } from '@/lib/services/database';
 import { donationQuerySchema, createDonationSchema, createValidationErrorResponse } from '@/lib/validation/schemas';
 import { rateLimit, rateLimitConfigs } from '@/lib/utils/rate-limit';
+import type { DonationsResponse, ApiResponse } from '@/types';
 
 const db = DatabaseService.getInstance();
 const donationsRateLimit = rateLimit(rateLimitConfigs.donations);
@@ -51,16 +52,14 @@ export async function GET(request: NextRequest) {
 			includeGoal: true,
 		});
 
-		return NextResponse.json(
-			{ donations },
-			{
-				headers: {
-					'X-RateLimit-Limit': rateLimitResult.limit.toString(),
-					'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
-					'X-RateLimit-Reset': rateLimitResult.resetTime.toString()
-				}
+		const response: DonationsResponse = { donations };
+		return NextResponse.json(response, {
+			headers: {
+				'X-RateLimit-Limit': rateLimitResult.limit.toString(),
+				'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+				'X-RateLimit-Reset': rateLimitResult.resetTime.toString()
 			}
-		);
+		});
 	} catch (error) {
 		// Don't expose internal errors to clients
 		console.error('Error fetching donations:', error);

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DatabaseService } from '@/lib/services/database';
 import { rateLimit, rateLimitConfigs } from '@/lib/utils/rate-limit';
+import type { GoalsResponse, ApiResponse } from '@/types';
 
 const db = DatabaseService.getInstance();
 const goalsRateLimit = rateLimit(rateLimitConfigs.goals);
@@ -34,22 +35,21 @@ export async function GET(request: NextRequest) {
 			sort: { field: 'createdAt', order: 'desc' },
 		});
 
-		return NextResponse.json(
-			{ goals },
-			{
-				headers: {
-					'X-RateLimit-Limit': rateLimitResult.limit.toString(),
-					'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
-					'X-RateLimit-Reset': rateLimitResult.resetTime.toString()
-				}
+		const response: GoalsResponse = { goals };
+		return NextResponse.json(response, {
+			headers: {
+				'X-RateLimit-Limit': rateLimitResult.limit.toString(),
+				'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+				'X-RateLimit-Reset': rateLimitResult.resetTime.toString()
 			}
-		);
+		});
 	} catch (error) {
 		// Don't expose internal errors to clients
 		console.error('Error fetching goals:', error);
-		return NextResponse.json(
-			{ error: 'Internal server error' },
-			{ status: 500 }
-		);
+		const errorResponse: ApiResponse = {
+			success: false,
+			error: 'Internal server error'
+		};
+		return NextResponse.json(errorResponse, { status: 500 });
 	}
 }
