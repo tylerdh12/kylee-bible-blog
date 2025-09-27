@@ -27,10 +27,6 @@ export default function EditPostPage({ params }: EditPostPageProps) {
   const [loading, setLoading] = useState(false)
   const [initialLoading, setInitialLoading] = useState(true)
 
-  useEffect(() => {
-    fetchPost()
-  }, [fetchPost])
-
   const fetchPost = useCallback(async () => {
     try {
       const response = await fetch(`/api/posts/${params.id}`)
@@ -54,6 +50,10 @@ export default function EditPostPage({ params }: EditPostPageProps) {
       setInitialLoading(false)
     }
   }, [params.id, router])
+
+  useEffect(() => {
+    fetchPost()
+  }, [fetchPost])
 
   const addTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {

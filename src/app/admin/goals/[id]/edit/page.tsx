@@ -66,7 +66,6 @@ export default function EditGoalPage() {
 				if (res.ok) {
 					const data = await res.json();
 					const goalData = data.goal;
-					setGoal(goalData);
 					setTitle(goalData.title);
 					setDescription(goalData.description || '');
 					setTargetAmount(goalData.targetAmount.toString());

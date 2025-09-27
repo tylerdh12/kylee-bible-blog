@@ -168,7 +168,7 @@ class PrismaAdapter implements DatabaseAdapter {
 	async createPost(
 		data: Omit<Post, 'id' | 'createdAt' | 'updatedAt'>
 	): Promise<Post> {
-		const { tags, ...postData } = data;
+		const { tags, author: _, ...postData } = data;
 		const result = await this.prisma.post.create({
 			data: {
 				...postData,
@@ -188,7 +188,7 @@ class PrismaAdapter implements DatabaseAdapter {
 		id: string,
 		data: Partial<Post>
 	): Promise<Post | null> {
-		const { tags, ...postData } = data;
+		const { tags, author: _, ...postData } = data;
 		return this.prisma.post.update({
 			where: { id },
 			data: {
