@@ -26,21 +26,22 @@ export function Navbar() {
   }
 
   return (
-    <nav className="border-b">
+    <nav className="border-b" role="navigation" aria-label="Main navigation">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-4">
-            <Link href="/" className="text-xl font-bold" onClick={closeMenu}>
+            <Link href="/" className="text-xl font-bold focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-md" onClick={closeMenu}>
               Kylee&apos;s Blog
             </Link>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex space-x-4">
+            <div className="hidden md:flex space-x-4" role="menubar">
               {navigationLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100 transition-colors"
+                  className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-md px-2 py-1"
+                  role="menuitem"
                 >
                   {link.label}
                 </Link>
@@ -59,14 +60,15 @@ export function Navbar() {
             {/* Mobile menu button */}
             <button
               onClick={toggleMenu}
-              className="md:hidden p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="md:hidden p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
               aria-label={isMenuOpen ? "Close menu" : "Open menu"}
               aria-expanded={isMenuOpen}
+              aria-controls="mobile-menu"
             >
               {isMenuOpen ? (
-                <X className="h-6 w-6" />
+                <X className="h-6 w-6" aria-hidden="true" />
               ) : (
-                <Menu className="h-6 w-6" />
+                <Menu className="h-6 w-6" aria-hidden="true" />
               )}
             </button>
           </div>
@@ -74,11 +76,16 @@ export function Navbar() {
 
         {/* Mobile Navigation Menu */}
         <div
+          id="mobile-menu"
           className={`md:hidden transition-all duration-300 ease-in-out ${
             isMenuOpen
               ? "max-h-80 opacity-100 border-t"
               : "max-h-0 opacity-0 overflow-hidden"
           }`}
+          aria-hidden={!isMenuOpen}
+          role="menu"
+          aria-orientation="vertical"
+          aria-labelledby="mobile-menu-button"
         >
           <div className="py-4 space-y-1">
             {navigationLinks.map((link) => (
@@ -86,16 +93,18 @@ export function Navbar() {
                 key={link.href}
                 href={link.href}
                 onClick={closeMenu}
-                className="block px-4 py-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:bg-gray-800 transition-colors rounded-md mx-2"
+                className="block px-4 py-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:bg-gray-800 transition-colors rounded-md mx-2 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                role="menuitem"
+                tabIndex={isMenuOpen ? 0 : -1}
               >
                 {link.label}
               </Link>
             ))}
 
             {/* Mobile Admin Button */}
-            <div className="px-6 py-2">
-              <Link href="/admin" onClick={closeMenu}>
-                <Button variant="outline" size="sm" className="w-full">
+            <div className="px-6 py-2" role="none">
+              <Link href="/admin" onClick={closeMenu} tabIndex={isMenuOpen ? 0 : -1}>
+                <Button variant="outline" size="sm" className="w-full focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
                   Admin
                 </Button>
               </Link>
