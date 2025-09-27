@@ -1,6 +1,17 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import GoalsPage from '@/app/admin/goals/page'
 
+// Mock Next.js navigation
+const mockPush = jest.fn()
+
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: mockPush,
+  }),
+  usePathname: () => '/admin/goals',
+}))
+
+
 const mockFetch = fetch as jest.MockedFunction<typeof fetch>
 
 describe('GoalsPage', () => {
@@ -17,6 +28,13 @@ describe('GoalsPage', () => {
   })
 
   it('displays empty state when no goals exist', async () => {
+    // Mock auth check
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ authenticated: true, user: { id: '1', name: 'Test User' } }),
+    } as Response)
+
+    // Mock goals fetch
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ goals: [] }),
@@ -58,6 +76,13 @@ describe('GoalsPage', () => {
       }
     ]
 
+    // Mock auth check
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ authenticated: true, user: { id: '1', name: 'Test User' } }),
+    } as Response)
+
+    // Mock goals fetch
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ goals: mockGoals }),
@@ -83,6 +108,13 @@ describe('GoalsPage', () => {
   })
 
   it('handles fetch error gracefully', async () => {
+    // Mock auth check (successful)
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ authenticated: true, user: { id: '1', name: 'Test User' } }),
+    } as Response)
+
+    // Mock goals fetch (failed)
     mockFetch.mockRejectedValueOnce(new Error('API Error'))
 
     render(<GoalsPage />)
@@ -93,6 +125,13 @@ describe('GoalsPage', () => {
   })
 
   it('displays page header and navigation', async () => {
+    // Mock auth check
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ authenticated: true, user: { id: '1', name: 'Test User' } }),
+    } as Response)
+
+    // Mock goals fetch
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ goals: [] }),
@@ -120,6 +159,13 @@ describe('GoalsPage', () => {
       }
     ]
 
+    // Mock auth check
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ authenticated: true, user: { id: '1', name: 'Test User' } }),
+    } as Response)
+
+    // Mock goals fetch
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ goals: mockGoals }),
