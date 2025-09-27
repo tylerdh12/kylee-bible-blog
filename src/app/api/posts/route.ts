@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/auth';
 import { DatabaseService } from '@/lib/services/database';
+import type { PostsResponse, ApiResponse } from '@/types';
 
 const db = DatabaseService.getInstance();
 
@@ -82,7 +83,8 @@ export async function GET() {
 			sort: { field: 'createdAt', order: 'desc' },
 		});
 
-		return NextResponse.json({ posts });
+		const response: PostsResponse = { posts };
+		return NextResponse.json(response);
 	} catch (error) {
 		console.error('Error fetching posts:', error);
 		return NextResponse.json(
