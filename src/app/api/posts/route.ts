@@ -40,13 +40,7 @@ export async function POST(request: NextRequest) {
 			}
 		}
 
-		console.log('Creating post with data:', {
-			title: title.trim(),
-			content: content.trim(),
-			excerpt: excerpt?.trim() || null,
-			published: Boolean(published),
-			publishedAt: published ? new Date() : null,
-			slug,
+		// Create post with validated data
 			tags: tagObjects,
 			authorId: user.id,
 		});
@@ -62,7 +56,6 @@ export async function POST(request: NextRequest) {
 			authorId: user.id,
 		});
 
-		console.log('Created post:', post);
 
 		return NextResponse.json({
 			message: 'Post created successfully',
