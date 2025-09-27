@@ -3,11 +3,14 @@ import userEvent from '@testing-library/user-event'
 import AdminPage from '@/app/admin/page'
 
 const mockPush = jest.fn()
+
 jest.mock('next/navigation', () => ({
   useRouter: () => ({
     push: mockPush,
   }),
+  usePathname: () => '/admin',
 }))
+
 
 const mockFetch = fetch as jest.MockedFunction<typeof fetch>
 
@@ -127,7 +130,13 @@ describe('AdminPage', () => {
         .mockResolvedValueOnce({
           ok: true,
           json: async () => ({
-            stats: { totalPosts: 10, activeGoals: 3, totalDonations: 500, monthlyDonations: 150 }
+            stats: {
+              totalPosts: 10,
+              activeGoals: 3,
+              totalDonations: 500,
+              monthlyDonations: 150,
+              totalDonationAmount: 500.00
+            }
           }),
         } as Response)
     })
@@ -168,6 +177,29 @@ describe('AdminPage', () => {
     })
 
     it('displays quick action buttons', async () => {
+      // Reset and set up fresh mocks for this test
+      mockFetch.mockClear()
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            authenticated: true,
+            user: { id: '1', email: 'admin@example.com', name: 'Admin' }
+          }),
+        } as Response)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            stats: {
+              totalPosts: 10,
+              activeGoals: 3,
+              totalDonations: 500,
+              monthlyDonations: 150,
+              totalDonationAmount: 500.00
+            }
+          }),
+        } as Response)
+
       render(<AdminPage />)
 
       await waitFor(() => {

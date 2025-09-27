@@ -21,7 +21,16 @@ if (typeof window !== 'undefined') {
       dispatchEvent: jest.fn(),
     })),
   })
+
+  // Silence navigation errors in jsdom
+  const originalError = console.error
+  console.error = (...args) => {
+    if (args[0] && args[0].toString().includes('Not implemented: navigation')) {
+      return // Ignore navigation errors
+    }
+    originalError.call(console, ...args)
+  }
 }
 
 process.env.NODE_ENV = 'test'
-process.env.JWT_SECRET = 'test-secret'
+process.env.JWT_SECRET = 'test-secret-key-that-is-at-least-32-characters-long'
