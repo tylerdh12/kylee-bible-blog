@@ -14,6 +14,7 @@
     "test:e2e:ui": "playwright test --ui",
     "test:all": "npm run test && npm run test:e2e",
     "setup": "prisma generate && prisma db push && node scripts/create-admin.js",
+    "setup:production": "prisma generate && prisma db push && node scripts/create-production-admin.js",
     "vercel-build": "next build --turbopack",
     "release": "semantic-release",
     "version:patch": "npm version patch",

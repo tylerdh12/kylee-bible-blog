@@ -1,216 +1,107 @@
-# Deployment Guide for Kylee's Bible Blog
-
-## Prerequisites
-
-1. **Node.js 18+** installed
-2. **Git** installed
-3. **Vercel Account** (recommended) or other hosting provider
-4. **PostgreSQL Database** (for production)
+# Deployment Guide
 
 ## Environment Variables
 
-Copy `.env.example` to `.env.local` and configure the following variables:
+Before deploying to production, ensure the following environment variables are set:
 
-### Required Variables
+### Required for Production
+- `DATABASE_URL` - Your production database connection string
+- `JWT_SECRET` - A secure random string (at least 32 characters)
+- `ADMIN_EMAIL` - Email address for the admin user (default: kylee@blog.com)
+- `ADMIN_PASSWORD` - Secure password for the admin user (minimum 8 characters)
+- `ADMIN_NAME` - Display name for the admin user (default: Kylee)
 
-```env
-# Database
-DATABASE_URL="your-production-database-url"
+### Optional
+- `NEXTAUTH_URL` - Your production domain (auto-detected on Vercel)
+- `NEXTAUTH_SECRET` - Additional secret for NextAuth (if using)
 
-# Authentication
-JWT_SECRET="your-super-secure-jwt-secret-key"
-NEXTAUTH_SECRET="your-nextauth-secret"
-NEXTAUTH_URL="https://your-domain.com"
+## Production Setup
 
-# Next.js
-NODE_ENV="production"
-NEXT_PUBLIC_BASE_URL="https://your-domain.com"
+### 1. Deploy to Vercel
 
-# Admin Credentials
-ADMIN_EMAIL="your-admin-email@domain.com"
-ADMIN_PASSWORD="your-secure-admin-password"
+```bash
+# Deploy to Vercel
+npx vercel --prod
+
+# Or use the Vercel dashboard for GitHub integration
 ```
 
-### Optional Variables
+### 2. Set Environment Variables
 
-```env
-# Analytics
-GOOGLE_ANALYTICS_ID="G-XXXXXXXXXX"
+In your Vercel dashboard:
+1. Go to Project Settings → Environment Variables
+2. Add all required environment variables above
+3. Redeploy to apply changes
 
-# Error Tracking
-SENTRY_DSN="https://your-sentry-dsn"
+### 3. Setup Database and Admin User
+
+After deployment, run the production setup:
+
+```bash
+# Set your environment variables locally for the setup
+export ADMIN_EMAIL="your-email@example.com"
+export ADMIN_PASSWORD="your-secure-password"
+export ADMIN_NAME="Your Name"
+export DATABASE_URL="your-production-database-url"
+
+# Run production setup
+npm run setup:production
 ```
+
+**Note**: Make sure to use a strong password and keep credentials secure!
+
+### 4. Access Admin Panel
+
+Once setup is complete, you can access the admin panel at:
+```
+https://your-domain.vercel.app/admin
+```
+
+Login with the credentials you set in the environment variables.
+
+## Security Considerations
+
+- **Never commit passwords or secrets to the repository**
+- Use strong, unique passwords for production
+- Regularly rotate JWT secrets and admin passwords
+- Consider using a password manager for credential management
+- Monitor admin access logs
 
 ## Database Setup
 
-### Development (SQLite)
-```bash
-npm run setup
-```
+This project uses Prisma with SQLite for development and can be configured for PostgreSQL in production.
 
-### Production (PostgreSQL)
+### For Vercel Postgres:
+1. Add Vercel Postgres to your project
+2. Copy the connection string to `DATABASE_URL`
+3. Run the setup script
 
-1. Create a PostgreSQL database
-2. Update `DATABASE_URL` in your environment variables
-3. Run migrations:
-```bash
-npx prisma db push
-npm run setup
-```
-
-## Deployment Options
-
-### Option 1: Vercel (Recommended)
-
-1. **Connect to Vercel**
-   ```bash
-   npx vercel
-   ```
-
-2. **Configure Environment Variables**
-   - Go to Vercel Dashboard → Your Project → Settings → Environment Variables
-   - Add all required environment variables
-
-3. **Deploy**
-   ```bash
-   npx vercel --prod
-   ```
-
-### Option 2: Traditional VPS/Server
-
-1. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-2. **Build the application**
-   ```bash
-   npm run build
-   ```
-
-3. **Start the production server**
-   ```bash
-   npm start
-   ```
-
-4. **Set up reverse proxy** (nginx/Apache)
-5. **Set up SSL certificate**
-6. **Configure domain**
-
-### Option 3: Docker
-
-1. **Create Dockerfile** (example):
-   ```dockerfile
-   FROM node:18-alpine
-   WORKDIR /app
-   COPY package*.json ./
-   RUN npm ci --only=production
-   COPY . .
-   RUN npm run build
-   EXPOSE 3000
-   CMD ["npm", "start"]
-   ```
-
-2. **Build and run**
-   ```bash
-   docker build -t kylee-blog .
-   docker run -p 3000:3000 --env-file .env kylee-blog
-   ```
-
-## Post-Deployment Checklist
-
-### 1. Admin Account Setup
-- [ ] Admin user created successfully
-- [ ] Can log into `/admin`
-- [ ] All admin features working
-
-### 2. Security
-- [ ] HTTPS enabled
-- [ ] Security headers configured
-- [ ] JWT secret is secure and unique
-- [ ] Admin password is strong
-
-### 3. Performance
-- [ ] Site loads quickly
-- [ ] Images optimized
-- [ ] Database queries optimized
-
-### 4. Testing
-- [ ] All unit tests pass: `npm test`
-- [ ] E2E tests pass: `npm run test:e2e`
-- [ ] Manual testing completed
-
-### 5. Monitoring
-- [ ] Error tracking configured (optional)
-- [ ] Analytics configured (optional)
-- [ ] Uptime monitoring set up
-
-## Maintenance
-
-### Database Backups
-Set up regular database backups, especially for production.
-
-### Updates
-```bash
-# Update dependencies
-npm update
-
-# Run tests
-npm run test:all
-
-# Deploy
-git push origin main  # If using auto-deploy
-# or
-npx vercel --prod
-```
-
-### Monitoring
-
-Monitor the following:
-- Application errors
-- Performance metrics
-- Database performance
-- User analytics (if configured)
+### For other databases:
+1. Configure your database connection string
+2. Ensure the database is accessible from Vercel
+3. Run the setup script
 
 ## Troubleshooting
 
-### Common Issues
+### Admin User Issues
+- Ensure `ADMIN_PASSWORD` is at least 8 characters
+- Check that environment variables are properly set in Vercel
+- Verify database connection is working
 
-1. **Build Failures**
-   - Check environment variables
-   - Ensure database connection
-   - Verify Node.js version
+### Build Issues
+- Check that all dependencies are installed
+- Verify environment variables are set
+- Check Vercel build logs for specific errors
 
-2. **Admin Login Issues**
-   - Verify JWT_SECRET is set
-   - Check admin credentials
-   - Ensure database has admin user
+### Database Issues
+- Verify `DATABASE_URL` is correct
+- Ensure database is accessible
+- Check Prisma schema migrations
 
-3. **Database Connection Issues**
-   - Verify DATABASE_URL format
-   - Check database server status
-   - Verify network connectivity
+## Monitoring
 
-4. **Performance Issues**
-   - Enable database query logging
-   - Check server resources
-   - Optimize images and assets
-
-### Getting Help
-
-1. Check the logs for error messages
-2. Verify all environment variables
-3. Test locally with production settings
-4. Review this deployment guide
-
-## Security Best Practices
-
-1. **Use HTTPS everywhere**
-2. **Strong JWT secrets** (minimum 256 bits)
-3. **Secure admin passwords**
-4. **Regular security updates**
-5. **Environment variable security**
-6. **Database security**
-7. **Regular backups**
-
-Remember to never commit sensitive information like passwords or secrets to version control!
+Consider setting up:
+- Error monitoring (Sentry, etc.)
+- Performance monitoring
+- Admin access logging
+- Database performance monitoring
