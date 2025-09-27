@@ -24,7 +24,8 @@
       "mcp__vercel__web_fetch_vercel_url",
       "mcp__linear__create_project",
       "mcp__linear__create_issue",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(git branch:*)"
     ],
     "deny": [],
     "ask": []
