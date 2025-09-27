@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import {
 	Card,
 	CardContent,
@@ -77,6 +78,8 @@ export default function EditGoalPage() {
 							: ''
 					);
 					setCompleted(goalData.completed);
+				} else if (res.status === 404) {
+					notFound();
 				} else {
 					alert('Goal not found');
 					router.push('/admin/goals');

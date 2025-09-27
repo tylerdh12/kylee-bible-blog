@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import {
 	Card,
 	CardContent,
@@ -50,6 +51,8 @@ export default function EditPostPage({
 				setTags(
 					postData.tags?.map((tag: any) => tag.name) || []
 				);
+			} else if (response.status === 404) {
+				notFound();
 			} else {
 				alert('Failed to load post');
 				router.push('/admin/posts');
