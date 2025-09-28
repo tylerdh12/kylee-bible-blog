@@ -5,6 +5,9 @@ import { format } from "date-fns"
 import { Metadata } from "next"
 import { DatabaseService } from "@/lib/services/database"
 
+// Force dynamic rendering to avoid build-time database access
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: "Kylee's Bible Blog - Bible Study Journey & Christian Insights",
   description: "Join Kylee's Bible study journey. Discover in-depth biblical insights, spiritual reflections, and practical applications of God's word. Support ministry goals and grow in faith together.",

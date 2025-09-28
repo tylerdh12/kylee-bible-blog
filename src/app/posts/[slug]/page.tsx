@@ -4,6 +4,9 @@ import { format } from "date-fns"
 import { DatabaseService } from "@/lib/services/database"
 import Link from "next/link"
 
+// Force dynamic rendering to avoid build-time database access
+export const dynamic = 'force-dynamic'
+
 async function getPost(slug: string) {
   const db = DatabaseService.getInstance()
   const post = await db.findPostBySlug(slug, true)
