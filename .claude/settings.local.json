@@ -30,7 +30,17 @@
       "Bash(git stash:*)",
       "Bash(npm test:*)",
       "Bash(ADMIN_EMAIL=\"test@example.com\" ADMIN_PASSWORD=\"testsecurepassword123\" ADMIN_NAME=\"Test Admin\" node scripts/create-production-admin.js)",
-      "mcp__linear__list_issues"
+      "mcp__linear__list_issues",
+      "Bash(NODE_ENV=production npm run vercel-build)",
+      "mcp__vercel__list_teams",
+      "mcp__vercel__list_projects",
+      "mcp__vercel__list_deployments",
+      "mcp__vercel__get_deployment_build_logs",
+      "Bash(NODE_ENV=production SKIP_ENV_VALIDATION=true npm run vercel-build)",
+      "Bash(ADMIN_EMAIL=\"kylee@blog.com\" ADMIN_PASSWORD=\"KyleeBlog2024!\" ADMIN_NAME=\"Kylee Champion\" node scripts/create-production-admin.js)",
+      "Bash(vercel env:*)",
+      "Bash(vercel:*)",
+      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_f3GNjX2Bruhl@ep-gentle-river-afq83ggv-pooler.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require\" npx prisma db push)"
     ],
     "deny": [],
     "ask": []

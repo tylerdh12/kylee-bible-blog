@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import bcryptjs from 'bcryptjs'
-
-const prisma = new PrismaClient()
 
 export async function POST(request: Request) {
   try {
@@ -39,11 +37,9 @@ export async function POST(request: Request) {
     }
 
     // Check if admin already exists
-    console.log('Checking for existing admin with email:', email)
     const existingAdmin = await prisma.user.findUnique({
       where: { email }
     })
-    console.log('Existing admin found:', !!existingAdmin)
 
     if (existingAdmin) {
       // Update password if different
@@ -66,10 +62,9 @@ export async function POST(request: Request) {
     }
 
     // Create new admin user
-    console.log('Creating new admin user with email:', email)
     const hashedPassword = await bcryptjs.hash(password, 12)
 
-    const newUser = await prisma.user.create({
+    await prisma.user.create({
       data: {
         email,
         password: hashedPassword,
@@ -77,7 +72,6 @@ export async function POST(request: Request) {
         role: 'admin',
       },
     })
-    console.log('Admin user created successfully:', newUser.id)
 
     return NextResponse.json({
       success: true,
@@ -94,7 +88,5 @@ export async function POST(request: Request) {
       },
       { status: 500 }
     )
-  } finally {
-    await prisma.$disconnect()
   }
 }

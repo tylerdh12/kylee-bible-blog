@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import type {
 	User,
 	Post,
@@ -90,18 +90,18 @@ interface DatabaseAdapter {
 }
 
 class PrismaAdapter implements DatabaseAdapter {
-	constructor(private prisma: PrismaClient) {}
+	constructor(private prismaClient = prisma) {}
 
 	async findUserByEmail(
 		email: string
 	): Promise<User | null> {
-		return this.prisma.user.findUnique({
+		return this.prismaClient.user.findUnique({
 			where: { email },
 		}) as Promise<User | null>;
 	}
 
 	async findUserById(id: string): Promise<User | null> {
-		return this.prisma.user.findUnique({
+		return this.prismaClient.user.findUnique({
 			where: { id },
 		}) as Promise<User | null>;
 	}
@@ -109,7 +109,7 @@ class PrismaAdapter implements DatabaseAdapter {
 	async createUser(
 		data: Omit<User, 'id' | 'createdAt' | 'updatedAt'>
 	): Promise<User> {
-		return this.prisma.user.create({
+		return this.prismaClient.user.create({
 			data,
 		}) as Promise<User>;
 	}
@@ -133,7 +133,7 @@ class PrismaAdapter implements DatabaseAdapter {
 			includeTags = true,
 		} = options;
 
-		const posts = await this.prisma.post.findMany({
+		const posts = await this.prismaClient.post.findMany({
 			where:
 				published !== undefined ? { published } : undefined,
 			include: {
@@ -153,7 +153,7 @@ class PrismaAdapter implements DatabaseAdapter {
 		slug: string,
 		published?: boolean
 	): Promise<Post | null> {
-		return this.prisma.post.findFirst({
+		return this.prismaClient.post.findFirst({
 			where: {
 				slug,
 				...(published !== undefined && { published }),
@@ -169,7 +169,7 @@ class PrismaAdapter implements DatabaseAdapter {
 		data: Omit<Post, 'id' | 'createdAt' | 'updatedAt'>
 	): Promise<Post> {
 		const { tags, author: _author, ...postData } = data;
-		const result = await this.prisma.post.create({
+		const result = await this.prismaClient.post.create({
 			data: {
 				...postData,
 				tags: {
@@ -189,7 +189,7 @@ class PrismaAdapter implements DatabaseAdapter {
 		data: Partial<Post>
 	): Promise<Post | null> {
 		const { tags, author: _author, ...postData } = data;
-		return this.prisma.post.update({
+		return this.prismaClient.post.update({
 			where: { id },
 			data: {
 				...postData,
@@ -208,7 +208,7 @@ class PrismaAdapter implements DatabaseAdapter {
 
 	async deletePost(id: string): Promise<boolean> {
 		try {
-			await this.prisma.post.delete({ where: { id } });
+			await this.prismaClient.post.delete({ where: { id } });
 			return true;
 		} catch {
 			return false;
@@ -232,7 +232,7 @@ class PrismaAdapter implements DatabaseAdapter {
 			includeDonations = true,
 		} = options;
 
-		return this.prisma.goal.findMany({
+		return this.prismaClient.goal.findMany({
 			where:
 				completed !== undefined ? { completed } : undefined,
 			include: {
@@ -253,7 +253,7 @@ class PrismaAdapter implements DatabaseAdapter {
 	}
 
 	async findGoalById(id: string): Promise<Goal | null> {
-		return this.prisma.goal.findUnique({
+		return this.prismaClient.goal.findUnique({
 			where: { id },
 			include: { donations: true },
 		});
@@ -265,7 +265,7 @@ class PrismaAdapter implements DatabaseAdapter {
 			'id' | 'createdAt' | 'updatedAt' | 'donations'
 		>
 	): Promise<Goal> {
-		return this.prisma.goal.create({
+		return this.prismaClient.goal.create({
 			data,
 			include: { donations: true },
 		});
@@ -277,7 +277,7 @@ class PrismaAdapter implements DatabaseAdapter {
 	): Promise<Goal | null> {
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		const { donations: _donations, ...goalData } = data;
-		return this.prisma.goal.update({
+		return this.prismaClient.goal.update({
 			where: { id },
 			data: goalData,
 			include: { donations: true },
@@ -286,7 +286,7 @@ class PrismaAdapter implements DatabaseAdapter {
 
 	async deleteGoal(id: string): Promise<boolean> {
 		try {
-			await this.prisma.goal.delete({ where: { id } });
+			await this.prismaClient.goal.delete({ where: { id } });
 			return true;
 		} catch {
 			return false;
@@ -308,7 +308,7 @@ class PrismaAdapter implements DatabaseAdapter {
 			includeGoal = true,
 		} = options;
 
-		const result = await this.prisma.donation.findMany({
+		const result = await this.prismaClient.donation.findMany({
 			where: goalId ? { goalId } : undefined,
 			include: {
 				goal: includeGoal,
@@ -328,20 +328,20 @@ class PrismaAdapter implements DatabaseAdapter {
 	): Promise<Donation> {
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		const { goal: _goal, ...donationData } = data;
-		const donation = await this.prisma.donation.create({
+		const donation = await this.prismaClient.donation.create({
 			data: donationData,
 			include: { goal: true },
 		});
 
 		// Update goal's current amount if linked and check for completion
 		if (data.goalId) {
-			const goal = await this.prisma.goal.findUnique({
+			const goal = await this.prismaClient.goal.findUnique({
 				where: { id: data.goalId },
 			});
 
 			if (goal) {
 				const newAmount = goal.currentAmount + data.amount;
-				await this.prisma.goal.update({
+				await this.prismaClient.goal.update({
 					where: { id: data.goalId },
 					data: {
 						currentAmount: newAmount,
@@ -355,7 +355,7 @@ class PrismaAdapter implements DatabaseAdapter {
 	}
 
 	async findOrCreateTag(name: string): Promise<Tag> {
-		return this.prisma.tag.upsert({
+		return this.prismaClient.tag.upsert({
 			where: { name },
 			update: {},
 			create: { name },
@@ -363,7 +363,7 @@ class PrismaAdapter implements DatabaseAdapter {
 	}
 
 	async findTags(): Promise<Tag[]> {
-		return this.prisma.tag.findMany({
+		return this.prismaClient.tag.findMany({
 			orderBy: { name: 'asc' },
 		});
 	}
@@ -377,16 +377,16 @@ class PrismaAdapter implements DatabaseAdapter {
 			totalDonations,
 			donationSum,
 		] = await Promise.all([
-			this.prisma.post.count(),
-			this.prisma.post.count({
+			this.prismaClient.post.count(),
+			this.prismaClient.post.count({
 				where: { published: true },
 			}),
-			this.prisma.goal.count(),
-			this.prisma.goal.count({
+			this.prismaClient.goal.count(),
+			this.prismaClient.goal.count({
 				where: { completed: false },
 			}),
-			this.prisma.donation.count(),
-			this.prisma.donation.aggregate({
+			this.prismaClient.donation.count(),
+			this.prismaClient.donation.aggregate({
 				_sum: { amount: true },
 			}),
 		]);
@@ -615,13 +615,7 @@ export class DatabaseService {
 
 	private constructor() {
 		// Use real Prisma client for production functionality
-		const prisma = new PrismaClient({
-			log:
-				process.env.NODE_ENV === 'development'
-					? ['query']
-					: [],
-		});
-		this.adapter = new PrismaAdapter(prisma);
+		this.adapter = new PrismaAdapter();
 	}
 
 	public static getInstance(): DatabaseService {
