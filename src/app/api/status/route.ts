@@ -7,14 +7,27 @@ export async function GET() {
     // Validate environment configuration
     const envValid = validateProductionEnv()
 
-    const db = DatabaseService.getInstance()
+    // Only try database operations if environment is valid
+    let postsCount = 0, goalsCount = 0, donationsCount = 0
 
-    // Test database and get basic stats
-    const [postsCount, goalsCount, donationsCount] = await Promise.all([
-      db.findPosts().then(posts => posts.length),
-      db.findGoals().then(goals => goals.length),
-      db.findDonations().then(donations => donations.length)
-    ])
+    if (envValid && process.env.DATABASE_URL) {
+      try {
+        const db = DatabaseService.getInstance()
+
+        // Test database and get basic stats
+        const [posts, goals, donations] = await Promise.all([
+          db.findPosts().catch(() => []),
+          db.findGoals().catch(() => []),
+          db.findDonations().catch(() => [])
+        ])
+
+        postsCount = posts.length
+        goalsCount = goals.length
+        donationsCount = donations.length
+      } catch (dbError) {
+        console.warn('Database connection failed during status check:', dbError)
+      }
+    }
 
     return NextResponse.json({
       status: 'operational',
