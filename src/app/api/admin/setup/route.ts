@@ -7,7 +7,10 @@ const prisma = new PrismaClient()
 export async function POST(request: Request) {
   try {
     // Only allow this in development or if specifically enabled
-    if (process.env.NODE_ENV === 'production' && process.env.ALLOW_ADMIN_SETUP !== 'true') {
+    const isProduction = process.env.NODE_ENV === 'production'
+    const allowSetup = process.env.ALLOW_ADMIN_SETUP?.trim()
+
+    if (isProduction && allowSetup !== 'true') {
       return NextResponse.json(
         { error: 'Admin setup not allowed in production without ALLOW_ADMIN_SETUP=true' },
         { status: 403 }
@@ -36,9 +39,11 @@ export async function POST(request: Request) {
     }
 
     // Check if admin already exists
+    console.log('Checking for existing admin with email:', email)
     const existingAdmin = await prisma.user.findUnique({
       where: { email }
     })
+    console.log('Existing admin found:', !!existingAdmin)
 
     if (existingAdmin) {
       // Update password if different
@@ -61,9 +66,10 @@ export async function POST(request: Request) {
     }
 
     // Create new admin user
+    console.log('Creating new admin user with email:', email)
     const hashedPassword = await bcryptjs.hash(password, 12)
 
-    await prisma.user.create({
+    const newUser = await prisma.user.create({
       data: {
         email,
         password: hashedPassword,
@@ -71,6 +77,7 @@ export async function POST(request: Request) {
         role: 'admin',
       },
     })
+    console.log('Admin user created successfully:', newUser.id)
 
     return NextResponse.json({
       success: true,
@@ -81,7 +88,10 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error('Admin setup error:', error)
     return NextResponse.json(
-      { error: 'Failed to set up admin user' },
+      {
+        error: 'Failed to set up admin user',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     )
   } finally {
