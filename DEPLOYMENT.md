@@ -1,334 +1,451 @@
 # Deployment Guide
 
-This guide covers the complete deployment process for Kylee's Blog, including database setup, migrations, and seeding.
+This document describes the complete deployment process for the Kylee Bible Blog application across different environments.
 
-## Overview
+## 📋 Table of Contents
 
-The application uses a comprehensive deployment system that handles:
+- [Environments](#environments)
+- [Branching Strategy](#branching-strategy)
+- [Deployment Process](#deployment-process)
+- [Environment Setup](#environment-setup)
+- [Database Management](#database-management)
+- [Linear Integration](#linear-integration)
+- [Troubleshooting](#troubleshooting)
 
-- Database migrations and schema updates
-- Seed data for initial setup
-- Admin user creation
-- Environment-specific configurations
-- Deployment verification
+## 🌍 Environments
 
-## Prerequisites
+The application supports three environments:
 
-Before deploying, ensure you have:
+### 1. Development
+- **Branch**: `feature/*`, local development
+- **Purpose**: Local development and testing
+- **Database**: SQLite (file:./dev.db)
+- **URL**: http://localhost:3000
+- **Auto-deploy**: No
 
-1. **Node.js** (v18 or higher)
-2. **npm** or **yarn**
-3. **PostgreSQL database** (local or cloud)
-4. **Environment variables** configured
+### 2. Staging
+- **Branch**: `develop`
+- **Purpose**: Pre-production testing and QA
+- **Database**: PostgreSQL (Neon - staging instance)
+- **URL**: https://staging-kylee-blog.vercel.app
+- **Auto-deploy**: Yes (on push to `develop`)
 
-## Environment Variables
+### 3. Production
+- **Branch**: `main`
+- **Purpose**: Live production environment
+- **Database**: PostgreSQL (Neon - production instance)
+- **URL**: https://kylee-bible-blog.vercel.app
+- **Auto-deploy**: Yes (on push to `main`)
 
-### Required Variables
+## 🌿 Branching Strategy
 
-```bash
-# Database
-POSTGRES_PRISMA_URL="postgresql://username:password@localhost:5432/kylee_blog"
+### Branch Structure
 
-# Authentication (for production)
-NEXTAUTH_SECRET="your-secret-key-here"
-NEXTAUTH_URL="https://your-domain.com"
-
-# Environment
-NODE_ENV="production"
+```
+main (production)
+├── develop (staging)
+│   ├── feature/feature-name
+│   ├── bugfix/bug-name
+│   └── hotfix/critical-fix
 ```
 
-### Optional Variables
+### Branch Naming Conventions
+
+- **Feature branches**: `feature/short-description`
+  - Example: `feature/user-authentication`
+- **Bug fixes**: `bugfix/short-description`
+  - Example: `bugfix/login-error`
+- **Hotfixes**: `hotfix/short-description`
+  - Example: `hotfix/security-patch`
+
+### Creating a New Feature Branch
+
+Use the automated script:
 
 ```bash
-# Logging
-VERBOSE="true"
-
-# Development
-SKIP_ENV_VALIDATION="true"
+npm run branch:create feature-name "Feature description"
 ```
 
-## Deployment Methods
-
-### 1. Vercel Deployment (Recommended)
-
-The `vercel.json` configuration automatically handles:
-
-- Database setup during build
-- Environment variable injection
-- Function optimization
+Or manually:
 
 ```bash
-# Deploy to Vercel
-vercel --prod
+git checkout main
+git pull origin main
+git checkout -b feature/feature-name
 ```
 
-### 2. Manual Deployment
+## 🚀 Deployment Process
 
-Step-by-step manual deployment:
+### 1. Development Workflow
 
+1. Create a feature branch from `main`:
+   ```bash
+   npm run branch:create my-feature "Add new feature"
+   ```
+
+2. Make your changes and test locally:
+   ```bash
+   npm run dev
+   ```
+
+3. Run tests:
+   ```bash
+   npm run test:all
+   ```
+
+4. Commit changes:
+   ```bash
+   git add .
+   git commit -m "feat: add new feature"
+   ```
+
+5. Push to remote:
+   ```bash
+   git push -u origin feature/my-feature
+   ```
+
+### 2. Staging Deployment
+
+1. Create a Pull Request from your feature branch to `develop`
+2. Wait for CI checks to pass
+3. Get code review approval
+4. Merge to `develop`
+5. Automatic deployment to staging triggers
+6. Test on staging environment
+7. Monitor logs and verify functionality
+
+### 3. Production Deployment
+
+1. Create a Pull Request from `develop` to `main`
+2. Ensure all staging tests pass
+3. Get final approval from maintainers
+4. Merge to `main`
+5. Automatic deployment to production triggers
+6. Monitor production logs
+7. Verify deployment health
+
+### Emergency Hotfix Process
+
+For critical production issues:
+
+1. Create hotfix branch from `main`:
+   ```bash
+   git checkout main
+   git pull origin main
+   git checkout -b hotfix/critical-issue
+   ```
+
+2. Fix the issue and test thoroughly
+
+3. Create PR directly to `main` (bypass staging)
+
+4. Get emergency approval
+
+5. Merge and deploy
+
+6. Backport fix to `develop`:
+   ```bash
+   git checkout develop
+   git merge main
+   git push origin develop
+   ```
+
+## ⚙️ Environment Setup
+
+### Local Development Setup
+
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd kylee-bible-blog
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Set up environment variables:
+   ```bash
+   cp .env.example .env
+   # Edit .env with your local configuration
+   ```
+
+4. Set up the database:
+   ```bash
+   npm run setup
+   ```
+
+5. Create an admin user:
+   ```bash
+   ADMIN_EMAIL="admin@example.com" ADMIN_PASSWORD="SecurePass123!" ADMIN_NAME="Admin User" npm run create-admin
+   ```
+
+6. Start development server:
+   ```bash
+   npm run dev
+   ```
+
+### Vercel Environment Variables
+
+Configure these in Vercel Dashboard for each environment:
+
+#### All Environments
+- `NODE_ENV`: Set to `production` for staging and production
+- `DATABASE_URL`: PostgreSQL connection string
+- `JWT_SECRET`: Strong random string (min 32 characters)
+- `NEXTAUTH_SECRET`: Strong random string
+- `NEXTAUTH_URL`: Full URL of the deployment
+
+#### Production Only
+- `ADMIN_EMAIL`: Initial admin email
+- `ADMIN_PASSWORD`: Strong admin password
+- `ADMIN_NAME`: Admin display name
+
+### Environment-Specific Deployments
+
+#### Deploy to Development
 ```bash
-# 1. Install dependencies
-npm install
-
-# 2. Setup database (production)
-npm run setup:production
-
-# 3. Build application
-npm run build
-
-# 4. Start application
-npm start
+npm run deploy:dev
 ```
 
-### 3. Local Testing
-
-Use the provided deployment script for local testing:
-
+#### Deploy to Staging
 ```bash
-# Make script executable
-chmod +x scripts/deploy.sh
-
-# Run deployment
-./scripts/deploy.sh
+npm run deploy:staging
 ```
 
-
-## Database Setup
-
-### Development Setup
-
+#### Deploy to Production
 ```bash
-# Quick setup for development
-npm run setup
+npm run deploy:production
+```
 
-# Or step by step
+## 🗄️ Database Management
+
+### Schema Migrations
+
+The application uses Prisma for database management.
+
+#### Development
+```bash
+# Push schema changes (for rapid development)
 npm run migrate
-npm run seed
+
+# Generate Prisma client
+npx prisma generate
 ```
 
-### Production Setup
-
+#### Production
 ```bash
-# Production setup with migrations
-npm run setup:production
-
-# Or step by step
+# Deploy migrations (safe for production)
 npm run migrate:deploy
+```
+
+### Creating Admin Users
+
+#### Local/Development
+```bash
+ADMIN_EMAIL="admin@local.com" ADMIN_PASSWORD="DevPass123!" ADMIN_NAME="Dev Admin" npm run create-admin
+```
+
+#### Production (via Vercel CLI)
+```bash
+# Pull environment variables from Vercel
+vercel env pull .env.production.local
+
+# Create admin user
+ADMIN_EMAIL="admin@production.com" ADMIN_PASSWORD="StrongPass123!" ADMIN_NAME="Admin" npm run create-admin
+```
+
+### Database Seeding
+
+To seed the database with sample data:
+
+```bash
 npm run seed
 ```
 
-## Scripts Reference
+## 🎯 Linear Integration
 
-### Core Scripts
+### Setup
 
-| Script             | Description                      | Usage                      |
-| ------------------ | -------------------------------- | -------------------------- |
-| `setup`            | Complete development setup       | `npm run setup`            |
-| `setup:production` | Production setup with migrations | `npm run setup:production` |
-| `seed`             | Seed database with sample data   | `npm run seed`             |
-| `migrate`          | Push schema changes (dev)        | `npm run migrate`          |
-| `migrate:deploy`   | Deploy migrations (prod)         | `npm run migrate:deploy`   |
+1. Install Linear CLI:
+   ```bash
+   npm install -g @linear/cli
+   ```
 
-### Verification Scripts
+2. Authenticate:
+   ```bash
+   linear auth
+   ```
 
-| Script              | Description              | Usage                          |
-| ------------------- | ------------------------ | ------------------------------ |
-| `verify-admin`      | Verify admin user setup  | `node scripts/verify-admin.js` |
-| `verify-deployment` | Verify deployment status | `npm run verify-deployment`    |
+### Creating Issues
 
-## Database Schema
-
-The application includes the following models:
-
-- **User** - Admin and user accounts
-- **Post** - Blog posts and content
-- **Tag** - Post categorization
-- **Comment** - Post comments
-- **Goal** - Ministry goals and targets
-- **Donation** - Donation tracking
-- **PrayerRequest** - Private prayer requests
-
-## Seed Data
-
-The seed script creates:
-
-### Users
-
-- Admin user: `kylee@example.com` / `admin123`
-
-### Content
-
-- Welcome blog post
-- Sample Bible study post
-- Ministry goals with progress
-- Sample donations
-- Prayer requests
-
-### Features
-
-- Responsive design
-- Dark/light theme support
-- Currency internationalization
-- Prayer request system
-- Donation tracking
-- Admin dashboard
-
-## Troubleshooting
-
-### Common Issues
-
-#### Database Connection Failed
-
+#### Using the script
 ```bash
-# Check database URL
-echo $POSTGRES_PRISMA_URL
-
-# Test connection
-node scripts/verify-admin.js
+npm run linear:create-issue "Issue title" "Description"
 ```
 
-#### Migration Failed
-
+#### Direct Linear CLI
 ```bash
-# Reset database (development only)
-npx prisma db push --force-reset
-
-# Re-run setup
-npm run setup
+linear issue create --title "Feature name" --description "Description"
 ```
 
-#### Build Failed
+### Listing Issues
 
 ```bash
-# Clear cache
-rm -rf .next node_modules
-npm install
-npm run build
+npm run linear:list
 ```
 
-#### Admin Login Issues
+### Workflow
 
-```bash
-# Verify admin user
-node scripts/verify-admin.js
+1. Create a Linear issue for each task
+2. Create a feature branch linked to the issue
+3. Reference the issue in commit messages: `feat: implement feature (LIN-123)`
+4. Update issue status as you progress
+5. Close issue when PR is merged
 
-# Recreate admin
-node scripts/create-admin.js
-```
+### Best Practices
 
-### Logs and Debugging
+- Create issues before starting work
+- Link commits to issues using issue IDs
+- Update issue status regularly
+- Use issue descriptions for acceptance criteria
+- Close issues only after deployment verification
 
-Enable verbose logging:
+## 🔍 Monitoring and Verification
 
-```bash
-VERBOSE=true npm run setup
-```
+### Health Checks
 
-Check deployment status:
+- **Health endpoint**: `/api/health`
+- **Database diagnostic**: `/api/database-diagnostic`
+- **Status endpoint**: `/api/status`
+
+### Vercel Deployment Verification
 
 ```bash
 npm run verify-deployment
 ```
 
-## Security Considerations
+### Log Monitoring
 
-### Production Checklist
+View deployment logs in Vercel Dashboard:
+1. Go to your project in Vercel
+2. Click on "Deployments"
+3. Select the deployment
+4. View "Build Logs" and "Runtime Logs"
 
-- [ ] Change default admin password
-- [ ] Set strong `NEXTAUTH_SECRET`
-- [ ] Configure `NEXTAUTH_URL`
-- [ ] Enable HTTPS
+## 🛠️ Troubleshooting
+
+### Common Issues
+
+#### Build Failures
+
+**Issue**: Prisma generation fails
+**Solution**:
+```bash
+# Clear Prisma cache
+rm -rf node_modules/.prisma
+npm run migrate
+```
+
+**Issue**: Out of memory during build
+**Solution**: Already configured in package.json with `NODE_OPTIONS='--max-old-space-size=4096'`
+
+#### Database Connection Issues
+
+**Issue**: Cannot connect to database
+**Solution**:
+1. Check DATABASE_URL is set correctly
+2. Verify database is accessible from Vercel's region
+3. Check database credentials and SSL settings
+4. Review firewall rules (Neon should allow all by default)
+
+#### Deployment Not Updating
+
+**Issue**: Changes not reflecting after deployment
+**Solution**:
+1. Check deployment logs in Vercel
+2. Verify build completed successfully
+3. Clear browser cache
+4. Check if correct branch was deployed
+
+### Support
+
+For additional support:
+- Check GitHub Issues
+- Review Vercel deployment logs
+- Check Linear for known issues
+- Contact development team
+
+## 📚 Scripts Reference
+
+### Deployment Scripts
+- `npm run deploy:dev` - Build and test for development
+- `npm run deploy:staging` - Deploy to staging environment
+- `npm run deploy:production` - Deploy to production environment
+
+### Branch Management
+- `npm run branch:create <name> <description>` - Create new feature branch
+
+### Linear Integration
+- `npm run linear:create-issue <title> <description>` - Create Linear issue
+- `npm run linear:list` - List all Linear issues
+- `npm run linear:help` - Show Linear integration help
+
+### Database
+- `npm run setup` - Setup development database
+- `npm run setup:production` - Setup production database
+- `npm run migrate` - Push schema changes (dev)
+- `npm run migrate:deploy` - Deploy migrations (production)
+- `npm run seed` - Seed database with sample data
+- `npm run create-admin` - Create admin user
+
+### Testing
+- `npm test` - Run unit tests
+- `npm run test:watch` - Run tests in watch mode
+- `npm run test:coverage` - Run tests with coverage
+- `npm run test:e2e` - Run end-to-end tests
+- `npm run test:all` - Run all tests
+
+### Build and Development
+- `npm run dev` - Start development server
+- `npm run build` - Build production bundle
+- `npm start` - Start production server
+- `npm run lint` - Run linter
+
+## 📝 Commit Message Conventions
+
+Follow conventional commits format:
+
+- `feat:` - New feature
+- `fix:` - Bug fix
+- `docs:` - Documentation changes
+- `style:` - Code style changes (formatting, etc.)
+- `refactor:` - Code refactoring
+- `test:` - Adding or updating tests
+- `chore:` - Maintenance tasks
+
+Example: `feat: add user authentication (LIN-123)`
+
+## 🔒 Security Checklist
+
+### Before Production Deployment
+
+- [ ] Change default admin credentials
+- [ ] Set strong JWT_SECRET (min 32 characters)
+- [ ] Set strong NEXTAUTH_SECRET
+- [ ] Configure correct NEXTAUTH_URL
+- [ ] Enable HTTPS in production
 - [ ] Set up database backups
-- [ ] Configure rate limiting
-- [ ] Review environment variables
+- [ ] Review all environment variables
+- [ ] Test authentication flow
+- [ ] Verify database connection security
+- [ ] Enable rate limiting if needed
 
-### Admin Security
+## 📚 Additional Resources
 
-Default admin credentials:
-
-- Email: `kylee@example.com`
-- Password: `admin123`
-
-**⚠️ Change these immediately after deployment!**
-
-## Monitoring
-
-### Health Checks
-
-The application includes health check endpoints:
-
-- `/api/health` - Basic health status
-- `/api/status` - Detailed system status
-
-### Database Monitoring
-
-Monitor database performance:
-
-```bash
-# Check database status
-node scripts/verify-admin.js
-
-# View table counts
-npx prisma studio
-```
-
-## Backup and Recovery
-
-### Database Backup
-
-```bash
-# Create backup
-pg_dump $POSTGRES_PRISMA_URL > backup.sql
-
-# Restore backup
-psql $POSTGRES_PRISMA_URL < backup.sql
-```
-
-### Application Backup
-
-```bash
-# Backup application files
-tar -czf kylee-blog-backup.tar.gz \
-  --exclude=node_modules \
-  --exclude=.next \
-  --exclude=.git \
-  .
-```
-
-## Support
-
-For deployment issues:
-
-1. Check the logs for error messages
-2. Verify environment variables
-3. Test database connectivity
-4. Review the troubleshooting section
-5. Check the application health endpoints
-
-## Updates and Maintenance
-
-### Updating the Application
-
-```bash
-# Pull latest changes
-git pull origin main
-
-# Update dependencies
-npm install
-
-# Run migrations
-npm run migrate:deploy
-
-# Restart application
-npm restart
-```
-
-### Schema Changes
-
-When adding new models or fields:
-
-1. Update `prisma/schema.prisma`
-2. Create migration: `npx prisma migrate dev --name description`
-3. Update seed script if needed
-4. Test locally before deploying
-5. Deploy with `npm run setup:production`
+- [Vercel Documentation](https://vercel.com/docs)
+- [Prisma Documentation](https://www.prisma.io/docs)
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Linear Documentation](https://linear.app/docs)
+- [GitHub Actions Documentation](https://docs.github.com/en/actions)

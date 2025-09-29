@@ -1,0 +1,63 @@
+name: Staging Deployment
+
+on:
+  push:
+    branches: [ develop, staging ]
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Generate Prisma client
+      run: npx prisma generate
+
+    - name: Run unit tests
+      run: npm test -- --coverage --watchAll=false
+      env:
+        NODE_ENV: test
+        JWT_SECRET: test-secret-key
+
+    - name: Run build
+      run: npm run build
+      env:
+        NODE_ENV: production
+        JWT_SECRET: test-secret-key
+        DATABASE_URL: file:./test.db
+        SKIP_ENV_VALIDATION: true
+
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/staging'
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Deploy to Vercel Staging
+      uses: amondnet/vercel-action@v25
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        vercel-org-id: ${{ secrets.ORG_ID }}
+        vercel-project-id: ${{ secrets.PROJECT_ID }}
+        vercel-args: ''
+        alias-domains: |
+          staging-kylee-blog.vercel.app
