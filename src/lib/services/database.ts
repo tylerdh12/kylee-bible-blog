@@ -14,7 +14,7 @@ interface DatabaseAdapter {
 	findUserByEmail(email: string): Promise<User | null>;
 	findUserById(id: string): Promise<User | null>;
 	createUser(
-		data: Omit<User, 'id' | 'createdAt' | 'updatedAt'>
+		data: Omit<User, 'id' | 'createdAt' | 'updatedAt' | 'posts' | 'comments'>
 	): Promise<User>;
 
 	// Post operations
@@ -32,7 +32,7 @@ interface DatabaseAdapter {
 		published?: boolean
 	): Promise<Post | null>;
 	createPost(
-		data: Omit<Post, 'id' | 'createdAt' | 'updatedAt'>
+		data: Omit<Post, 'id' | 'createdAt' | 'updatedAt' | 'comments'>
 	): Promise<Post>;
 	updatePost(
 		id: string,
@@ -107,7 +107,7 @@ class PrismaAdapter implements DatabaseAdapter {
 	}
 
 	async createUser(
-		data: Omit<User, 'id' | 'createdAt' | 'updatedAt'>
+		data: Omit<User, 'id' | 'createdAt' | 'updatedAt' | 'posts' | 'comments'>
 	): Promise<User> {
 		return this.prismaClient.user.create({
 			data,
@@ -166,7 +166,7 @@ class PrismaAdapter implements DatabaseAdapter {
 	}
 
 	async createPost(
-		data: Omit<Post, 'id' | 'createdAt' | 'updatedAt'>
+		data: Omit<Post, 'id' | 'createdAt' | 'updatedAt' | 'comments'>
 	): Promise<Post> {
 		const { tags, author: _author, ...postData } = data;
 		const result = await this.prismaClient.post.create({
@@ -188,8 +188,8 @@ class PrismaAdapter implements DatabaseAdapter {
 		id: string,
 		data: Partial<Post>
 	): Promise<Post | null> {
-		const { tags, author: _author, ...postData } = data;
-		return this.prismaClient.post.update({
+		const { tags, author: _author, comments: _comments, ...postData } = data;
+		const result = await this.prismaClient.post.update({
 			where: { id },
 			data: {
 				...postData,
@@ -203,7 +203,8 @@ class PrismaAdapter implements DatabaseAdapter {
 				author: true,
 				tags: true,
 			},
-		}) as Promise<Post>;
+		});
+		return result as Post;
 	}
 
 	async deletePost(id: string): Promise<boolean> {
@@ -420,7 +421,7 @@ class MockAdapter implements DatabaseAdapter {
 	}
 
 	async createUser(
-		data: Omit<User, 'id' | 'createdAt' | 'updatedAt'>
+		data: Omit<User, 'id' | 'createdAt' | 'updatedAt' | 'posts' | 'comments'>
 	): Promise<User> {
 		return this.mockDb.user.create({ data });
 	}
@@ -463,7 +464,7 @@ class MockAdapter implements DatabaseAdapter {
 	}
 
 	async createPost(
-		data: Omit<Post, 'id' | 'createdAt' | 'updatedAt'>
+		data: Omit<Post, 'id' | 'createdAt' | 'updatedAt' | 'comments'>
 	): Promise<Post> {
 		return this.mockDb.post.create({ data });
 	}
@@ -635,7 +636,7 @@ export class DatabaseService {
 	}
 
 	async createUser(
-		data: Omit<User, 'id' | 'createdAt' | 'updatedAt'>
+		data: Omit<User, 'id' | 'createdAt' | 'updatedAt' | 'posts' | 'comments'>
 	) {
 		return this.adapter.createUser(data);
 	}
@@ -651,7 +652,7 @@ export class DatabaseService {
 	}
 
 	async createPost(
-		data: Omit<Post, 'id' | 'createdAt' | 'updatedAt'>
+		data: Omit<Post, 'id' | 'createdAt' | 'updatedAt' | 'comments'>
 	) {
 		return this.adapter.createPost(data);
 	}

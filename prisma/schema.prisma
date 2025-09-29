@@ -7,16 +7,27 @@ datasource db {
   url      = env("POSTGRES_PRISMA_URL")
 }
 
+enum UserRole {
+  ADMIN
+  DEVELOPER
+  SUBSCRIBER
+}
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
-  password  String
+  password  String?  // Optional for social logins
   name      String?
-  role      String   @default("admin")
+  role      UserRole @default(SUBSCRIBER)
+  isActive  Boolean  @default(true)
+  avatar    String?
+  bio       String?
+  website   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   posts     Post[]
+  comments  Comment[]
 }
 
 model Post {
@@ -29,17 +40,36 @@ model Post {
   publishedAt DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+
   authorId    String
   author      User     @relation(fields: [authorId], references: [id])
-  
+
   tags        Tag[]
+  comments    Comment[]
 }
 
 model Tag {
   id    String @id @default(cuid())
   name  String @unique
   posts Post[]
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  isApproved Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  parentId  String?
+  parent    Comment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("CommentReplies")
 }
 
 model Goal {

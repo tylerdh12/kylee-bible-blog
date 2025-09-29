@@ -43,6 +43,19 @@ export async function POST(request: Request) {
 
     if (existingAdmin) {
       // Update password if different
+      if (!existingAdmin.password) {
+        // User exists but has no password (social login), set password
+        const hashedPassword = await bcryptjs.hash(password, 12)
+        await prisma.user.update({
+          where: { email },
+          data: { password: hashedPassword }
+        })
+        return NextResponse.json({
+          success: true,
+          message: 'Admin password set successfully!'
+        })
+      }
+
       const passwordMatch = await bcryptjs.compare(password, existingAdmin.password)
       if (!passwordMatch) {
         const hashedPassword = await bcryptjs.hash(password, 12)
@@ -69,7 +82,7 @@ export async function POST(request: Request) {
         email,
         password: hashedPassword,
         name,
-        role: 'admin',
+        role: 'ADMIN',
       },
     })
 

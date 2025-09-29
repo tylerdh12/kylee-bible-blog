@@ -1,12 +1,20 @@
 // Core domain types
+export type UserRole = 'ADMIN' | 'DEVELOPER' | 'SUBSCRIBER'
+
 export interface User {
   id: string
   email: string
-  password: string
+  password: string | null
   name: string | null
-  role: string
+  role: UserRole
+  isActive: boolean
+  avatar: string | null
+  bio: string | null
+  website: string | null
   createdAt: Date | string
   updatedAt: Date | string
+  posts?: Post[]
+  comments?: Comment[]
 }
 
 export interface Post {
@@ -22,6 +30,22 @@ export interface Post {
   authorId: string
   author?: User
   tags: Tag[]
+  comments?: Comment[]
+}
+
+export interface Comment {
+  id: string
+  content: string
+  isApproved: boolean
+  createdAt: Date | string
+  updatedAt: Date | string
+  authorId: string
+  author?: User
+  postId: string
+  post?: Post
+  parentId: string | null
+  parent?: Comment
+  replies?: Comment[]
 }
 
 export interface Tag {

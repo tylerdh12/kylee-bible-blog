@@ -18,18 +18,23 @@ function getValidatedJwtSecret(): string {
 
 const db = DatabaseService.getInstance()
 
-export async function createUser(email: string, password: string, name?: string) {
+export async function createUser(email: string, password: string, name?: string, role: 'ADMIN' | 'DEVELOPER' | 'SUBSCRIBER' = 'SUBSCRIBER') {
   const hashedPassword = await bcryptjs.hash(password, 12)
 
   return db.createUser({
     email,
     password: hashedPassword,
     name: name || null,
-    role: 'admin'
+    role,
+    isActive: true,
+    avatar: null,
+    bio: null,
+    website: null
   })
 }
 
-export async function verifyPassword(password: string, hashedPassword: string) {
+export async function verifyPassword(password: string, hashedPassword: string | null) {
+  if (!hashedPassword) return false
   return bcryptjs.compare(password, hashedPassword)
 }
 
