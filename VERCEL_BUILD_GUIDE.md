@@ -36,8 +36,8 @@ The project uses a custom build command defined in `vercel.json`:
 This runs:
 
 1. `scripts/build-check.js` - Pre-build validation
-2. `scripts/vercel-setup.js` - Vercel-specific setup
-3. `next build` - Next.js build with environment validation skipped
+2. `scripts/vercel-setup.js` - Vercel-specific setup with Prisma optimization
+3. `next build` - Next.js build with environment validation skipped and memory optimization
 
 ## Troubleshooting Common Issues
 
@@ -58,12 +58,26 @@ This runs:
 - **Error**: Prisma client generation failed
 - **Solution**: Ensure `POSTGRES_PRISMA_URL` or `DATABASE_URL` is properly formatted
 - **Format**: `postgresql://username:password@hostname:port/database`
+- **Fallback**: If optimized generation fails, the script automatically retries with standard flags
 
 ### 4. Next.js Build Issues
 
 - **Error**: TypeScript or ESLint errors
 - **Solution**: The build is configured to ignore TypeScript and ESLint errors
 - **Config**: See `next.config.ts` for `ignoreBuildErrors` and `ignoreDuringBuilds` settings
+
+### 5. Memory Issues / Build Timeouts
+
+- **Error**: Build fails silently or with memory errors
+- **Solution**: Optimized with increased memory allocation and package import optimization
+- **Memory Limit**: Set to 4GB via `NODE_OPTIONS='--max-old-space-size=4096'`
+- **Fallback Build**: Use `npm run vercel-build-simple` if main build fails
+
+### 6. Network/Download Issues
+
+- **Error**: Package installation timeouts
+- **Solution**: Optimized with `.npmrc` configuration for faster installs
+- **Features**: Offline-first, no audit, faster binary downloads
 
 ## Build Scripts
 

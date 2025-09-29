@@ -1,7 +1,7 @@
 {
 	"version": 2,
 	"buildCommand": "npm run vercel-build",
-	"installCommand": "npm install",
+	"installCommand": "npm install --prefer-offline --no-audit",
 	"framework": "nextjs",
 	"regions": ["iad1"],
 	"env": {
@@ -12,7 +12,8 @@
 			"NODE_ENV": "production",
 			"SKIP_ENV_VALIDATION": "true",
 			"CI": "true",
-			"NEXT_TELEMETRY_DISABLED": "1"
+			"NEXT_TELEMETRY_DISABLED": "1",
+			"PRISMA_GENERATE_SKIP_AUTOINSTALL": "true"
 		}
 	},
 	"functions": {
