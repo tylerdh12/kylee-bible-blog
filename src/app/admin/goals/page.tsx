@@ -14,11 +14,13 @@ import { format } from 'date-fns';
 import { Plus, Edit } from 'lucide-react';
 import { DashboardLayout } from '@/components/dashboard-layout';
 import { Goal } from '@/types';
+import { useCurrency } from '@/hooks/use-currency';
 
 export default function GoalsPage() {
 	const [goals, setGoals] = useState<Goal[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [user, setUser] = useState<any>(null);
+	const { formatAmount } = useCurrency();
 
 	useEffect(() => {
 		checkAuth();
@@ -156,8 +158,8 @@ export default function GoalsPage() {
 										</div>
 										<div className='text-right'>
 											<p className='text-2xl font-bold'>
-												${goal.currentAmount.toFixed(2)} / $
-												{goal.targetAmount.toFixed(2)}
+												{formatAmount(goal.currentAmount)} /{' '}
+												{formatAmount(goal.targetAmount)}
 											</p>
 											<p className='text-sm text-muted-foreground'>
 												{progressPercentage.toFixed(1)}%

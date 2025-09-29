@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { DashboardLayout } from '@/components/dashboard-layout';
+import { useCurrency } from '@/hooks/use-currency';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface Goal {
@@ -40,6 +41,7 @@ export default function EditGoalPage() {
 	const [targetAmount, setTargetAmount] = useState('');
 	const [deadline, setDeadline] = useState('');
 	const [completed, setCompleted] = useState(false);
+	const { currencyConfig } = useCurrency();
 
 	useEffect(() => {
 		const checkAuth = async () => {
@@ -201,7 +203,7 @@ export default function EditGoalPage() {
 
 					<div className='space-y-2'>
 						<Label htmlFor='targetAmount'>
-							Target Amount * ($)
+							Target Amount * ({currencyConfig.symbol})
 						</Label>
 						<Input
 							id='targetAmount'

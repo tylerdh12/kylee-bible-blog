@@ -14,6 +14,7 @@ import { format } from 'date-fns';
 import { ExternalLink, Heart } from 'lucide-react';
 import { DashboardLayout } from '@/components/dashboard-layout';
 import { Donation } from '@/types';
+import { useCurrency } from '@/hooks/use-currency';
 
 export default function DonationsPage() {
 	const [donations, setDonations] = useState<Donation[]>(
@@ -21,6 +22,7 @@ export default function DonationsPage() {
 	);
 	const [loading, setLoading] = useState(true);
 	const [user, setUser] = useState<any>(null);
+	const { formatAmount } = useCurrency();
 
 	useEffect(() => {
 		checkAuth();
@@ -125,7 +127,7 @@ export default function DonationsPage() {
 					<div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
 						<div className='text-center'>
 							<p className='text-2xl font-bold'>
-								${totalDonations.toFixed(2)}
+								{formatAmount(totalDonations)}
 							</p>
 							<p className='text-muted-foreground'>
 								Total Donations
@@ -197,7 +199,7 @@ export default function DonationsPage() {
 										<div className='space-y-2'>
 											<div className='flex items-center gap-2'>
 												<span className='font-semibold text-green-600'>
-													${donation.amount.toFixed(2)}
+													{formatAmount(donation.amount)}
 												</span>
 												{donation.anonymous ? (
 													<Badge variant='secondary'>
