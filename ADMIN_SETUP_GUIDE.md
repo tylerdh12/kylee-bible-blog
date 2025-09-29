@@ -107,8 +107,12 @@ curl -X POST http://localhost:3000/api/admin/setup \
 
 3. **"Database connection failed"**
 
-   - Verify `POSTGRES_PRISMA_URL` is correctly set
-   - Ensure database is accessible and running
+   - **First, test your database connection:** Visit `/api/db-test` for detailed diagnostics
+   - **Check environment variables:** Ensure `POSTGRES_PRISMA_URL` is set in Vercel
+   - **Verify database format:** Should be `postgresql://username:password@hostname:port/database`
+   - **For Vercel Postgres:** Use the connection string from your Vercel Postgres dashboard
+   - **Connection pooling:** Ensure your database allows sufficient connections
+   - **Network access:** Verify database allows connections from Vercel's IP ranges
 
 4. **"User already exists"**
    - This is normal! The system will update the existing user's password and ensure admin role

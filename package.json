@@ -19,6 +19,7 @@
 		"setup": "node scripts/setup-database.js",
 		"setup:production": "NODE_ENV=production node scripts/setup-database.js",
 		"create-admin": "node scripts/create-production-admin.js",
+		"check-env": "node scripts/check-production-env.js",
 		"seed": "node scripts/seed-database.js",
 		"migrate": "prisma generate && prisma db push",
 		"migrate:deploy": "prisma generate && prisma migrate deploy",
