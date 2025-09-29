@@ -21,6 +21,9 @@ const nextConfig: NextConfig = {
     '/api/**/*': ['./prisma/**/*'],
   },
   poweredByHeader: false,
+  experimental: {
+    serverComponentsExternalPackages: ['prisma', '@prisma/client'],
+  },
 };
 
 export default nextConfig;
