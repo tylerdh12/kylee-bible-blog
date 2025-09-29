@@ -2,6 +2,9 @@
 	"name": "kylee-blog",
 	"version": "0.1.0",
 	"private": true,
+	"engines": {
+		"node": ">=18.17.0"
+	},
 	"scripts": {
 		"dev": "next dev --turbopack",
 		"build": "prisma generate && next build",
@@ -18,7 +21,8 @@
 		"seed": "node scripts/seed-database.js",
 		"migrate": "prisma generate && prisma db push",
 		"migrate:deploy": "prisma generate && prisma migrate deploy",
-    "vercel-build": "node scripts/build-check.js && prisma generate && SKIP_ENV_VALIDATION=true next build",
+		"vercel-build": "node scripts/build-check.js && prisma generate && SKIP_ENV_VALIDATION=true next build",
+		"postinstall": "prisma generate",
 		"verify-deployment": "node scripts/verify-deployment.js",
 		"release": "semantic-release",
 		"version:patch": "npm version patch",
