@@ -79,6 +79,12 @@ This runs:
 - **Solution**: Optimized with `.npmrc` configuration for faster installs
 - **Features**: Offline-first, no audit, faster binary downloads
 
+### 7. Missing Build Dependencies
+
+- **Error**: "Cannot find module 'tailwindcss'" or similar PostCSS errors
+- **Solution**: Build dependencies moved to `dependencies` instead of `devDependencies`
+- **Fixed**: `tailwindcss`, `autoprefixer`, and `postcss` are now in production dependencies
+
 ## Build Scripts
 
 ### `npm run build`
