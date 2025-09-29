@@ -4,6 +4,18 @@ import bcryptjs from 'bcryptjs'
 
 export async function POST(request: Request) {
   try {
+    // Test database connection first
+    try {
+      await prisma.$connect()
+      await prisma.$queryRaw`SELECT 1`
+    } catch (dbError) {
+      console.error('Database connection failed:', dbError)
+      return NextResponse.json(
+        { error: 'Database connection failed. Please check your database configuration.' },
+        { status: 503 }
+      )
+    }
+
     // Only allow this in development or if specifically enabled
     const isProduction = process.env.NODE_ENV === 'production'
     const allowSetup = process.env.ALLOW_ADMIN_SETUP?.trim()
@@ -17,8 +29,9 @@ export async function POST(request: Request) {
 
     const { email, password, name, setupKey } = await request.json()
 
-    // Simple protection key
-    if (setupKey !== 'kylee-blog-setup-2024') {
+    // Configurable protection key with fallback
+    const expectedSetupKey = process.env.ADMIN_SETUP_KEY || 'kylee-blog-setup-2024'
+    if (setupKey !== expectedSetupKey) {
       return NextResponse.json({ error: 'Invalid setup key' }, { status: 403 })
     }
 
@@ -48,7 +61,10 @@ export async function POST(request: Request) {
         const hashedPassword = await bcryptjs.hash(password, 12)
         await prisma.user.update({
           where: { email },
-          data: { password: hashedPassword }
+          data: { 
+            password: hashedPassword,
+            role: 'ADMIN' // Ensure admin role is set
+          }
         })
         return NextResponse.json({
           success: true,
@@ -61,7 +77,10 @@ export async function POST(request: Request) {
         const hashedPassword = await bcryptjs.hash(password, 12)
         await prisma.user.update({
           where: { email },
-          data: { password: hashedPassword }
+          data: { 
+            password: hashedPassword,
+            role: 'ADMIN' // Ensure admin role is set
+          }
         })
         return NextResponse.json({
           success: true,
@@ -94,6 +113,14 @@ export async function POST(request: Request) {
 
   } catch (error) {
     console.error('Admin setup error:', error)
+    
+    // Ensure database connection is cleaned up
+    try {
+      await prisma.$disconnect()
+    } catch (disconnectError) {
+      console.error('Error disconnecting from database:', disconnectError)
+    }
+    
     return NextResponse.json(
       {
         error: 'Failed to set up admin user',
@@ -101,5 +128,12 @@ export async function POST(request: Request) {
       },
       { status: 500 }
     )
+  } finally {
+    // Clean up database connection
+    try {
+      await prisma.$disconnect()
+    } catch (disconnectError) {
+      console.error('Error disconnecting from database:', disconnectError)
+    }
   }
 }

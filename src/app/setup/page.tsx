@@ -116,7 +116,7 @@ export default function SetupPage() {
               </Button>
             </form>
 
-            <div className="mt-6 text-center">
+            <div className="mt-6 text-center space-y-2">
               <p className="text-sm text-muted-foreground">
                 After setup, go to{' '}
                 <a href="/admin" className="text-primary hover:underline">
@@ -124,6 +124,11 @@ export default function SetupPage() {
                 </a>{' '}
                 to log in
               </p>
+              <div className="text-xs text-muted-foreground border-t pt-2">
+                <p className="font-semibold">Production Note:</p>
+                <p>Set ALLOW_ADMIN_SETUP=true in environment variables</p>
+                <p>Or use: npm run create-admin in server console</p>
+              </div>
             </div>
           </CardContent>
         </Card>

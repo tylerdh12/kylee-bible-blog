@@ -18,6 +18,7 @@
 		"test:all": "npm run test && npm run test:e2e",
 		"setup": "node scripts/setup-database.js",
 		"setup:production": "NODE_ENV=production node scripts/setup-database.js",
+		"create-admin": "node scripts/create-production-admin.js",
 		"seed": "node scripts/seed-database.js",
 		"migrate": "prisma generate && prisma db push",
 		"migrate:deploy": "prisma generate && prisma migrate deploy",
