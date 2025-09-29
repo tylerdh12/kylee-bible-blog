@@ -93,6 +93,48 @@ export const postQuerySchema = z.object({
 		.optional(),
 });
 
+// Prayer request validation schemas
+export const createPrayerRequestSchema = z.object({
+	name: z
+		.string()
+		.max(100, 'Name cannot exceed 100 characters')
+		.trim()
+		.optional()
+		.nullable(),
+	email: z
+		.string()
+		.email('Invalid email format')
+		.max(255, 'Email cannot exceed 255 characters')
+		.trim()
+		.optional()
+		.nullable(),
+	request: z
+		.string()
+		.min(1, 'Prayer request is required')
+		.max(
+			2000,
+			'Prayer request cannot exceed 2000 characters'
+		)
+		.trim(),
+	isPrivate: z.boolean().default(true),
+});
+
+export const prayerRequestQuerySchema = z.object({
+	take: z
+		.string()
+		.regex(/^\d+$/, 'Take must be a positive integer')
+		.transform((val) => parseInt(val, 10))
+		.refine(
+			(val) => val >= 1 && val <= 100,
+			'Take must be between 1 and 100'
+		),
+	page: z
+		.string()
+		.regex(/^\d+$/, 'Page must be a positive integer')
+		.transform((val) => parseInt(val, 10))
+		.refine((val) => val >= 0, 'Page must be 0 or greater'),
+});
+
 // Rate limiting schema
 export const rateLimitByIpSchema = z.object({
 	ip: z.string().min(1, 'IP address is required'),

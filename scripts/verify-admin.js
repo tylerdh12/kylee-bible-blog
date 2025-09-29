@@ -1,57 +1,252 @@
-import { PrismaClient } from '@prisma/client'
-import bcryptjs from 'bcryptjs'
+#!/usr/bin/env node
 
-const prisma = new PrismaClient()
+/**
+ * Admin Verification Script
+ *
+ * This script verifies that the admin user exists and can be authenticated.
+ * It's used during deployment to ensure the database is properly set up.
+ */
 
-async function verifyAdmin() {
-  try {
-    console.log('🔍 Checking admin user in database...')
+const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcryptjs');
 
-    // Check if admin user exists
-    const adminUser = await prisma.user.findUnique({
-      where: { email: 'kylee@blog.com' }
-    })
+const prisma = new PrismaClient();
 
-    if (!adminUser) {
-      console.log('❌ Admin user not found in database!')
-      console.log('Available users:')
-      const allUsers = await prisma.user.findMany({
-        select: {
-          email: true,
-          name: true,
-          role: true,
-          isActive: true,
-          createdAt: true
-        }
-      })
-      console.table(allUsers)
-      return
-    }
+// Configuration
+const config = {
+	isProduction: process.env.NODE_ENV === 'production',
+	verbose:
+		process.env.VERBOSE === 'true' ||
+		process.env.NODE_ENV === 'development',
+};
 
-    console.log('✅ Admin user found!')
-    console.log('📧 Email:', adminUser.email)
-    console.log('👤 Name:', adminUser.name)
-    console.log('🔑 Role:', adminUser.role)
-    console.log('✅ Active:', adminUser.isActive)
-    console.log('📅 Created:', adminUser.createdAt)
-    console.log('🔐 Has Password:', !!adminUser.password)
+// Utility functions
+function log(message, type = 'info') {
+	const timestamp = new Date().toISOString();
+	const prefix =
+		{
+			info: 'ℹ️',
+			success: '✅',
+			warning: '⚠️',
+			error: '❌',
+			step: '🔄',
+		}[type] || 'ℹ️';
 
-    // Test password verification
-    if (adminUser.password) {
-      const testPassword = 'KyleeBlog2024!'
-      const passwordMatch = await bcryptjs.compare(testPassword, adminUser.password)
-      console.log('🔓 Password Test:', passwordMatch ? '✅ CORRECT' : '❌ INCORRECT')
-    }
-
-    // Check total user count
-    const userCount = await prisma.user.count()
-    console.log('👥 Total Users:', userCount)
-
-  } catch (error) {
-    console.error('❌ Error verifying admin:', error)
-  } finally {
-    await prisma.$disconnect()
-  }
+	console.log(`${prefix} [${timestamp}] ${message}`);
 }
 
-verifyAdmin()
+// Verification functions
+async function verifyDatabaseConnection() {
+	try {
+		await prisma.$queryRaw`SELECT 1`;
+		log('Database connection successful', 'success');
+		return true;
+	} catch (error) {
+		log(
+			`Database connection failed: ${error.message}`,
+			'error'
+		);
+		return false;
+	}
+}
+
+async function verifyAdminUser() {
+	try {
+		const adminUser = await prisma.user.findFirst({
+			where: {
+				role: 'ADMIN',
+				isActive: true,
+			},
+		});
+
+		if (!adminUser) {
+			log('No admin user found', 'warning');
+			return false;
+		}
+
+		log(`Admin user found: ${adminUser.email}`, 'success');
+
+		// Verify password
+		if (adminUser.password) {
+			const isValidPassword = await bcrypt.compare(
+				'admin123',
+				adminUser.password
+			);
+			if (isValidPassword) {
+				log(
+					'Admin password verification successful',
+					'success'
+				);
+				return true;
+			} else {
+				log(
+					'Admin password verification failed',
+					'warning'
+				);
+				return false;
+			}
+		} else {
+			log('Admin user has no password set', 'warning');
+			return false;
+		}
+	} catch (error) {
+		log(
+			`Admin verification failed: ${error.message}`,
+			'error'
+		);
+		return false;
+	}
+}
+
+async function verifyDatabaseTables() {
+	try {
+		// Check if all required tables exist
+		const tables = await prisma.$queryRaw`
+      SELECT table_name 
+      FROM information_schema.tables 
+      WHERE table_schema = 'public'
+      ORDER BY table_name
+    `;
+
+		const requiredTables = [
+			'User',
+			'Post',
+			'Tag',
+			'Comment',
+			'Goal',
+			'Donation',
+			'PrayerRequest',
+		];
+		const existingTables = tables.map((t) => t.table_name);
+
+		log(
+			`Found ${
+				existingTables.length
+			} tables: ${existingTables.join(', ')}`,
+			'info'
+		);
+
+		const missingTables = requiredTables.filter(
+			(table) =>
+				!existingTables.some(
+					(existing) =>
+						existing.toLowerCase() === table.toLowerCase()
+				)
+		);
+
+		if (missingTables.length > 0) {
+			log(
+				`Missing tables: ${missingTables.join(', ')}`,
+				'warning'
+			);
+			return false;
+		}
+
+		log('All required tables exist', 'success');
+		return true;
+	} catch (error) {
+		log(
+			`Table verification failed: ${error.message}`,
+			'error'
+		);
+		return false;
+	}
+}
+
+async function verifySampleData() {
+	try {
+		const counts = await Promise.all([
+			prisma.user.count(),
+			prisma.post.count(),
+			prisma.goal.count(),
+			prisma.donation.count(),
+			prisma.prayerRequest.count(),
+		]);
+
+		const [
+			userCount,
+			postCount,
+			goalCount,
+			donationCount,
+			prayerRequestCount,
+		] = counts;
+
+		log(
+			`Data counts - Users: ${userCount}, Posts: ${postCount}, Goals: ${goalCount}, Donations: ${donationCount}, Prayer Requests: ${prayerRequestCount}`,
+			'info'
+		);
+
+		if (userCount === 0) {
+			log('No users found in database', 'warning');
+			return false;
+		}
+
+		if (postCount === 0 && config.isProduction) {
+			log(
+				'No posts found in production database',
+				'warning'
+			);
+			return false;
+		}
+
+		log('Sample data verification passed', 'success');
+		return true;
+	} catch (error) {
+		log(
+			`Sample data verification failed: ${error.message}`,
+			'error'
+		);
+		return false;
+	}
+}
+
+// Main verification function
+async function main() {
+	try {
+		log('Starting admin verification...', 'info');
+		log(
+			`Environment: ${
+				config.isProduction ? 'Production' : 'Development'
+			}`,
+			'info'
+		);
+
+		const results = await Promise.all([
+			verifyDatabaseConnection(),
+			verifyDatabaseTables(),
+			verifyAdminUser(),
+			verifySampleData(),
+		]);
+
+		const [dbConnection, tables, adminUser, sampleData] =
+			results;
+
+		if (dbConnection && tables && adminUser && sampleData) {
+			log('All verifications passed! 🎉', 'success');
+			log('Admin user is ready for use', 'success');
+			process.exit(0);
+		} else {
+			log('Some verifications failed', 'warning');
+			log('Database may need additional setup', 'warning');
+			process.exit(1);
+		}
+	} catch (error) {
+		log(`Verification failed: ${error.message}`, 'error');
+		process.exit(1);
+	} finally {
+		await prisma.$disconnect();
+	}
+}
+
+// Handle script execution
+if (require.main === module) {
+	main();
+}
+
+module.exports = {
+	main,
+	verifyDatabaseConnection,
+	verifyAdminUser,
+	verifyDatabaseTables,
+	verifySampleData,
+};

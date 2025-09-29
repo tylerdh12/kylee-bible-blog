@@ -1,64 +1,65 @@
 {
-  "version": 2,
-  "buildCommand": "npm run vercel-build",
-  "framework": "nextjs",
-  "regions": ["iad1"],
-  "env": {
-    "NODE_ENV": "production"
-  },
-  "build": {
-    "env": {
-      "NODE_ENV": "production",
-      "SKIP_ENV_VALIDATION": "true",
-      "PRISMA_GENERATE_DATAPROXY": "true"
-    }
-  },
-  "functions": {
-    "src/app/api/**/*.ts": {
-      "memory": 1024,
-      "maxDuration": 15
-    }
-  },
-  "rewrites": [
-    {
-      "source": "/health",
-      "destination": "/api/health"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        },
-        {
-          "key": "Strict-Transport-Security",
-          "value": "max-age=31536000; includeSubDomains"
-        }
-      ]
-    },
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-cache, no-store, must-revalidate"
-        }
-      ]
-    }
-  ]
+	"version": 2,
+	"buildCommand": "npm run vercel-build",
+	"postinstall": "prisma generate",
+	"installCommand": "npm install",
+	"framework": "nextjs",
+	"regions": ["iad1"],
+	"env": {
+		"NODE_ENV": "production"
+	},
+	"build": {
+		"env": {
+			"NODE_ENV": "production",
+			"SKIP_ENV_VALIDATION": "true"
+		}
+	},
+	"functions": {
+		"src/app/api/**/*.ts": {
+			"memory": 1024,
+			"maxDuration": 15
+		}
+	},
+	"rewrites": [
+		{
+			"source": "/health",
+			"destination": "/api/health"
+		}
+	],
+	"headers": [
+		{
+			"source": "/(.*)",
+			"headers": [
+				{
+					"key": "X-Frame-Options",
+					"value": "DENY"
+				},
+				{
+					"key": "X-Content-Type-Options",
+					"value": "nosniff"
+				},
+				{
+					"key": "X-XSS-Protection",
+					"value": "1; mode=block"
+				},
+				{
+					"key": "Referrer-Policy",
+					"value": "strict-origin-when-cross-origin"
+				},
+				{
+					"key": "Strict-Transport-Security",
+					"value": "max-age=31536000; includeSubDomains"
+				}
+			]
+		},
+		{
+			"source": "/api/(.*)",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "no-cache, no-store, must-revalidate"
+				}
+			]
+		}
+	]
 }

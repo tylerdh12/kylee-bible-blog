@@ -15,6 +15,7 @@ import {
 	Settings,
 	Target,
 	Users,
+	HeartHandshake,
 } from 'lucide-react';
 
 import {
@@ -77,6 +78,11 @@ const contentItems = [
 ];
 
 const engagementItems = [
+		{
+			title: 'Prayer Requests',
+			url: '/admin/prayer-requests',
+			icon: HeartHandshake,
+		},
 	{
 		title: 'Comments',
 		url: '/admin/comments',
@@ -199,7 +205,9 @@ export function AppSidebar({
 									<SidebarMenuButton
 										asChild
 										tooltip={item.title}
-										isActive={pathname?.startsWith(item.url)}
+										isActive={pathname?.startsWith(
+											item.url
+										)}
 									>
 										<Link href={item.url}>
 											<item.icon className='size-4' />
