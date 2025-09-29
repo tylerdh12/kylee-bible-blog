@@ -11,7 +11,12 @@ export const prisma =
 			process.env.NODE_ENV === 'development'
 				? ['query', 'error', 'warn']
 				: ['error'],
-		// Use standard configuration for Neon/PostgreSQL
+		// Explicitly override datasource URL for Neon
+		datasources: {
+			db: {
+				url: process.env.DATABASE_URL,
+			},
+		},
 		transactionOptions: {
 			timeout: 10000, // 10 seconds for Vercel
 			maxWait: 5000, // 5 seconds max wait
