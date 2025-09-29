@@ -39,8 +39,9 @@ jobs:
       run: npm run build
       env:
         NODE_ENV: production
-        JWT_SECRET: test-secret-key
-        DATABASE_URL: file:./test.db
+        JWT_SECRET: test-secret-key-for-ci-build-only
+        DATABASE_URL: postgresql://user:password@localhost:5432/testdb?sslmode=require
+        SKIP_ENV_VALIDATION: "true"
 
     - name: Upload coverage reports
       uses: codecov/codecov-action@v4
@@ -74,8 +75,8 @@ jobs:
       run: npm run test:e2e
       env:
         NODE_ENV: test
-        JWT_SECRET: test-secret-key
-        DATABASE_URL: file:./test.db
+        JWT_SECRET: test-secret-key-for-ci-build-only
+        DATABASE_URL: postgresql://user:password@localhost:5432/testdb?sslmode=require
 
     - name: Upload Playwright report
       uses: actions/upload-artifact@v4

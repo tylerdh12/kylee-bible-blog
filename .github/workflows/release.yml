@@ -23,7 +23,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
 
       - name: Install dependencies
@@ -31,9 +31,18 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          NODE_ENV: production
+          JWT_SECRET: test-secret-key-for-ci-build-only
+          DATABASE_URL: postgresql://user:password@localhost:5432/testdb?sslmode=require
+          SKIP_ENV_VALIDATION: "true"
 
       - name: Run tests
         run: npm test
+        env:
+          NODE_ENV: test
+          JWT_SECRET: test-secret-key-for-ci-build-only
+          DATABASE_URL: postgresql://user:password@localhost:5432/testdb?sslmode=require
 
       - name: Release
         env:
