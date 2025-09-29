@@ -626,6 +626,25 @@ export class DatabaseService {
 		return DatabaseService.instance;
 	}
 
+	// Helper method to add timeout to database operations
+	private async withTimeout<T>(
+		operation: Promise<T>,
+		timeoutMs: number = 8000
+	): Promise<T> {
+		const timeoutPromise = new Promise<never>((_, reject) => {
+			setTimeout(() => {
+				reject(new Error(`Database operation timed out after ${timeoutMs}ms`));
+			}, timeoutMs);
+		});
+
+		try {
+			return await Promise.race([operation, timeoutPromise]);
+		} catch (error) {
+			console.error('Database operation failed:', error);
+			throw error;
+		}
+	}
+
 	// Expose all adapter methods
 	async findUserByEmail(email: string) {
 		return this.adapter.findUserByEmail(email);
@@ -644,7 +663,7 @@ export class DatabaseService {
 	async findPosts(
 		options?: Parameters<DatabaseAdapter['findPosts']>[0]
 	) {
-		return this.adapter.findPosts(options);
+		return this.withTimeout(this.adapter.findPosts(options), 6000);
 	}
 
 	async findPostBySlug(slug: string, published?: boolean) {
@@ -668,7 +687,7 @@ export class DatabaseService {
 	async findGoals(
 		options?: Parameters<DatabaseAdapter['findGoals']>[0]
 	) {
-		return this.adapter.findGoals(options);
+		return this.withTimeout(this.adapter.findGoals(options), 6000);
 	}
 
 	async findGoalById(id: string) {
