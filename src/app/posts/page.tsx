@@ -1,12 +1,12 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
-import { format } from "date-fns"
-import { DatabaseService } from "@/lib/services/database"
 import { Metadata } from "next"
+import { PostsContent } from "@/components/posts-content"
 
-// Force dynamic rendering to avoid build-time database access
-export const dynamic = 'force-dynamic'
+// Force static rendering for better performance
+export const dynamic = 'force-static'
+export const revalidate = 300 // Revalidate every 5 minutes
 
 export const metadata: Metadata = {
   title: "All Blog Posts - Kylee's Bible Study Journey",
@@ -25,19 +25,7 @@ export const metadata: Metadata = {
   },
 }
 
-async function getPosts() {
-  const db = DatabaseService.getInstance()
-  return db.findPosts({
-    published: true,
-    includeAuthor: true,
-    includeTags: true,
-    sort: { field: 'publishedAt', order: 'desc' }
-  })
-}
-
-export default async function PostsPage() {
-  const posts = await getPosts()
-
+export default function PostsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
       <div className="container mx-auto px-4 py-8">
@@ -51,90 +39,8 @@ export default async function PostsPage() {
           </p>
         </div>
 
-        {posts.length === 0 ? (
-          <Card className="max-w-2xl mx-auto">
-            <CardContent className="py-16 text-center">
-              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
-                📖
-              </div>
-              <h3 className="text-xl font-semibold mb-2">No posts published yet</h3>
-              <p className="text-muted-foreground mb-6">
-                Check back soon for new content from Kylee's Bible study journey!
-              </p>
-              <Link href="/" className="text-primary hover:underline font-medium">
-                ← Back to Home
-              </Link>
-            </CardContent>
-          </Card>
-        ) : (
-          <>
-            {/* Posts Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-              {posts.map((post: any) => (
-                <Card key={post.id} className="hover:shadow-xl transition-all duration-300 hover:scale-[1.02] group">
-                  <CardHeader>
-                    <CardTitle className="line-clamp-2 group-hover:text-primary transition-colors">
-                      {post.title}
-                    </CardTitle>
-                    <CardDescription className="flex items-center gap-2">
-                      <span>📅</span>
-                      {post.publishedAt && format(new Date(post.publishedAt), 'MMM dd, yyyy')}
-                      {post.author?.name && (
-                        <>
-                          <span>•</span>
-                          <span>By {post.author.name}</span>
-                        </>
-                      )}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground mb-4 line-clamp-3 leading-relaxed">
-                      {post.excerpt || post.content.substring(0, 150) + '...'}
-                    </p>
-
-                    {post.tags && post.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {post.tags.slice(0, 3).map((tag: any) => (
-                          <Badge key={tag.id} variant="secondary" className="text-xs">
-                            {tag.name}
-                          </Badge>
-                        ))}
-                        {post.tags.length > 3 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{post.tags.length - 3} more
-                          </Badge>
-                        )}
-                      </div>
-                    )}
-
-                    <Link
-                      href={`/posts/${post.slug}`}
-                      className="inline-flex items-center text-primary hover:underline font-medium group-hover:text-primary/80 transition-colors"
-                    >
-                      Read full post
-                      <svg className="ml-1 w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </Link>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {/* Back to Home */}
-            <div className="text-center">
-              <Link
-                href="/"
-                className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                Back to Home
-              </Link>
-            </div>
-          </>
-        )}
+        {/* Dynamic Content */}
+        <PostsContent />
       </div>
     </div>
   )
