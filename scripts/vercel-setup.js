@@ -35,10 +35,14 @@ try {
 	// Generate Prisma client with timeout and memory optimizations
 	console.log('📦 Generating Prisma client...');
 
-	// Set environment variables for Prisma generation
+	// Set environment variables for Prisma generation (standard PostgreSQL)
 	process.env.PRISMA_GENERATE_SKIP_AUTOINSTALL = 'true';
 	process.env.PRISMA_ENGINES_MIRROR =
 		'https://binaries.prisma.sh';
+	// Explicitly disable Accelerate features
+	process.env.PRISMA_DISABLE_ACCELERATE = 'true';
+	delete process.env.ACCELERATE_URL;
+	delete process.env.PULSE_API_KEY;
 
 	execSync('prisma generate --no-engine', {
 		stdio: 'inherit',
@@ -73,6 +77,7 @@ try {
 			env: {
 				...process.env,
 				NODE_OPTIONS: '--max-old-space-size=4096',
+				PRISMA_DISABLE_ACCELERATE: 'true',
 			},
 		});
 		console.log('✅ Fallback generation succeeded');
