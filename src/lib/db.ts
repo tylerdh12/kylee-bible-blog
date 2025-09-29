@@ -1,19 +1,11 @@
-import { PrismaClient } from '@prisma/client'
-import { mockPrisma } from './mock-db'
+import { prisma as realPrisma } from './prisma';
+import { mockPrisma } from './mock-db';
 
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined
-}
+// Use real database if DATABASE_URL is available, otherwise fallback to mock
+const hasRealDatabase =
+	!!process.env.DATABASE_URL &&
+	process.env.DATABASE_URL !== 'file:./dev.db';
 
-// Use mock database in production (Vercel) until we set up a proper database
-const isProduction = process.env.NODE_ENV === 'production'
-const isVercel = process.env.VERCEL === '1'
-
-export const prisma = (isProduction && isVercel) 
-  ? mockPrisma as any 
-  : globalForPrisma.prisma ??
-    new PrismaClient({
-      log: ['query'],
-    })
-
-if (!isProduction) globalForPrisma.prisma = prisma as PrismaClient
+export const prisma = hasRealDatabase
+	? realPrisma
+	: (mockPrisma as any);
