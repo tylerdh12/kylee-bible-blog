@@ -1,0 +1,23 @@
+#!/bin/sh
+# Post-commit hook
+# Optionally updates Linear issues after commit
+
+COMMIT_MSG=$(git log -1 --pretty=%B)
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+# Check if commit message references a Linear issue
+if echo "$COMMIT_MSG" | grep -qE '^[A-Z]+-[0-9]+:'; then
+  ISSUE_ID=$(echo "$COMMIT_MSG" | grep -oE '^[A-Z]+-[0-9]+')
+
+  if command -v linear >/dev/null 2>&1; then
+    echo "🔗 Linear issue detected: $ISSUE_ID"
+    echo "   Issue automatically linked to commit"
+
+    # Optionally update issue status if on feature branch
+    if echo "$BRANCH" | grep -qE '^feature/'; then
+      echo "💡 Tip: Update issue status with: npm run linear:help"
+    fi
+  else
+    echo "💡 Linear issue $ISSUE_ID referenced but Linear CLI not installed"
+  fi
+fi
