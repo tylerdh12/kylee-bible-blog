@@ -43,3 +43,6 @@ prisma/dev.db-journal
 # Logs
 logs
 *.log
+
+# Workflow
+.workflow/

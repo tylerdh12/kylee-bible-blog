@@ -1,0 +1,62 @@
+#!/bin/sh
+# Pre-commit hook for Kylee's Bible Blog
+# Enforces code quality and workflow standards
+
+echo "🔍 Running pre-commit checks..."
+
+# Check if Linear CLI is installed (optional but recommended)
+if command -v linear >/dev/null 2>&1; then
+  HAS_LINEAR=true
+else
+  HAS_LINEAR=false
+  echo "⚠️  Linear CLI not installed. Install with: npm install -g @linear/cli"
+  echo "   Then authenticate with: linear auth"
+fi
+
+# Get current branch name
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+# Check if branch follows naming convention
+if ! echo "$BRANCH" | grep -qE '^(feature|bugfix|hotfix|release)/[a-z0-9-]+$'; then
+  if [ "$BRANCH" != "main" ] && [ "$BRANCH" != "develop" ] && [ "$BRANCH" != "staging" ]; then
+    echo "❌ Invalid branch name: $BRANCH"
+    echo "   Branch must follow pattern: feature/*, bugfix/*, hotfix/*, or release/*"
+    echo "   Use: npm run branch:create to create a properly named branch"
+    exit 1
+  fi
+fi
+
+# Run linter
+echo "📝 Running linter..."
+npm run lint --silent
+if [ $? -ne 0 ]; then
+  echo "❌ Linting failed. Please fix errors before committing."
+  exit 1
+fi
+
+# Run tests
+echo "🧪 Running tests..."
+npm test -- --watchAll=false --silent 2>/dev/null
+if [ $? -ne 0 ]; then
+  echo "❌ Tests failed. Please fix failing tests before committing."
+  exit 1
+fi
+
+# Check for uncommitted package-lock.json changes
+if git diff --cached --name-only | grep -q "package-lock.json"; then
+  if ! git diff --cached --name-only | grep -q "package.json"; then
+    echo "⚠️  Warning: package-lock.json changed without package.json"
+    echo "   This might indicate a dependency issue."
+  fi
+fi
+
+# Remind about Linear issue if available
+if [ "$HAS_LINEAR" = true ] && [ "$BRANCH" != "main" ] && [ "$BRANCH" != "develop" ] && [ "$BRANCH" != "staging" ]; then
+  echo ""
+  echo "💡 Reminder: Link this commit to a Linear issue for tracking"
+  echo "   Format: 'ABC-123: Your commit message'"
+  echo "   Or run: npm run linear:list to see your issues"
+fi
+
+echo "✅ Pre-commit checks passed!"
+exit 0

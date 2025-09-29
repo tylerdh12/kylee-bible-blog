@@ -1,0 +1,28 @@
+#!/bin/sh
+# Prepare commit message hook
+# Automatically adds branch name context to commit messages
+
+COMMIT_MSG_FILE=$1
+COMMIT_SOURCE=$2
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+# Only proceed if this is a regular commit (not merge, squash, etc.)
+if [ "$COMMIT_SOURCE" = "" ] || [ "$COMMIT_SOURCE" = "message" ]; then
+  # Extract feature name from branch if it follows our convention
+  if echo "$BRANCH" | grep -qE '^(feature|bugfix|hotfix)/'; then
+    BRANCH_TYPE=$(echo "$BRANCH" | cut -d'/' -f1)
+    FEATURE_NAME=$(echo "$BRANCH" | cut -d'/' -f2-)
+
+    # Read the current commit message
+    COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+    # Check if message already has Linear issue reference
+    if ! echo "$COMMIT_MSG" | grep -qE '^[A-Z]+-[0-9]+:'; then
+      # Add helpful comment about Linear issues
+      if [ -n "$COMMIT_MSG" ] && [ "$COMMIT_MSG" != "" ]; then
+        echo "# Tip: Reference Linear issues using format: ABC-123: Your message" >> "$COMMIT_MSG_FILE"
+        echo "# Branch: $BRANCH" >> "$COMMIT_MSG_FILE"
+      fi
+    fi
+  fi
+fi
