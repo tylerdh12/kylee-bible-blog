@@ -38,7 +38,7 @@ export async function POST(request: Request) {
 					'Database connection timed out. Check if your database is accessible.';
 			} else if (isConnectionError) {
 				helpMessage =
-					'Cannot connect to database. Verify POSTGRES_PRISMA_URL is correct.';
+					'Cannot connect to database. Verify DATABASE_URL is correct.';
 			}
 
 			return NextResponse.json(

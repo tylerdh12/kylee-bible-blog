@@ -13,9 +13,7 @@ console.log('🚀 Starting Vercel setup...');
 
 // Environment check
 const isProduction = process.env.NODE_ENV === 'production';
-const hasDatabase =
-	process.env.DATABASE_URL ||
-	process.env.POSTGRES_PRISMA_URL;
+const hasDatabase = process.env.DATABASE_URL;
 
 console.log(
 	`Environment: ${
@@ -29,7 +27,7 @@ if (!hasDatabase && !process.env.SKIP_ENV_VALIDATION) {
 		'⚠️  No database URL found. This may cause runtime errors.'
 	);
 	console.warn(
-		'⚠️  Set DATABASE_URL or POSTGRES_PRISMA_URL in Vercel environment variables.'
+		'⚠️  Set DATABASE_URL in Vercel environment variables.'
 	);
 }
 

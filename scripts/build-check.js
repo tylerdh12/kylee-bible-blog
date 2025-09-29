@@ -99,16 +99,14 @@ if (!nextConfigExists) {
 if (process.env.NODE_ENV === 'production') {
 	console.log('🔧 Production build mode detected');
 
-	// Check if DATABASE_URL or POSTGRES_PRISMA_URL is set (should be present in production)
-	const hasDatabaseUrl =
-		process.env.DATABASE_URL ||
-		process.env.POSTGRES_PRISMA_URL;
+	// Check if DATABASE_URL is set (should be present in production)
+	const hasDatabaseUrl = process.env.DATABASE_URL;
 	if (!hasDatabaseUrl && !process.env.SKIP_ENV_VALIDATION) {
 		console.warn(
 			'⚠️  No database URL set. Build may succeed but runtime will fail.'
 		);
 		console.warn(
-			'⚠️  Set DATABASE_URL or POSTGRES_PRISMA_URL in Vercel environment variables.'
+			'⚠️  Set DATABASE_URL in Vercel environment variables.'
 		);
 	} else if (hasDatabaseUrl) {
 		console.log('✅ Database URL configured');
