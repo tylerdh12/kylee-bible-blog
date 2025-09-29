@@ -32,16 +32,6 @@ const nextConfig: NextConfig = {
 		}
 		return config;
 	},
-	experimental: {
-		turbo: {
-			rules: {
-				'*.css': {
-					loaders: ['postcss-loader'],
-					as: 'css',
-				},
-			},
-		},
-	},
 	poweredByHeader: false,
 };
 
