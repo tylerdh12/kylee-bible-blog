@@ -6,7 +6,7 @@ const db = DatabaseService.getInstance();
 
 export async function GET(
 	request: NextRequest,
-	{ params }: { params: Promise<{ id: string }> }
+	{ params }: { params: Promise<{ slug: string; id: string }> }
 ) {
 	try {
 		const user = await getAuthenticatedUser();

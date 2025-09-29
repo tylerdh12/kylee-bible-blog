@@ -30,30 +30,48 @@ export const metadata: Metadata = {
 }
 
 async function getRecentPosts() {
-  const db = DatabaseService.getInstance()
-  return db.findPosts({
-    published: true,
-    includeAuthor: true,
-    includeTags: true,
-    sort: { field: 'publishedAt', order: 'desc' },
-    take: 6,
-  })
+  try {
+    const db = DatabaseService.getInstance()
+    return await db.findPosts({
+      published: true,
+      includeAuthor: true,
+      includeTags: true,
+      sort: { field: 'publishedAt', order: 'desc' },
+      take: 6,
+    })
+  } catch (error) {
+    console.error('Failed to fetch posts:', error)
+    return []
+  }
 }
 
 async function getActiveGoals() {
-  const db = DatabaseService.getInstance()
-  return db.findGoals({
-    completed: false,
-    sort: { field: 'createdAt', order: 'desc' },
-    take: 3,
-  })
+  try {
+    const db = DatabaseService.getInstance()
+    return await db.findGoals({
+      completed: false,
+      sort: { field: 'createdAt', order: 'desc' },
+      take: 3,
+    })
+  } catch (error) {
+    console.error('Failed to fetch goals:', error)
+    return []
+  }
 }
 
 export default async function Home() {
-  const [posts, goals] = await Promise.all([
-    getRecentPosts(),
-    getActiveGoals(),
-  ])
+  let posts = []
+  let goals = []
+
+  try {
+    [posts, goals] = await Promise.all([
+      getRecentPosts(),
+      getActiveGoals(),
+    ])
+  } catch (error) {
+    console.error('Failed to load homepage data:', error)
+    // Continue with empty arrays to show fallback content
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -78,7 +96,11 @@ export default async function Home() {
         {posts.length === 0 ? (
           <Card>
             <CardContent className="py-8 text-center">
-              <p className="text-muted-foreground">No posts yet. Check back soon!</p>
+              <p className="text-muted-foreground mb-4">Welcome to Kylee's Bible Blog!</p>
+              <p className="text-sm text-muted-foreground">
+                Posts are loading or will be available soon.
+                In the meantime, explore other sections of the site or check out the admin setup.
+              </p>
             </CardContent>
           </Card>
         ) : (
@@ -127,7 +149,11 @@ export default async function Home() {
         {goals.length === 0 ? (
           <Card>
             <CardContent className="py-8 text-center">
-              <p className="text-muted-foreground">No active goals at the moment.</p>
+              <p className="text-muted-foreground mb-4">Goals will be available soon!</p>
+              <p className="text-sm text-muted-foreground">
+                Ministry goals and donation tracking are being set up.
+                Visit the admin panel to configure goals once the system is ready.
+              </p>
             </CardContent>
           </Card>
         ) : (
