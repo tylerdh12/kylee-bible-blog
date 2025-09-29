@@ -1,12 +1,12 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
-import { format } from "date-fns"
 import { Metadata } from "next"
-import { DatabaseService } from "@/lib/services/database"
+import { HomeContent } from "@/components/home-content"
 
-// Force dynamic rendering to avoid build-time database access
-export const dynamic = 'force-dynamic'
+// Force static rendering for better performance
+export const dynamic = 'force-static'
+export const revalidate = 300 // Revalidate every 5 minutes
 
 export const metadata: Metadata = {
   title: "Kylee's Bible Blog - Bible Study Journey & Christian Insights",
@@ -29,49 +29,7 @@ export const metadata: Metadata = {
   },
 }
 
-async function getRecentPosts() {
-  try {
-    const db = DatabaseService.getInstance()
-    return await db.findPosts({
-      published: true,
-      includeAuthor: true,
-      includeTags: true,
-      sort: { field: 'publishedAt', order: 'desc' },
-      take: 6,
-    })
-  } catch (error) {
-    console.error('Failed to fetch posts:', error)
-    return []
-  }
-}
-
-async function getActiveGoals() {
-  try {
-    const db = DatabaseService.getInstance()
-    return await db.findGoals({
-      completed: false,
-      sort: { field: 'createdAt', order: 'desc' },
-      take: 3,
-    })
-  } catch (error) {
-    console.error('Failed to fetch goals:', error)
-    return []
-  }
-}
-
-export default async function Home() {
-  let posts = []
-  let goals = []
-
-  try {
-    [posts, goals] = await Promise.all([
-      getRecentPosts(),
-      getActiveGoals(),
-    ])
-  } catch (error) {
-    console.error('Failed to load homepage data:', error)
-    // Continue with empty arrays to show fallback content
-  }
+export default function Home() {
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -79,124 +37,13 @@ export default async function Home() {
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold mb-4">Welcome to Kylee's Blog</h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Join me on my Bible study journey as I explore God&apos;s word, share insights, 
+          Join me on my Bible study journey as I explore God&apos;s word, share insights,
           and grow in faith. Together, we can support ministry goals and build community.
         </p>
       </div>
 
-      {/* Recent Posts Section */}
-      <div className="mb-12">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-3xl font-semibold">Recent Posts</h2>
-          <Link href="/posts" className="text-primary hover:underline">
-            View all posts →
-          </Link>
-        </div>
-
-        {posts.length === 0 ? (
-          <Card>
-            <CardContent className="py-8 text-center">
-              <p className="text-muted-foreground mb-4">Welcome to Kylee's Bible Blog!</p>
-              <p className="text-sm text-muted-foreground">
-                Posts are loading or will be available soon.
-                In the meantime, explore other sections of the site or check out the admin setup.
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {posts.map((post: any) => (
-              <Card key={post.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <CardTitle className="line-clamp-2">{post.title}</CardTitle>
-                  <CardDescription>
-                    {post.publishedAt && format(new Date(post.publishedAt), 'PPP')}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground mb-4 line-clamp-3">
-                    {post.excerpt || post.content.substring(0, 150) + '...'}
-                  </p>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {post.tags.map((tag: any) => (
-                      <Badge key={tag.id} variant="secondary">
-                        {tag.name}
-                      </Badge>
-                    ))}
-                  </div>
-                  <Link
-                    href={`/posts/${post.slug}`}
-                    className="text-primary hover:underline font-medium"
-                  >
-                    Read more →
-                  </Link>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Goals Section */}
-      <div>
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-3xl font-semibold">Current Goals</h2>
-          <Link href="/goals" className="text-primary hover:underline">
-            View all goals →
-          </Link>
-        </div>
-
-        {goals.length === 0 ? (
-          <Card>
-            <CardContent className="py-8 text-center">
-              <p className="text-muted-foreground mb-4">Goals will be available soon!</p>
-              <p className="text-sm text-muted-foreground">
-                Ministry goals and donation tracking are being set up.
-                Visit the admin panel to configure goals once the system is ready.
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {goals.map((goal: any) => {
-              const progress = (goal.currentAmount / goal.targetAmount) * 100
-              return (
-                <Card key={goal.id}>
-                  <CardHeader>
-                    <CardTitle className="line-clamp-1">{goal.title}</CardTitle>
-                    <CardDescription className="line-clamp-2">
-                      {goal.description}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="mb-4">
-                      <div className="flex justify-between text-sm mb-2">
-                        <span>${goal.currentAmount.toFixed(2)}</span>
-                        <span>${goal.targetAmount.toFixed(2)}</span>
-                      </div>
-                      <div className="w-full bg-secondary rounded-full h-2">
-                        <div
-                          className="bg-primary h-2 rounded-full transition-all"
-                          style={{ width: `${Math.min(progress, 100)}%` }}
-                        />
-                      </div>
-                      <p className="text-center text-sm text-muted-foreground mt-2">
-                        {progress.toFixed(1)}% completed
-                      </p>
-                    </div>
-                    <Link
-                      href={`/donate?goal=${goal.id}`}
-                      className="text-primary hover:underline font-medium"
-                    >
-                      Support this goal →
-                    </Link>
-                  </CardContent>
-                </Card>
-              )
-            })}
-          </div>
-        )}
-      </div>
+      {/* Dynamic Content */}
+      <HomeContent />
     </div>
   )
 }

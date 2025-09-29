@@ -40,7 +40,11 @@
       "Bash(ADMIN_EMAIL=\"kylee@blog.com\" ADMIN_PASSWORD=\"KyleeBlog2024!\" ADMIN_NAME=\"Kylee Champion\" node scripts/create-production-admin.js)",
       "Bash(vercel env:*)",
       "Bash(vercel:*)",
-      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_f3GNjX2Bruhl@ep-gentle-river-afq83ggv-pooler.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require\" npx prisma db push)"
+      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_f3GNjX2Bruhl@ep-gentle-river-afq83ggv-pooler.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require\" npx prisma db push)",
+      "mcp__vercel__get_access_to_vercel_url",
+      "Bash(curl:*)",
+      "Bash(find:*)",
+      "Bash(pkill:*)"
     ],
     "deny": [],
     "ask": []
