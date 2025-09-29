@@ -11,27 +11,11 @@ export const prisma =
 			process.env.NODE_ENV === 'development'
 				? ['query', 'error', 'warn']
 				: ['error'],
-		datasourceUrl:
-			process.env.POSTGRES_PRISMA_URL ||
-			process.env.DATABASE_URL,
-		// Optimize for serverless environments (Vercel)
-		datasources: {
-			db: {
-				url:
-					process.env.POSTGRES_PRISMA_URL ||
-					process.env.DATABASE_URL,
-			},
-		},
+		// Use standard configuration for Neon/PostgreSQL
 		transactionOptions: {
 			timeout: 10000, // 10 seconds for Vercel
 			maxWait: 5000, // 5 seconds max wait
 			isolationLevel: 'ReadCommitted', // Better for serverless
-		},
-		// Connection pooling for Vercel
-		__internal: {
-			engine: {
-				maxMemory: 512, // Limit memory usage
-			},
 		},
 	});
 

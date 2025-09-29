@@ -12,9 +12,7 @@ export async function GET() {
 			goalsCount = 0,
 			donationsCount = 0;
 
-		const databaseUrl =
-			process.env.DATABASE_URL ||
-			process.env.POSTGRES_PRISMA_URL;
+		const databaseUrl = process.env.DATABASE_URL;
 		if (envValid && databaseUrl) {
 			try {
 				const db = DatabaseService.getInstance();
@@ -54,10 +52,7 @@ export async function GET() {
 				environment: envValid ? 'valid' : 'invalid',
 				nextauth: !!process.env.NEXTAUTH_SECRET,
 				jwt: !!process.env.JWT_SECRET,
-				database: !!(
-					process.env.DATABASE_URL ||
-					process.env.POSTGRES_PRISMA_URL
-				),
+				database: !!process.env.DATABASE_URL,
 			},
 			routes: {
 				api: '/api',

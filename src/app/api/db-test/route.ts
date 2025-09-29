@@ -6,9 +6,7 @@ export async function GET() {
 		console.log('🔍 Testing database connection...');
 
 		// Check environment variables
-		const dbUrl =
-			process.env.POSTGRES_PRISMA_URL ||
-			process.env.DATABASE_URL;
+		const dbUrl = process.env.DATABASE_URL;
 		const hasDbUrl = !!dbUrl;
 		const dbUrlMasked = dbUrl
 			? dbUrl.replace(/:[^:]*@/, ':***@')
@@ -16,10 +14,7 @@ export async function GET() {
 
 		console.log('Environment check:', {
 			NODE_ENV: process.env.NODE_ENV,
-			POSTGRES_PRISMA_URL: hasDbUrl ? 'Set' : 'Not set',
-			DATABASE_URL: process.env.DATABASE_URL
-				? 'Set'
-				: 'Not set',
+			DATABASE_URL: hasDbUrl ? 'Set' : 'Not set',
 			ALLOW_ADMIN_SETUP: process.env.ALLOW_ADMIN_SETUP,
 		});
 
@@ -28,12 +23,9 @@ export async function GET() {
 				{
 					success: false,
 					error: 'No database URL configured',
-					details:
-						'Neither POSTGRES_PRISMA_URL nor DATABASE_URL is set',
+					details: 'DATABASE_URL is not set',
 					environment: {
 						NODE_ENV: process.env.NODE_ENV,
-						hasPostgresPrismaUrl:
-							!!process.env.POSTGRES_PRISMA_URL,
 						hasDatabaseUrl: !!process.env.DATABASE_URL,
 					},
 				},
@@ -131,7 +123,7 @@ export async function GET() {
 					duration: `${duration}ms`,
 					dbUrl: dbUrlMasked,
 					suggestions: [
-						'Check if POSTGRES_PRISMA_URL is correctly set',
+						'Check if DATABASE_URL is correctly set',
 						'Verify database server is running and accessible',
 						'Ensure database credentials are correct',
 						'Check if database allows connections from your deployment region',

@@ -17,14 +17,10 @@ export function validateProductionEnv() {
 		'NEXTAUTH_URL',
 	];
 
-	// Database URL can be either DATABASE_URL or POSTGRES_PRISMA_URL
-	const hasDatabaseUrl =
-		process.env.DATABASE_URL ||
-		process.env.POSTGRES_PRISMA_URL;
+	// Database URL - prefer DATABASE_URL for Neon
+	const hasDatabaseUrl = process.env.DATABASE_URL;
 	if (!hasDatabaseUrl) {
-		requiredEnvVars.push(
-			'DATABASE_URL or POSTGRES_PRISMA_URL'
-		);
+		requiredEnvVars.push('DATABASE_URL');
 	}
 
 	const missing = requiredEnvVars.filter(
@@ -64,9 +60,7 @@ export function validateProductionEnv() {
 	}
 
 	// Validate DATABASE_URL format for production
-	const databaseUrl =
-		process.env.DATABASE_URL ||
-		process.env.POSTGRES_PRISMA_URL;
+	const databaseUrl = process.env.DATABASE_URL;
 	if (
 		process.env.NODE_ENV === 'production' &&
 		databaseUrl
@@ -84,9 +78,7 @@ export function validateProductionEnv() {
 // Export environment configuration
 export const env = {
 	NODE_ENV: process.env.NODE_ENV || 'development',
-	DATABASE_URL:
-		process.env.DATABASE_URL ||
-		process.env.POSTGRES_PRISMA_URL,
+	DATABASE_URL: process.env.DATABASE_URL,
 	JWT_SECRET: process.env.JWT_SECRET,
 	NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
 	NEXTAUTH_URL: process.env.NEXTAUTH_URL,
