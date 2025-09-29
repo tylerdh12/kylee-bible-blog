@@ -50,7 +50,7 @@ async function createProductionAdmin() {
         email: adminEmail,
         password: hashedPassword,
         name: adminName,
-        role: 'admin',
+        role: 'ADMIN',
       },
     })
 
