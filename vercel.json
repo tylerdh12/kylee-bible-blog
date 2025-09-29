@@ -10,7 +10,8 @@
 	"build": {
 		"env": {
 			"NODE_ENV": "production",
-			"SKIP_ENV_VALIDATION": "true"
+			"SKIP_ENV_VALIDATION": "true",
+			"CI": "true"
 		}
 	},
 	"functions": {
