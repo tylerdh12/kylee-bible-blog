@@ -6,6 +6,26 @@
         "shadcn@latest",
         "mcp"
       ]
+    },
+    "Playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"]
+    },
+    "Netlify": {
+      "command": "npx",
+      "args": ["-y", "@netlify/mcp"]
+    },
+    "snyk": {
+      "command": "npx",
+      "args": ["-y", "snyk@latest", "mcp", "-t", "stdio"]
+    },
+    "Railway": {
+      "command": "npx",
+      "args": ["-y", "@railway/mcp-server"]
+    },
+    "Graphite": {
+      "command": "gt",
+      "args": ["mcp"]
     }
   }
 }

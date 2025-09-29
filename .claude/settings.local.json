@@ -47,7 +47,11 @@
       "Bash(pkill:*)",
       "WebFetch(domain:kylee-bible-blog.vercel.app)",
       "WebFetch(domain:kylee-blog-fczpnlfp8-kylee-champions-projects.vercel.app)",
-      "mcp__vercel__get_project"
+      "mcp__vercel__get_project",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "Read(//Users/tylerharper/Library/**)",
+      "Bash(NODE_ENV=production SKIP_ENV_VALIDATION=true npm run build)"
     ],
     "deny": [],
     "ask": []
