@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/tylerdh12/kylee-bible-blog/compare/v1.0.0...v1.0.1) (2025-09-29)
+
+
+### Bug Fixes
+
+* temporarily lower coverage thresholds to allow CI to pass ([9abc80d](https://github.com/tylerdh12/kylee-bible-blog/commit/9abc80d1827c35893517ffc85bcf1905bdc3616f))
+
 # 1.0.0 (2025-09-29)
 
 
