@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db'
 import { requirePermissions } from '@/lib/rbac'
 import { createUser } from '@/lib/auth'
 import type { UserRole } from '@/types'

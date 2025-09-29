@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/db';
 import { prayerRequestQuerySchema } from '@/lib/validation/schemas';
 import { createValidationErrorResponse } from '@/lib/validation/schemas';
 
