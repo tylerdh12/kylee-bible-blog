@@ -44,7 +44,10 @@
       "mcp__vercel__get_access_to_vercel_url",
       "Bash(curl:*)",
       "Bash(find:*)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "WebFetch(domain:kylee-bible-blog.vercel.app)",
+      "WebFetch(domain:kylee-blog-fczpnlfp8-kylee-champions-projects.vercel.app)",
+      "mcp__vercel__get_project"
     ],
     "deny": [],
     "ask": []
