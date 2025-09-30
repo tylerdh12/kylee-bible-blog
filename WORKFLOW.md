@@ -83,13 +83,13 @@ npm run workflow:help
 
 ### Available Commands
 
-| Command | Description |
-|---------|-------------|
+| Command                    | Description                                    |
+| -------------------------- | ---------------------------------------------- |
 | `npm run workflow:feature` | Creates a new feature branch with Linear issue |
-| `npm run workflow:pr` | Creates a PR with automated template |
-| `npm run workflow:deploy` | Interactive deployment wizard |
-| `npm run workflow:status` | Shows current workflow status |
-| `npm run workflow:help` | Shows comprehensive help |
+| `npm run workflow:pr`      | Creates a PR with automated template           |
+| `npm run workflow:deploy`  | Interactive deployment wizard                  |
+| `npm run workflow:status`  | Shows current workflow status                  |
+| `npm run workflow:help`    | Shows comprehensive help                       |
 
 ## Branching Strategy
 
@@ -113,6 +113,7 @@ Branches must follow this pattern:
 ```
 
 Examples:
+
 - `feature/KYL-123-user-authentication`
 - `bugfix/KYL-456-fix-login-error`
 - `hotfix/KYL-789-critical-security-patch`
@@ -126,6 +127,7 @@ npm run workflow:feature
 ```
 
 This will:
+
 1. Create a Linear issue automatically
 2. Create a properly named git branch
 3. Set up branch metadata
@@ -148,6 +150,7 @@ npm run workflow:feature
 ```
 
 Follow the prompts to create:
+
 - Linear issue (if CLI installed)
 - Git branch with proper naming
 - Branch metadata for tracking
@@ -189,6 +192,7 @@ npm run workflow:pr
 ```
 
 This will:
+
 - Generate PR with template
 - Include commit history
 - Reference Linear issue
@@ -216,11 +220,11 @@ Merging to `main` triggers automatic production deployment via CI/CD.
 
 ### Environments
 
-| Environment | Branch | URL | Purpose |
-|-------------|--------|-----|---------|
-| Development | Any | Local | Local development |
-| Staging | develop | staging-kylee-blog.vercel.app | Testing |
-| Production | main | kylee-bible-blog.vercel.app | Live site |
+| Environment | Branch  | URL                           | Purpose           |
+| ----------- | ------- | ----------------------------- | ----------------- |
+| Development | Any     | Local                         | Local development |
+| Staging     | develop | staging-kylee-blog.vercel.app | Testing           |
+| Production  | main    | kylee-bible-blog.vercel.app   | Live site         |
 
 ### Manual Deployment
 
@@ -345,6 +349,7 @@ When using `npm run workflow:feature`, Linear issues are created automatically i
 Runs on push/PR to `main`:
 
 1. **Test Job**:
+
    - Runs on Node.js 18.x and 20.x
    - Installs dependencies
    - Generates Prisma client
@@ -353,6 +358,7 @@ Runs on push/PR to `main`:
    - Uploads coverage reports
 
 2. **E2E Tests Job**:
+
    - Installs Playwright
    - Runs end-to-end tests
    - Uploads test reports
@@ -394,7 +400,7 @@ Configure in GitHub repository settings:
 #### Development
 
 ```bash
-DATABASE_URL="file:./dev.db"
+DATABASE_URL="postgresql://neondb_owner:npg_f3GNjX2Bruhl@ep-gentle-river-afq83ggv-pooler.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require"
 JWT_SECRET="development-secret"
 NEXTAUTH_SECRET="development-nextauth-secret"
 NEXTAUTH_URL="http://localhost:3000"

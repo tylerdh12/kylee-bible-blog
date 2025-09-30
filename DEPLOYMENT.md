@@ -17,13 +17,15 @@ This document describes the complete deployment process for the Kylee Bible Blog
 The application supports three environments:
 
 ### 1. Development
+
 - **Branch**: `feature/*`, local development
 - **Purpose**: Local development and testing
-- **Database**: SQLite (file:./dev.db)
+- **Database**: PostgreSQL (production database)
 - **URL**: http://localhost:3000
 - **Auto-deploy**: No
 
 ### 2. Staging
+
 - **Branch**: `develop`
 - **Purpose**: Pre-production testing and QA
 - **Database**: PostgreSQL (Neon - staging instance)
@@ -31,6 +33,7 @@ The application supports three environments:
 - **Auto-deploy**: Yes (on push to `develop`)
 
 ### 3. Production
+
 - **Branch**: `main`
 - **Purpose**: Live production environment
 - **Database**: PostgreSQL (Neon - production instance)
@@ -79,21 +82,25 @@ git checkout -b feature/feature-name
 ### 1. Development Workflow
 
 1. Create a feature branch from `main`:
+
    ```bash
    npm run branch:create my-feature "Add new feature"
    ```
 
 2. Make your changes and test locally:
+
    ```bash
    npm run dev
    ```
 
 3. Run tests:
+
    ```bash
    npm run test:all
    ```
 
 4. Commit changes:
+
    ```bash
    git add .
    git commit -m "feat: add new feature"
@@ -129,6 +136,7 @@ git checkout -b feature/feature-name
 For critical production issues:
 
 1. Create hotfix branch from `main`:
+
    ```bash
    git checkout main
    git pull origin main
@@ -155,28 +163,33 @@ For critical production issues:
 ### Local Development Setup
 
 1. Clone the repository:
+
    ```bash
    git clone <repository-url>
    cd kylee-bible-blog
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    ```
 
 3. Set up environment variables:
+
    ```bash
    cp .env.example .env
    # Edit .env with your local configuration
    ```
 
 4. Set up the database:
+
    ```bash
    npm run setup
    ```
 
 5. Create an admin user:
+
    ```bash
    ADMIN_EMAIL="admin@example.com" ADMIN_PASSWORD="SecurePass123!" ADMIN_NAME="Admin User" npm run create-admin
    ```
@@ -191,6 +204,7 @@ For critical production issues:
 Configure these in Vercel Dashboard for each environment:
 
 #### All Environments
+
 - `NODE_ENV`: Set to `production` for staging and production
 - `DATABASE_URL`: PostgreSQL connection string
 - `JWT_SECRET`: Strong random string (min 32 characters)
@@ -198,6 +212,7 @@ Configure these in Vercel Dashboard for each environment:
 - `NEXTAUTH_URL`: Full URL of the deployment
 
 #### Production Only
+
 - `ADMIN_EMAIL`: Initial admin email
 - `ADMIN_PASSWORD`: Strong admin password
 - `ADMIN_NAME`: Admin display name
@@ -205,16 +220,19 @@ Configure these in Vercel Dashboard for each environment:
 ### Environment-Specific Deployments
 
 #### Deploy to Development
+
 ```bash
 npm run deploy:dev
 ```
 
 #### Deploy to Staging
+
 ```bash
 npm run deploy:staging
 ```
 
 #### Deploy to Production
+
 ```bash
 npm run deploy:production
 ```
@@ -226,6 +244,7 @@ npm run deploy:production
 The application uses Prisma for database management.
 
 #### Development
+
 ```bash
 # Push schema changes (for rapid development)
 npm run migrate
@@ -235,6 +254,7 @@ npx prisma generate
 ```
 
 #### Production
+
 ```bash
 # Deploy migrations (safe for production)
 npm run migrate:deploy
@@ -243,11 +263,13 @@ npm run migrate:deploy
 ### Creating Admin Users
 
 #### Local/Development
+
 ```bash
 ADMIN_EMAIL="admin@local.com" ADMIN_PASSWORD="DevPass123!" ADMIN_NAME="Dev Admin" npm run create-admin
 ```
 
 #### Production (via Vercel CLI)
+
 ```bash
 # Pull environment variables from Vercel
 vercel env pull .env.production.local
@@ -269,6 +291,7 @@ npm run seed
 ### Setup
 
 1. Install Linear CLI:
+
    ```bash
    npm install -g @linear/cli
    ```
@@ -281,11 +304,13 @@ npm run seed
 ### Creating Issues
 
 #### Using the script
+
 ```bash
 npm run linear:create-issue "Issue title" "Description"
 ```
 
 #### Direct Linear CLI
+
 ```bash
 linear issue create --title "Feature name" --description "Description"
 ```
@@ -329,6 +354,7 @@ npm run verify-deployment
 ### Log Monitoring
 
 View deployment logs in Vercel Dashboard:
+
 1. Go to your project in Vercel
 2. Click on "Deployments"
 3. Select the deployment
@@ -342,6 +368,7 @@ View deployment logs in Vercel Dashboard:
 
 **Issue**: Prisma generation fails
 **Solution**:
+
 ```bash
 # Clear Prisma cache
 rm -rf node_modules/.prisma
@@ -355,6 +382,7 @@ npm run migrate
 
 **Issue**: Cannot connect to database
 **Solution**:
+
 1. Check DATABASE_URL is set correctly
 2. Verify database is accessible from Vercel's region
 3. Check database credentials and SSL settings
@@ -364,6 +392,7 @@ npm run migrate
 
 **Issue**: Changes not reflecting after deployment
 **Solution**:
+
 1. Check deployment logs in Vercel
 2. Verify build completed successfully
 3. Clear browser cache
@@ -372,6 +401,7 @@ npm run migrate
 ### Support
 
 For additional support:
+
 - Check GitHub Issues
 - Review Vercel deployment logs
 - Check Linear for known issues
@@ -380,19 +410,23 @@ For additional support:
 ## 📚 Scripts Reference
 
 ### Deployment Scripts
+
 - `npm run deploy:dev` - Build and test for development
 - `npm run deploy:staging` - Deploy to staging environment
 - `npm run deploy:production` - Deploy to production environment
 
 ### Branch Management
+
 - `npm run branch:create <name> <description>` - Create new feature branch
 
 ### Linear Integration
+
 - `npm run linear:create-issue <title> <description>` - Create Linear issue
 - `npm run linear:list` - List all Linear issues
 - `npm run linear:help` - Show Linear integration help
 
 ### Database
+
 - `npm run setup` - Setup development database
 - `npm run setup:production` - Setup production database
 - `npm run migrate` - Push schema changes (dev)
@@ -401,6 +435,7 @@ For additional support:
 - `npm run create-admin` - Create admin user
 
 ### Testing
+
 - `npm test` - Run unit tests
 - `npm run test:watch` - Run tests in watch mode
 - `npm run test:coverage` - Run tests with coverage
@@ -408,6 +443,7 @@ For additional support:
 - `npm run test:all` - Run all tests
 
 ### Build and Development
+
 - `npm run dev` - Start development server
 - `npm run build` - Build production bundle
 - `npm start` - Start production server

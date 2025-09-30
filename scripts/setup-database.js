@@ -43,11 +43,6 @@ const config = {
 		process.env.DATABASE_URL ||
 		''
 	).startsWith('postgresql://'),
-	isSQLite: (
-		process.env.POSTGRES_PRISMA_URL ||
-		process.env.DATABASE_URL ||
-		''
-	).startsWith('file:'),
 };
 
 // Utility functions
@@ -108,9 +103,7 @@ function checkPrerequisites() {
 	}
 
 	// Check database provider
-	if (config.isSQLite) {
-		log('Using SQLite database for development', 'info');
-	} else if (config.isPostgreSQL) {
+	if (config.isPostgreSQL) {
 		log('Using PostgreSQL database', 'info');
 	} else {
 		log(
@@ -141,37 +134,7 @@ function runMigrations() {
 	logStep(3, 6, 'Running database migrations...');
 
 	try {
-		if (config.isSQLite) {
-			// For SQLite, temporarily modify the schema to use sqlite provider
-			const schemaPath = path.join(
-				__dirname,
-				'..',
-				'prisma',
-				'schema.prisma'
-			);
-			const originalSchema = fs.readFileSync(
-				schemaPath,
-				'utf8'
-			);
-
-			// Replace postgresql with sqlite for this operation
-			const sqliteSchema = originalSchema.replace(
-				'provider = "postgresql"',
-				'provider = "sqlite"'
-			);
-
-			fs.writeFileSync(schemaPath, sqliteSchema);
-
-			try {
-				runCommand(
-					`${config.prismaPath} db push`,
-					'Push schema changes'
-				);
-			} finally {
-				// Restore original schema
-				fs.writeFileSync(schemaPath, originalSchema);
-			}
-		} else if (config.isProduction) {
+		if (config.isProduction) {
 			// In production with PostgreSQL, use prisma migrate deploy for safety
 			runCommand(
 				`${config.prismaPath} migrate deploy`,
@@ -235,23 +198,12 @@ async function verifyDatabase() {
           // Test basic connectivity
           await prisma.$queryRaw\`SELECT 1\`;
           
-          // Check if tables exist (different query for SQLite vs PostgreSQL)
-          let tables;
-          if (process.env.POSTGRES_PRISMA_URL && process.env.POSTGRES_PRISMA_URL.startsWith('file:')) {
-            // SQLite
-            tables = await prisma.$queryRaw\`
-              SELECT name as table_name 
-              FROM sqlite_master 
-              WHERE type = 'table' AND name NOT LIKE 'sqlite_%'
-            \`;
-          } else {
-            // PostgreSQL
-            tables = await prisma.$queryRaw\`
-              SELECT table_name 
-              FROM information_schema.tables 
-              WHERE table_schema = 'public'
-            \`;
-          }
+			// Check if tables exist (PostgreSQL)
+			const tables = await prisma.$queryRaw\`
+				SELECT table_name 
+				FROM information_schema.tables 
+				WHERE table_schema = 'public'
+			\`;
           
           console.log('Database verification successful');
           console.log('Tables found:', tables.length);

@@ -19,7 +19,7 @@ A modern, production-ready blog platform built specifically for Bible study enth
 ## 🛠️ Tech Stack
 
 - **Framework**: Next.js 15 with App Router and Turbopack
-- **Database**: SQLite with Prisma ORM (PostgreSQL ready)
+- **Database**: PostgreSQL with Prisma ORM
 - **Styling**: Tailwind CSS + ShadCN UI components
 - **Editor**: TipTap rich text editor
 - **Authentication**: Custom JWT auth with bcryptjs
@@ -31,34 +31,39 @@ A modern, production-ready blog platform built specifically for Bible study enth
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - npm or yarn
 
 ### Installation
 
 1. Clone the repository:
+
    ```bash
    git clone <your-repo-url>
    cd kylee-blog
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    ```
 
 3. Set up the database:
+
    ```bash
    npx prisma generate
    npx prisma db push
    ```
 
 4. Create your admin user (optional - will be created automatically):
+
    ```bash
    npx prisma studio
    ```
 
 5. Run the development server:
+
    ```bash
    npm run dev
    ```
@@ -70,6 +75,7 @@ A modern, production-ready blog platform built specifically for Bible study enth
 This project includes comprehensive testing:
 
 ### Unit Tests
+
 ```bash
 npm test                # Run unit tests
 npm run test:watch      # Run tests in watch mode
@@ -77,12 +83,14 @@ npm run test:coverage   # Run tests with coverage report
 ```
 
 ### End-to-End Tests
+
 ```bash
 npm run test:e2e        # Run Playwright E2E tests
 npm run test:e2e:ui     # Run E2E tests with UI
 ```
 
 ### Run All Tests
+
 ```bash
 npm run test:all        # Run both unit and E2E tests
 ```
@@ -93,7 +101,7 @@ Copy `.env.example` to `.env.local` and update the values:
 
 ```env
 # Database Configuration
-DATABASE_URL="file:./dev.db"
+DATABASE_URL="postgresql://neondb_owner:npg_f3GNjX2Bruhl@ep-gentle-river-afq83ggv-pooler.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require"
 
 # Authentication (Generate strong secrets for production)
 JWT_SECRET="your-super-secure-jwt-secret-key"
@@ -162,7 +170,7 @@ For detailed deployment instructions, see [DEPLOYMENT.md](./DEPLOYMENT.md).
 The app includes the following main models:
 
 - **User**: Admin users with authentication
-- **Post**: Blog posts with rich content and metadata  
+- **Post**: Blog posts with rich content and metadata
 - **Goal**: Fundraising goals with progress tracking
 - **Donation**: Individual donations linked to goals
 - **Tag**: Organizational tags for posts

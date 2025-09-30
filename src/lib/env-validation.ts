@@ -65,9 +65,9 @@ export function validateProductionEnv() {
 		process.env.NODE_ENV === 'production' &&
 		databaseUrl
 	) {
-		if (databaseUrl.startsWith('file:')) {
+		if (!databaseUrl.startsWith('postgresql://')) {
 			console.warn(
-				'Using SQLite in production. Consider using PostgreSQL for better performance.'
+				'Database URL should use PostgreSQL for production deployment.'
 			);
 		}
 	}
