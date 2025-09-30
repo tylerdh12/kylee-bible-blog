@@ -19,7 +19,7 @@ console.log();
 
 // Required environment variables
 const requiredVars = [
-	'POSTGRES_PRISMA_URL',
+	'DATABASE_URL',
 	'JWT_SECRET',
 	'NEXTAUTH_SECRET',
 	'NEXTAUTH_URL',
@@ -73,9 +73,7 @@ optionalVars.forEach((varName) => {
 
 // Database URL validation
 console.log('\n🗄️  Database Configuration:');
-const dbUrl =
-	process.env.POSTGRES_PRISMA_URL ||
-	process.env.DATABASE_URL;
+const dbUrl = process.env.DATABASE_URL;
 if (dbUrl) {
 	try {
 		const url = new URL(dbUrl);

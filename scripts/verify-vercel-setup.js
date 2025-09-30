@@ -20,8 +20,8 @@ console.log();
 
 // Required environment variables for Vercel
 const requiredVars = {
-	POSTGRES_PRISMA_URL:
-		'Vercel Postgres connection string (pooled)',
+	DATABASE_URL:
+		'PostgreSQL connection string',
 	JWT_SECRET: 'JWT signing secret (32+ chars)',
 	NEXTAUTH_SECRET: 'NextAuth secret (32+ chars)',
 	NEXTAUTH_URL: 'Your deployed app URL',
@@ -61,7 +61,7 @@ Object.entries(requiredVars).forEach(
 				// Validate URL format
 				try {
 					const url = new URL(value);
-					if (varName === 'POSTGRES_PRISMA_URL') {
+					if (varName === 'DATABASE_URL') {
 						console.log(
 							`   ✅ ${varName}: ${url.protocol}//${
 								url.hostname
@@ -72,7 +72,7 @@ Object.entries(requiredVars).forEach(
 
 						if (!url.protocol.startsWith('postgres')) {
 							warnings.push(
-								'POSTGRES_PRISMA_URL should use postgresql:// protocol'
+								'DATABASE_URL should use postgresql:// protocol'
 							);
 						}
 						if (
@@ -80,7 +80,7 @@ Object.entries(requiredVars).forEach(
 							!value.includes('sslmode=require')
 						) {
 							warnings.push(
-								'POSTGRES_PRISMA_URL should include sslmode=require for Vercel'
+								'DATABASE_URL should include sslmode=require for security'
 							);
 						}
 					} else {

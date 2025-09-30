@@ -8,8 +8,7 @@ Set the following environment variables in your Vercel project settings:
 
 ### Database
 
-- `POSTGRES_PRISMA_URL` - Your PostgreSQL connection string (for Vercel Postgres)
-- Or `DATABASE_URL` - Alternative PostgreSQL connection string
+- `DATABASE_URL` - Your PostgreSQL connection string
 
 ### Authentication
 
@@ -56,7 +55,7 @@ This runs:
 ### 3. Prisma Generation Issues
 
 - **Error**: Prisma client generation failed
-- **Solution**: Ensure `POSTGRES_PRISMA_URL` or `DATABASE_URL` is properly formatted
+- **Solution**: Ensure `DATABASE_URL` is properly formatted
 - **Format**: `postgresql://username:password@hostname:port/database`
 - **Fallback**: If optimized generation fails, the script automatically retries with standard flags
 
@@ -114,7 +113,7 @@ See `vercel.json` for complete configuration.
 For production deployment:
 
 1. Create a Vercel Postgres database
-2. Copy the `POSTGRES_PRISMA_URL` to your environment variables
+2. Set the `DATABASE_URL` in your environment variables
 3. Run database migrations separately (not during build)
 4. Use the admin setup endpoint to create your first admin user
 

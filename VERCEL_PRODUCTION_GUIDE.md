@@ -11,7 +11,7 @@
 
    ```bash
    # Database (Required for production)
-   POSTGRES_PRISMA_URL=your_postgres_connection_string
+   DATABASE_URL="postgresql://neondb_owner:npg_f3GNjX2Bruhl@ep-gentle-river-afq83ggv-pooler.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require"
    
    # Security (Required)
    NEXTAUTH_SECRET=your_secret_here
@@ -49,7 +49,7 @@
 ### Common Build Issues
 
 1. **Missing Environment Variables**
-   - Ensure `POSTGRES_PRISMA_URL` is set in Vercel
+   - Ensure `DATABASE_URL` is set in Vercel
    - Check environment variable names match exactly
 
 2. **Prisma Client Errors**

@@ -19,9 +19,7 @@ const config = {
 	verbose:
 		process.env.VERBOSE === 'true' ||
 		process.env.NODE_ENV === 'development',
-	databaseUrl:
-		process.env.POSTGRES_PRISMA_URL ||
-		process.env.DATABASE_URL,
+	databaseUrl: process.env.DATABASE_URL,
 };
 
 // Utility functions

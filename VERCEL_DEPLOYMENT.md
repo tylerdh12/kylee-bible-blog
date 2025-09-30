@@ -19,7 +19,7 @@ Set these in your Vercel project settings:
 
 ```bash
 # Database
-POSTGRES_PRISMA_URL="postgresql://username:password@host:port/database"
+DATABASE_URL="postgresql://neondb_owner:npg_f3GNjX2Bruhl@ep-gentle-river-afq83ggv-pooler.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require"
 
 # Authentication
 NEXTAUTH_SECRET="your-secret-key-here"
@@ -105,7 +105,7 @@ vercel --prod
 
 **Solution**:
 
-- Ensure `POSTGRES_PRISMA_URL` is set in Vercel environment variables
+- Ensure `DATABASE_URL` is set in Vercel environment variables
 - Check database connection string format
 - Verify database is accessible from Vercel
 

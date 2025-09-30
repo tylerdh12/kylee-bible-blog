@@ -108,9 +108,9 @@ curl -X POST http://localhost:3000/api/admin/setup \
 3. **"Database connection failed"**
 
    - **First, test your database connection:** Visit `/api/db-test` for detailed diagnostics
-   - **Check environment variables:** Ensure `POSTGRES_PRISMA_URL` is set in Vercel
+   - **Check environment variables:** Ensure `DATABASE_URL` is set in Vercel
    - **Verify database format:** Should be `postgresql://username:password@hostname:port/database`
-   - **For Vercel Postgres:** Use the connection string from your Vercel Postgres dashboard
+   - **For Neon Database:** Use the production connection string provided
    - **Connection pooling:** Ensure your database allows sufficient connections
    - **Network access:** Verify database allows connections from Vercel's IP ranges
 

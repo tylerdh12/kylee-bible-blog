@@ -4,31 +4,18 @@ This comprehensive checklist ensures your Vercel deployment is properly configur
 
 ## 🗄️ Database Setup
 
-### Step 1: Create Vercel Postgres Database
+### Step 1: Use Existing Neon PostgreSQL Database
 
-1. **Go to Vercel Dashboard**
+1. **Database Already Configured**
 
-   - Navigate to your project dashboard
-   - Click on the **"Storage"** tab
-   - Click **"Create Database"**
-   - Select **"Postgres"**
-
-2. **Database Configuration**
-
-   - Name: `kylee-blog-db` (or your preferred name)
-   - Region: Choose closest to your users (recommended: `iad1` for US East)
-   - Plan: Select appropriate plan
+   - The application uses a Neon PostgreSQL database
+   - No need to create a new Vercel Postgres database
+   - Connection details provided below
 
 3. **Get Connection Strings**
    After creation, you'll see these environment variables:
    ```
-   POSTGRES_URL="..."
-   POSTGRES_PRISMA_URL="..."
-   POSTGRES_URL_NON_POOLING="..."
-   POSTGRES_USER="..."
-   POSTGRES_HOST="..."
-   POSTGRES_PASSWORD="..."
-   POSTGRES_DATABASE="..."
+   DATABASE_URL="postgresql://neondb_owner:npg_f3GNjX2Bruhl@ep-gentle-river-afq83ggv-pooler.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require"
    ```
 
 ## 🔧 Environment Variables Setup
@@ -40,11 +27,10 @@ Go to **Project Settings → Environment Variables** and add:
 #### **Database (Required)**
 
 ```bash
-POSTGRES_PRISMA_URL="postgresql://username:password@hostname:port/database?sslmode=require&pgbouncer=true"
-POSTGRES_URL_NON_POOLING="postgresql://username:password@hostname:port/database?sslmode=require"
+DATABASE_URL="postgresql://neondb_owner:npg_f3GNjX2Bruhl@ep-gentle-river-afq83ggv-pooler.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require"
 ```
 
-> **Important**: Use the exact values from your Vercel Postgres dashboard
+> **Important**: This is the Neon PostgreSQL production database
 
 #### **Authentication (Required)**
 

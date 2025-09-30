@@ -19,9 +19,7 @@ const config = {
 	isDevelopment: process.env.NODE_ENV === 'development',
 
 	// Database URLs
-	databaseUrl:
-		process.env.POSTGRES_PRISMA_URL ||
-		process.env.DATABASE_URL,
+	databaseUrl: process.env.DATABASE_URL,
 
 	// Script paths
 	prismaPath: path.join(
@@ -39,7 +37,6 @@ const config = {
 
 	// Database provider detection
 	isPostgreSQL: (
-		process.env.POSTGRES_PRISMA_URL ||
 		process.env.DATABASE_URL ||
 		''
 	).startsWith('postgresql://'),
@@ -98,7 +95,7 @@ function checkPrerequisites() {
 	// Check database URL
 	if (!config.databaseUrl) {
 		throw new Error(
-			'Database URL not found. Please set POSTGRES_PRISMA_URL or DATABASE_URL environment variable.'
+			'Database URL not found. Please set DATABASE_URL environment variable.'
 		);
 	}
 
