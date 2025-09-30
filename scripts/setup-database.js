@@ -36,10 +36,9 @@ const config = {
 		process.env.NODE_ENV === 'development',
 
 	// Database provider detection
-	isPostgreSQL: (
-		process.env.DATABASE_URL ||
-		''
-	).startsWith('postgresql://'),
+	isPostgreSQL: (process.env.DATABASE_URL || '').startsWith(
+		'postgresql://'
+	),
 };
 
 // Utility functions
