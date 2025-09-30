@@ -121,9 +121,7 @@ Object.entries(adminVars).forEach(
 // Database connection test
 console.log('\n🗄️  Database Connection Test:');
 async function testDatabase() {
-	const dbUrl =
-		process.env.POSTGRES_PRISMA_URL ||
-		process.env.DATABASE_URL;
+	const dbUrl = process.env.DATABASE_URL;
 
 	if (!dbUrl) {
 		console.log('   ❌ No database URL configured');
