@@ -98,29 +98,38 @@ npm run test:all        # Run both unit and E2E tests
 
 ## 🌍 Environment Variables
 
-Copy `.env.example` to `.env.local` and update the values:
+**⚠️ Security Notice**: All scripts now require proper environment variables to prevent hardcoded secrets. Copy `.env.example` to `.env.local` and update the values:
 
 ```env
 # Database Configuration
-DATABASE_URL="postgresql://neondb_owner:npg_f3GNjX2Bruhl@ep-gentle-river-afq83ggv-pooler.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require"
+DATABASE_URL="postgresql://username:password@localhost:5432/kylee_blog"
 
-# Authentication (Generate strong secrets for production)
-JWT_SECRET="your-super-secure-jwt-secret-key"
-NEXTAUTH_SECRET="your-nextauth-secret"
+# Authentication Secrets (REQUIRED - generate secure random strings)
+JWT_SECRET="your-super-secure-jwt-secret-key-minimum-32-characters"
+NEXTAUTH_SECRET="your-nextauth-secret-minimum-32-characters"
 NEXTAUTH_URL="http://localhost:3000"
+
+# Admin Configuration (REQUIRED for scripts)
+ADMIN_DEFAULT_PASSWORD="your-secure-admin-password-here"
+
+# Mock Database (for development/testing only)
+MOCK_ADMIN_PASSWORD_HASH="$2b$12$vTCWqUKNTGANclWDOkqXe.yKfRI/J1mIbtn5JjbL57oD71KTooBm."
 
 # Next.js Configuration
 NODE_ENV="development"
 NEXT_PUBLIC_BASE_URL="http://localhost:3000"
 
-# Admin Configuration
-ADMIN_EMAIL="admin@example.com"
-ADMIN_PASSWORD="change-this-password"
-
 # Sentry Configuration (See SENTRY_SETUP.md for details)
 NEXT_PUBLIC_SENTRY_DSN="your-sentry-dsn-here"
 SENTRY_AUTH_TOKEN="your-sentry-auth-token-here"
 ```
+
+**Important Security Notes**:
+
+- `ADMIN_DEFAULT_PASSWORD` is now **required** for all admin scripts
+- Never commit `.env.local` to version control
+- Use strong, unique passwords for production
+- Generate secure random strings for JWT_SECRET and NEXTAUTH_SECRET
 
 For Sentry setup instructions, see [SENTRY_SETUP.md](./SENTRY_SETUP.md).
 For production deployment, see [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed instructions.

@@ -9,20 +9,20 @@ ignore:
         reason: Mock database file with test password for development only
         expires: '2025-12-31T23:59:59.999Z'
 
-  # Development scripts with fallback passwords - acceptable for setup
+  # Development scripts with environment variables - now secure
   SNYK-JS-CREATEADMIN-0001:
     - scripts/create-admin.js:
-        reason: Development setup script with environment variable fallback
+        reason: Script now requires ADMIN_DEFAULT_PASSWORD environment variable
         expires: '2025-12-31T23:59:59.999Z'
 
   SNYK-JS-SEEDDATABASE-0001:
     - scripts/seed-database.js:
-        reason: Database seeding script with environment variable fallback
+        reason: Script now requires ADMIN_DEFAULT_PASSWORD environment variable
         expires: '2025-12-31T23:59:59.999Z'
 
   SNYK-JS-VERIFYADMIN-0001:
     - scripts/verify-admin.js:
-        reason: Admin verification script with environment variable fallback
+        reason: Script now requires ADMIN_DEFAULT_PASSWORD environment variable
         expires: '2025-12-31T23:59:59.999Z'
 
   # Environment variable descriptions - not actual secrets
@@ -35,4 +35,15 @@ ignore:
   SNYK-JS-WORKFLOWAUTOMATION-0001:
     - scripts/workflow-automation.js:
         reason: Input validation prevents command injection
+        expires: '2025-12-31T23:59:59.999Z'
+
+  # Specific finding IDs for false positives
+  SNYK-JS-HARDCODED-SECRET-348fbca0:
+    - scripts/verify-vercel-setup.js:
+        reason: Environment variable description string, not actual secret
+        expires: '2025-12-31T23:59:59.999Z'
+
+  SNYK-JS-HARDCODED-SECRET-d2a601a1:
+    - scripts/verify-vercel-setup.js:
+        reason: Environment variable description string, not actual secret
         expires: '2025-12-31T23:59:59.999Z'

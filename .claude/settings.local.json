@@ -55,13 +55,19 @@
       "Bash(gh auth:*)",
       "Bash(brew:*)",
       "Bash(export NODE_ENV=production)",
-      "Bash(export SKIP_ENV_VALIDATION=true)"
+      "Bash(export SKIP_ENV_VALIDATION=true)",
+      "Bash(npm run check-env:*)"
     ],
     "deny": [],
     "ask": []
   },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
-    "shadcn"
+    "shadcn",
+    "Playwright",
+    "Netlify",
+    "snyk",
+    "Railway",
+    "Graphite"
   ]
 }
