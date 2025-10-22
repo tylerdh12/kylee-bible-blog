@@ -222,7 +222,7 @@ export function DashboardOverview() {
                 <div key={donation.id} className="flex items-center justify-between p-3 rounded-lg border">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="font-semibold text-green-600">
+                      <span className="font-semibold text-green-600 dark:text-green-400">
                         ${donation.amount.toFixed(2)}
                       </span>
                       {donation.anonymous ? (

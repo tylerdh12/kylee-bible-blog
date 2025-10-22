@@ -198,7 +198,7 @@ export default function DonationsPage() {
 									<div className='flex justify-between items-start'>
 										<div className='space-y-2'>
 											<div className='flex items-center gap-2'>
-												<span className='font-semibold text-green-600'>
+												<span className='font-semibold text-green-600 dark:text-green-400'>
 													{formatAmount(donation.amount)}
 												</span>
 												{donation.anonymous ? (

@@ -24,7 +24,7 @@ export function ProgressBar({ current, target, className }: ProgressBarProps) {
         />
       </div>
       {isComplete && (
-        <p className="text-sm text-green-600 font-medium mt-2">Goal completed! 🎉</p>
+        <p className="text-sm text-green-600 dark:text-green-400 font-medium mt-2">Goal completed! 🎉</p>
       )}
     </div>
   )

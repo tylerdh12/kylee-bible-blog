@@ -315,7 +315,7 @@ export default function SettingsPage() {
 							</span>
 							<Badge
 								variant='outline'
-								className='text-green-600 border-green-600'
+								className='text-green-600 border-green-600 dark:text-green-400 dark:border-green-400'
 							>
 								Connected
 							</Badge>
@@ -326,7 +326,7 @@ export default function SettingsPage() {
 							</span>
 							<Badge
 								variant='outline'
-								className='text-green-600 border-green-600'
+								className='text-green-600 border-green-600 dark:text-green-400 dark:border-green-400'
 							>
 								Healthy
 							</Badge>

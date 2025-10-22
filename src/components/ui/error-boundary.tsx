@@ -55,7 +55,7 @@ function DefaultErrorFallback({ error, resetError }: ErrorFallbackProps) {
   return (
     <Card className="max-w-lg mx-auto mt-8">
       <CardHeader>
-        <CardTitle className="text-red-600">Something went wrong</CardTitle>
+        <CardTitle className="text-red-600 dark:text-red-400">Something went wrong</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-muted-foreground">

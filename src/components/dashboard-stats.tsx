@@ -67,15 +67,15 @@ function StatCard({
 					{trend && (
 						<div className='flex items-center gap-1'>
 							{trend.isPositive ? (
-								<TrendingUp className='h-3 w-3 text-green-500' />
+								<TrendingUp className='h-3 w-3 text-green-500 dark:text-green-400' />
 							) : (
-								<TrendingDown className='h-3 w-3 text-red-500' />
+								<TrendingDown className='h-3 w-3 text-red-500 dark:text-red-400' />
 							)}
 							<span
 								className={`text-xs ${
 									trend.isPositive
-										? 'text-green-600'
-										: 'text-red-600'
+										? 'text-green-600 dark:text-green-400'
+										: 'text-red-600 dark:text-red-400'
 								}`}
 							>
 								{trend.isPositive ? '+' : ''}

@@ -29,7 +29,7 @@ export function GoalCard({
 							{isCompleted && (
 								<Badge
 									variant='outline'
-									className='text-green-600 border-green-600'
+									className='text-green-600 border-green-600 dark:text-green-400 dark:border-green-400'
 								>
 									Completed
 								</Badge>
