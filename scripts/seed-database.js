@@ -237,9 +237,11 @@ async function seedUsers() {
 
 		const users = [];
 		for (const userData of sampleData.users) {
-			// Hash password for admin user
+			// Hash password for admin user with environment variable or fallback
+			const defaultPassword =
+				process.env.ADMIN_DEFAULT_PASSWORD || 'admin123';
 			const hashedPassword = await bcrypt.hash(
-				'admin123',
+				defaultPassword,
 				12
 			);
 

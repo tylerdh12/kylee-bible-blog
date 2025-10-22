@@ -28,67 +28,99 @@ const args = process.argv.slice(3);
 
 // Check if Linear CLI is installed
 function checkLinearCLI() {
-  try {
-    execSync('linear --version', { stdio: 'pipe' });
-    return true;
-  } catch {
-    console.error('❌ Linear CLI not found');
-    console.log('📦 Install with: npm install -g @linear/cli');
-    console.log('🔑 Then authenticate with: linear auth');
-    return false;
-  }
+	try {
+		execSync('linear --version', { stdio: 'pipe' });
+		return true;
+	} catch {
+		console.error('❌ Linear CLI not found');
+		console.log(
+			'📦 Install with: npm install -g @linear/cli'
+		);
+		console.log('🔑 Then authenticate with: linear auth');
+		return false;
+	}
 }
 
 // Create a new Linear issue
 function createIssue(title, description = '') {
-  console.log('🎯 Creating Linear issue...\n');
+	console.log('🎯 Creating Linear issue...\n');
 
-  try {
-    const result = execSync(
-      `linear issue create --title "${title}" --description "${description}"`,
-      { encoding: 'utf8' }
-    );
+	try {
+		// Escape special characters in title and description
+		const escapedTitle = title
+			.replace(/"/g, '\\"')
+			.replace(/'/g, "\\'");
+		const escapedDescription = description
+			.replace(/"/g, '\\"')
+			.replace(/'/g, "\\'");
 
-    console.log('✅ Issue created successfully!');
-    console.log(result);
-  } catch (error) {
-    console.error('❌ Failed to create issue:', error.message);
-    process.exit(1);
-  }
+		const result = execSync(
+			`linear issue create --title "${escapedTitle}" --description "${escapedDescription}"`,
+			{ encoding: 'utf8' }
+		);
+
+		console.log('✅ Issue created successfully!');
+		console.log(result);
+	} catch (error) {
+		console.error(
+			'❌ Failed to create issue:',
+			error.message
+		);
+		process.exit(1);
+	}
 }
 
 // List issues
 function listIssues() {
-  console.log('📋 Listing Linear issues...\n');
+	console.log('📋 Listing Linear issues...\n');
 
-  try {
-    const result = execSync('linear issue list', { encoding: 'utf8', stdio: 'inherit' });
-  } catch (error) {
-    console.error('❌ Failed to list issues:', error.message);
-    process.exit(1);
-  }
+	try {
+		const result = execSync('linear issue list', {
+			encoding: 'utf8',
+			stdio: 'inherit',
+		});
+	} catch (error) {
+		console.error(
+			'❌ Failed to list issues:',
+			error.message
+		);
+		process.exit(1);
+	}
 }
 
 // Update issue status
 function updateStatus(issueId, status) {
-  console.log(`🔄 Updating issue ${issueId} to status: ${status}\n`);
+	console.log(
+		`🔄 Updating issue ${issueId} to status: ${status}\n`
+	);
 
-  try {
-    execSync(
-      `linear issue update ${issueId} --state "${status}"`,
-      { stdio: 'inherit' }
-    );
+	try {
+		// Escape special characters in issueId and status
+		const escapedIssueId = issueId
+			.replace(/"/g, '\\"')
+			.replace(/'/g, "\\'");
+		const escapedStatus = status
+			.replace(/"/g, '\\"')
+			.replace(/'/g, "\\'");
 
-    console.log('✅ Issue status updated successfully!');
-  } catch (error) {
-    console.error('❌ Failed to update issue:', error.message);
-    process.exit(1);
-  }
+		execSync(
+			`linear issue update ${escapedIssueId} --state "${escapedStatus}"`,
+			{ stdio: 'inherit' }
+		);
+
+		console.log('✅ Issue status updated successfully!');
+	} catch (error) {
+		console.error(
+			'❌ Failed to update issue:',
+			error.message
+		);
+		process.exit(1);
+	}
 }
 
 // Show help
 function showHelp() {
-  console.log(`
+	console.log(`
 📚 Linear Integration Helper
 
 Usage:
@@ -116,34 +148,38 @@ For more information, visit: https://developers.linear.app/docs/cli
 
 // Main execution
 if (!checkLinearCLI() && command !== 'help') {
-  process.exit(1);
+	process.exit(1);
 }
 
 switch (command) {
-  case 'create-issue':
-    if (args.length < 1) {
-      console.error('❌ Title is required');
-      console.log('Usage: node scripts/linear-integration.js create-issue <title> [description]');
-      process.exit(1);
-    }
-    createIssue(args[0], args[1] || '');
-    break;
+	case 'create-issue':
+		if (args.length < 1) {
+			console.error('❌ Title is required');
+			console.log(
+				'Usage: node scripts/linear-integration.js create-issue <title> [description]'
+			);
+			process.exit(1);
+		}
+		createIssue(args[0], args[1] || '');
+		break;
 
-  case 'list-issues':
-    listIssues();
-    break;
+	case 'list-issues':
+		listIssues();
+		break;
 
-  case 'update-status':
-    if (args.length < 2) {
-      console.error('❌ Issue ID and status are required');
-      console.log('Usage: node scripts/linear-integration.js update-status <issue-id> <status>');
-      process.exit(1);
-    }
-    updateStatus(args[0], args[1]);
-    break;
+	case 'update-status':
+		if (args.length < 2) {
+			console.error('❌ Issue ID and status are required');
+			console.log(
+				'Usage: node scripts/linear-integration.js update-status <issue-id> <status>'
+			);
+			process.exit(1);
+		}
+		updateStatus(args[0], args[1]);
+		break;
 
-  case 'help':
-  default:
-    showHelp();
-    break;
+	case 'help':
+	default:
+		showHelp();
+		break;
 }

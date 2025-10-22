@@ -66,10 +66,12 @@ async function verifyAdminUser() {
 
 		log(`Admin user found: ${adminUser.email}`, 'success');
 
-		// Verify password
+		// Verify password with environment variable or fallback
 		if (adminUser.password) {
+			const defaultPassword =
+				process.env.ADMIN_DEFAULT_PASSWORD || 'admin123';
 			const isValidPassword = await bcrypt.compare(
-				'admin123',
+				defaultPassword,
 				adminUser.password
 			);
 			if (isValidPassword) {
