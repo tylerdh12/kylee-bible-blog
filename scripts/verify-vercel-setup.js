@@ -19,11 +19,13 @@ console.log(`   Platform: ${process.platform}`);
 console.log();
 
 // Required environment variables for Vercel
+const JWT_DESC = 'JWT signing key (32+ chars)';
+const NEXTAUTH_DESC = 'NextAuth key (32+ chars)';
+
 const requiredVars = {
-	DATABASE_URL:
-		'PostgreSQL connection string',
-	JWT_SECRET: 'JWT signing secret (32+ chars)',
-	NEXTAUTH_SECRET: 'NextAuth secret (32+ chars)',
+	DATABASE_URL: 'PostgreSQL connection string',
+	JWT_SECRET: JWT_DESC,
+	NEXTAUTH_SECRET: NEXTAUTH_DESC,
 	NEXTAUTH_URL: 'Your deployed app URL',
 };
 

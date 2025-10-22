@@ -237,9 +237,20 @@ async function seedUsers() {
 
 		const users = [];
 		for (const userData of sampleData.users) {
-			// Hash password for admin user with environment variable or fallback
+			// Hash password for admin user with environment variable (required for security)
 			const defaultPassword =
-				process.env.ADMIN_DEFAULT_PASSWORD || 'admin123';
+				process.env.ADMIN_DEFAULT_PASSWORD;
+			if (!defaultPassword) {
+				log(
+					'ADMIN_DEFAULT_PASSWORD environment variable is required!',
+					'error'
+				);
+				log(
+					'Please set ADMIN_DEFAULT_PASSWORD in your .env.local file',
+					'error'
+				);
+				process.exit(1);
+			}
 			const hashedPassword = await bcrypt.hash(
 				defaultPassword,
 				12

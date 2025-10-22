@@ -353,7 +353,20 @@ async function deployWorkflow() {
 			process.exit(1);
 		}
 
-		execSync(`npm run deploy:${environment}`, {
+		// Use whitelist to prevent command injection
+		const deployCommand = `npm run deploy:${environment}`;
+		const allowedCommands = [
+			'npm run deploy:development',
+			'npm run deploy:staging',
+			'npm run deploy:production',
+		];
+
+		if (!allowedCommands.includes(deployCommand)) {
+			console.error('❌ Invalid deploy command detected');
+			process.exit(1);
+		}
+
+		execSync(deployCommand, {
 			stdio: 'inherit',
 		});
 		console.log(

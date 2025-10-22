@@ -12,9 +12,18 @@ async function createDefaultAdmin() {
 			return;
 		}
 
-		// Create default admin with environment variable or fallback
+		// Create default admin with environment variable (required for security)
 		const defaultPassword =
-			process.env.ADMIN_DEFAULT_PASSWORD || 'admin123';
+			process.env.ADMIN_DEFAULT_PASSWORD;
+		if (!defaultPassword) {
+			console.error(
+				'❌ ADMIN_DEFAULT_PASSWORD environment variable is required!'
+			);
+			console.error(
+				'Please set ADMIN_DEFAULT_PASSWORD in your .env.local file'
+			);
+			process.exit(1);
+		}
 		const hashedPassword = await bcryptjs.hash(
 			defaultPassword,
 			12
@@ -25,7 +34,7 @@ async function createDefaultAdmin() {
 				email: 'kylee@blog.com',
 				password: hashedPassword,
 				name: 'Kylee',
-				role: 'admin',
+				role: 'ADMIN',
 			},
 		});
 

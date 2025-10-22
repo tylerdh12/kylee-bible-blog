@@ -69,7 +69,18 @@ async function verifyAdminUser() {
 		// Verify password with environment variable or fallback
 		if (adminUser.password) {
 			const defaultPassword =
-				process.env.ADMIN_DEFAULT_PASSWORD || 'admin123';
+				process.env.ADMIN_DEFAULT_PASSWORD;
+			if (!defaultPassword) {
+				log(
+					'ADMIN_DEFAULT_PASSWORD environment variable is required!',
+					'error'
+				);
+				log(
+					'Please set ADMIN_DEFAULT_PASSWORD in your .env.local file',
+					'error'
+				);
+				return false;
+			}
 			const isValidPassword = await bcrypt.compare(
 				defaultPassword,
 				adminUser.password
