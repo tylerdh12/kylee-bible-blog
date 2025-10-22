@@ -1,4 +1,3 @@
-import { withSentryConfig } from '@sentry/nextjs';
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
@@ -53,16 +52,4 @@ const nextConfig: NextConfig = {
 	poweredByHeader: false,
 };
 
-// Sentry configuration options
-const sentryWebpackPluginOptions = {
-	// For all available options, see:
-	// https://github.com/getsentry/sentry-webpack-plugin#options
-
-	// Suppresses source map uploading logs during build
-	silent: true,
-	org: 'tyler-harper',
-	project: 'kylee-blog',
-};
-
-// Export the config wrapped with Sentry
-export default withSentryConfig(nextConfig, sentryWebpackPluginOptions);
+export default nextConfig;
