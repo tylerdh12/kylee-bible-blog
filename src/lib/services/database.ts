@@ -14,7 +14,14 @@ interface DatabaseAdapter {
 	findUserByEmail(email: string): Promise<User | null>;
 	findUserById(id: string): Promise<User | null>;
 	createUser(
-		data: Omit<User, 'id' | 'createdAt' | 'updatedAt' | 'posts' | 'comments'>
+		data: Omit<
+			User,
+			| 'id'
+			| 'createdAt'
+			| 'updatedAt'
+			| 'posts'
+			| 'comments'
+		>
 	): Promise<User>;
 
 	// Post operations
@@ -32,7 +39,10 @@ interface DatabaseAdapter {
 		published?: boolean
 	): Promise<Post | null>;
 	createPost(
-		data: Omit<Post, 'id' | 'createdAt' | 'updatedAt' | 'comments'>
+		data: Omit<
+			Post,
+			'id' | 'createdAt' | 'updatedAt' | 'comments'
+		>
 	): Promise<Post>;
 	updatePost(
 		id: string,
@@ -107,7 +117,14 @@ class PrismaAdapter implements DatabaseAdapter {
 	}
 
 	async createUser(
-		data: Omit<User, 'id' | 'createdAt' | 'updatedAt' | 'posts' | 'comments'>
+		data: Omit<
+			User,
+			| 'id'
+			| 'createdAt'
+			| 'updatedAt'
+			| 'posts'
+			| 'comments'
+		>
 	): Promise<User> {
 		return this.prismaClient.user.create({
 			data,
@@ -166,9 +183,12 @@ class PrismaAdapter implements DatabaseAdapter {
 	}
 
 	async createPost(
-		data: Omit<Post, 'id' | 'createdAt' | 'updatedAt' | 'comments'>
+		data: Omit<
+			Post,
+			'id' | 'createdAt' | 'updatedAt' | 'comments'
+		>
 	): Promise<Post> {
-		const { tags, author: _author, ...postData } = data;
+		const { tags, author, ...postData } = data;
 		const result = await this.prismaClient.post.create({
 			data: {
 				...postData,
@@ -188,7 +208,7 @@ class PrismaAdapter implements DatabaseAdapter {
 		id: string,
 		data: Partial<Post>
 	): Promise<Post | null> {
-		const { tags, author: _author, comments: _comments, ...postData } = data;
+		const { tags, author, comments, ...postData } = data;
 		const result = await this.prismaClient.post.update({
 			where: { id },
 			data: {
@@ -209,7 +229,9 @@ class PrismaAdapter implements DatabaseAdapter {
 
 	async deletePost(id: string): Promise<boolean> {
 		try {
-			await this.prismaClient.post.delete({ where: { id } });
+			await this.prismaClient.post.delete({
+				where: { id },
+			});
 			return true;
 		} catch {
 			return false;
@@ -287,7 +309,9 @@ class PrismaAdapter implements DatabaseAdapter {
 
 	async deleteGoal(id: string): Promise<boolean> {
 		try {
-			await this.prismaClient.goal.delete({ where: { id } });
+			await this.prismaClient.goal.delete({
+				where: { id },
+			});
 			return true;
 		} catch {
 			return false;
@@ -309,17 +333,18 @@ class PrismaAdapter implements DatabaseAdapter {
 			includeGoal = true,
 		} = options;
 
-		const result = await this.prismaClient.donation.findMany({
-			where: goalId ? { goalId } : undefined,
-			include: {
-				goal: includeGoal,
-			},
-			orderBy: { [sort.field]: sort.order },
-			skip: pagination
-				? pagination.page * pagination.limit
-				: undefined,
-			take: pagination?.limit,
-		});
+		const result =
+			await this.prismaClient.donation.findMany({
+				where: goalId ? { goalId } : undefined,
+				include: {
+					goal: includeGoal,
+				},
+				orderBy: { [sort.field]: sort.order },
+				skip: pagination
+					? pagination.page * pagination.limit
+					: undefined,
+				take: pagination?.limit,
+			});
 
 		return result as Donation[];
 	}
@@ -329,10 +354,11 @@ class PrismaAdapter implements DatabaseAdapter {
 	): Promise<Donation> {
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		const { goal: _goal, ...donationData } = data;
-		const donation = await this.prismaClient.donation.create({
-			data: donationData,
-			include: { goal: true },
-		});
+		const donation =
+			await this.prismaClient.donation.create({
+				data: donationData,
+				include: { goal: true },
+			});
 
 		// Update goal's current amount if linked and check for completion
 		if (data.goalId) {
@@ -421,7 +447,14 @@ class MockAdapter implements DatabaseAdapter {
 	}
 
 	async createUser(
-		data: Omit<User, 'id' | 'createdAt' | 'updatedAt' | 'posts' | 'comments'>
+		data: Omit<
+			User,
+			| 'id'
+			| 'createdAt'
+			| 'updatedAt'
+			| 'posts'
+			| 'comments'
+		>
 	): Promise<User> {
 		return this.mockDb.user.create({ data });
 	}
@@ -464,7 +497,10 @@ class MockAdapter implements DatabaseAdapter {
 	}
 
 	async createPost(
-		data: Omit<Post, 'id' | 'createdAt' | 'updatedAt' | 'comments'>
+		data: Omit<
+			Post,
+			'id' | 'createdAt' | 'updatedAt' | 'comments'
+		>
 	): Promise<Post> {
 		return this.mockDb.post.create({ data });
 	}
@@ -631,14 +667,23 @@ export class DatabaseService {
 		operation: Promise<T>,
 		timeoutMs: number = 8000
 	): Promise<T> {
-		const timeoutPromise = new Promise<never>((_, reject) => {
-			setTimeout(() => {
-				reject(new Error(`Database operation timed out after ${timeoutMs}ms`));
-			}, timeoutMs);
-		});
+		const timeoutPromise = new Promise<never>(
+			(_, reject) => {
+				setTimeout(() => {
+					reject(
+						new Error(
+							`Database operation timed out after ${timeoutMs}ms`
+						)
+					);
+				}, timeoutMs);
+			}
+		);
 
 		try {
-			return await Promise.race([operation, timeoutPromise]);
+			return await Promise.race([
+				operation,
+				timeoutPromise,
+			]);
 		} catch (error) {
 			console.error('Database operation failed:', error);
 			throw error;
@@ -655,7 +700,14 @@ export class DatabaseService {
 	}
 
 	async createUser(
-		data: Omit<User, 'id' | 'createdAt' | 'updatedAt' | 'posts' | 'comments'>
+		data: Omit<
+			User,
+			| 'id'
+			| 'createdAt'
+			| 'updatedAt'
+			| 'posts'
+			| 'comments'
+		>
 	) {
 		return this.adapter.createUser(data);
 	}
@@ -663,7 +715,10 @@ export class DatabaseService {
 	async findPosts(
 		options?: Parameters<DatabaseAdapter['findPosts']>[0]
 	) {
-		return this.withTimeout(this.adapter.findPosts(options), 6000);
+		return this.withTimeout(
+			this.adapter.findPosts(options),
+			6000
+		);
 	}
 
 	async findPostBySlug(slug: string, published?: boolean) {
@@ -671,7 +726,10 @@ export class DatabaseService {
 	}
 
 	async createPost(
-		data: Omit<Post, 'id' | 'createdAt' | 'updatedAt' | 'comments'>
+		data: Omit<
+			Post,
+			'id' | 'createdAt' | 'updatedAt' | 'comments'
+		>
 	) {
 		return this.adapter.createPost(data);
 	}
@@ -687,7 +745,10 @@ export class DatabaseService {
 	async findGoals(
 		options?: Parameters<DatabaseAdapter['findGoals']>[0]
 	) {
-		return this.withTimeout(this.adapter.findGoals(options), 6000);
+		return this.withTimeout(
+			this.adapter.findGoals(options),
+			6000
+		);
 	}
 
 	async findGoalById(id: string) {
