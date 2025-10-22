@@ -423,9 +423,6 @@ export function formatCurrencyForInput(
 	amount: number,
 	currencyCode: string = DEFAULT_CURRENCY
 ): string {
-	const currency =
-		CURRENCIES[currencyCode] ||
-		CURRENCIES[DEFAULT_CURRENCY];
 	const decimals = currencyCode === 'JPY' ? 0 : 2;
 	return amount.toFixed(decimals);
 }
