@@ -58,7 +58,7 @@ export default function SetupPage() {
 	};
 
 	return (
-		<div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-900 dark:to-slate-800'>
+		<div className='flex justify-center items-center min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-900 dark:to-slate-800'>
 			<div className='w-full max-w-md'>
 				<Card className='shadow-xl'>
 					<CardHeader className='text-center'>
@@ -99,7 +99,7 @@ export default function SetupPage() {
 									placeholder='Enter setup key'
 									required
 								/>
-								<p className='text-xs text-muted-foreground mt-1'>
+								<p className='mt-1 text-xs text-muted-foreground'>
 									Contact developer for setup key
 								</p>
 							</div>
@@ -151,7 +151,7 @@ export default function SetupPage() {
 							</Button>
 						</form>
 
-						<div className='mt-6 text-center space-y-2'>
+						<div className='mt-6 space-y-2 text-center'>
 							<p className='text-sm text-muted-foreground'>
 								After setup, go to{' '}
 								<a
@@ -162,7 +162,7 @@ export default function SetupPage() {
 								</a>{' '}
 								to log in
 							</p>
-							<div className='text-xs text-muted-foreground border-t pt-2'>
+							<div className='pt-2 text-xs border-t text-muted-foreground'>
 								<p className='font-semibold'>
 									Production Note:
 								</p>

@@ -41,13 +41,13 @@ export const metadata: Metadata = {
 export default function GoalsPage() {
 	return (
 		<div className='min-h-screen bg-gradient-to-br from-background to-muted/20'>
-			<div className='container mx-auto px-4 py-8'>
+			<div className='container px-4 py-8 mx-auto'>
 				{/* Header */}
-				<div className='text-center mb-12'>
-					<h1 className='text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent'>
+				<div className='mb-12 text-center'>
+					<h1 className='mb-4 text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r md:text-5xl from-primary to-primary/60'>
 						Ministry Goals
 					</h1>
-					<p className='text-xl text-muted-foreground max-w-2xl mx-auto'>
+					<p className='mx-auto max-w-2xl text-xl text-muted-foreground'>
 						Support Kylee's Bible study journey and ministry
 						goals. Every contribution helps further God's
 						work and spreads His love.
@@ -58,13 +58,13 @@ export default function GoalsPage() {
 				<GoalsContent />
 
 				{/* Support Options */}
-				<div className='text-center mt-12'>
+				<div className='mt-12 text-center'>
 					<Card>
 						<CardContent className='py-8'>
-							<h3 className='text-xl font-semibold mb-4'>
+							<h3 className='mb-4 text-xl font-semibold'>
 								Want to Support in Other Ways?
 							</h3>
-							<p className='text-muted-foreground mb-4'>
+							<p className='mb-4 text-muted-foreground'>
 								You can also support Kylee's ministry
 								through prayer, sharing her posts, or
 								connecting her with others who might benefit

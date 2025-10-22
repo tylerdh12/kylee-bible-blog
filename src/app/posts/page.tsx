@@ -35,13 +35,13 @@ export const metadata: Metadata = {
 export default function PostsPage() {
 	return (
 		<div className='min-h-screen bg-gradient-to-br from-background to-muted/20'>
-			<div className='container mx-auto px-4 py-8'>
+			<div className='container px-4 py-8 mx-auto'>
 				{/* Header */}
-				<div className='text-center mb-12'>
-					<h1 className='text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent'>
+				<div className='mb-12 text-center'>
+					<h1 className='mb-4 text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r md:text-5xl from-primary to-primary/60'>
 						All Blog Posts
 					</h1>
-					<p className='text-xl text-muted-foreground max-w-2xl mx-auto'>
+					<p className='mx-auto max-w-2xl text-xl text-muted-foreground'>
 						Explore all posts from Kylee's Bible study
 						journey and spiritual insights
 					</p>

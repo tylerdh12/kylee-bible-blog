@@ -189,7 +189,7 @@ function Sidebar({
 			<div
 				data-slot='sidebar'
 				className={cn(
-					'bg-sidebar text-sidebar-foreground flex h-full w-(--sidebar-width) flex-col',
+					'flex flex-col h-full bg-sidebar text-sidebar-foreground w-(--sidebar-width)',
 					className
 				)}
 				{...props}
@@ -224,7 +224,7 @@ function Sidebar({
 							Displays the mobile sidebar.
 						</SheetDescription>
 					</SheetHeader>
-					<div className='flex h-full w-full flex-col'>
+					<div className='flex flex-col w-full h-full'>
 						{children}
 					</div>
 				</SheetContent>
@@ -234,7 +234,7 @@ function Sidebar({
 
 	return (
 		<div
-			className='group peer text-sidebar-foreground hidden md:block'
+			className='hidden group peer text-sidebar-foreground md:block'
 			data-state={state}
 			data-collapsible={
 				state === 'collapsed' ? collapsible : ''
@@ -362,7 +362,7 @@ function SidebarInput({
 			data-slot='sidebar-input'
 			data-sidebar='input'
 			className={cn(
-				'bg-background h-8 w-full shadow-none',
+				'w-full h-8 shadow-none bg-background',
 				className
 			)}
 			{...props}
@@ -407,7 +407,7 @@ function SidebarSeparator({
 			data-slot='sidebar-separator'
 			data-sidebar='separator'
 			className={cn(
-				'bg-sidebar-border mx-2 w-auto',
+				'mx-2 w-auto bg-sidebar-border',
 				className
 			)}
 			{...props}
@@ -441,7 +441,7 @@ function SidebarGroup({
 			data-slot='sidebar-group'
 			data-sidebar='group'
 			className={cn(
-				'relative flex w-full min-w-0 flex-col p-2',
+				'flex relative flex-col p-2 w-full min-w-0',
 				className
 			)}
 			{...props}
@@ -516,7 +516,7 @@ function SidebarMenu({
 			data-slot='sidebar-menu'
 			data-sidebar='menu'
 			className={cn(
-				'flex w-full min-w-0 flex-col gap-1',
+				'flex flex-col gap-1 w-full min-w-0',
 				className
 			)}
 			{...props}
@@ -532,7 +532,7 @@ function SidebarMenuItem({
 		<li
 			data-slot='sidebar-menu-item'
 			data-sidebar='menu-item'
-			className={cn('group/menu-item relative', className)}
+			className={cn('relative group/menu-item', className)}
 			{...props}
 		/>
 	);
@@ -687,14 +687,14 @@ function SidebarMenuSkeleton({
 			data-slot='sidebar-menu-skeleton'
 			data-sidebar='menu-skeleton'
 			className={cn(
-				'flex h-8 items-center gap-2 rounded-md px-2',
+				'flex gap-2 items-center px-2 h-8 rounded-md',
 				className
 			)}
 			{...props}
 		>
 			{showIcon && (
 				<Skeleton
-					className='size-4 rounded-md'
+					className='rounded-md size-4'
 					data-sidebar='menu-skeleton-icon'
 				/>
 			)}
@@ -738,7 +738,7 @@ function SidebarMenuSubItem({
 			data-slot='sidebar-menu-sub-item'
 			data-sidebar='menu-sub-item'
 			className={cn(
-				'group/menu-sub-item relative',
+				'relative group/menu-sub-item',
 				className
 			)}
 			{...props}

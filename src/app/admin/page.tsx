@@ -11,10 +11,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { DashboardLayout } from '@/components/dashboard-layout';
-import { DashboardStats } from '@/components/dashboard-stats';
-import { DashboardOverview } from '@/components/dashboard-overview';
 import { User } from '@/types';
+import { DashboardLayout } from '@/components/dashboard-layout';
 
 export default function AdminPage() {
 	const [isLoggedIn, setIsLoggedIn] = useState<
@@ -81,10 +79,21 @@ export default function AdminPage() {
 
 	if (isLoggedIn === null) {
 		return (
-			<div className='flex items-center justify-center min-h-screen' role="main" aria-label="Loading admin dashboard">
+			<div
+				className='flex items-center justify-center min-h-screen'
+				role='main'
+				aria-label='Loading admin dashboard'
+			>
 				<div className='text-center'>
-					<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4' role="status" aria-label="Loading"></div>
-					<p className='text-muted-foreground' aria-live="polite">
+					<div
+						className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4'
+						role='status'
+						aria-label='Loading'
+					></div>
+					<p
+						className='text-muted-foreground'
+						aria-live='polite'
+					>
 						Loading...
 					</p>
 				</div>
@@ -94,11 +103,17 @@ export default function AdminPage() {
 
 	if (!isLoggedIn) {
 		return (
-			<div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-900 dark:to-slate-800' role="main">
+			<div
+				className='min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-900 dark:to-slate-800'
+				role='main'
+			>
 				<div className='w-full max-w-md'>
 					<Card className='shadow-xl'>
 						<CardHeader className='text-center pb-6'>
-							<div className='mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10' aria-hidden="true">
+							<div
+								className='mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10'
+								aria-hidden='true'
+							>
 								<div className='h-6 w-6 text-primary'>
 									📝
 								</div>
@@ -114,8 +129,8 @@ export default function AdminPage() {
 							<form
 								onSubmit={handleLogin}
 								className='space-y-4'
-								aria-labelledby="login-title"
-								aria-describedby="login-description"
+								aria-labelledby='login-title'
+								aria-describedby='login-description'
 							>
 								<div className='space-y-2'>
 									<Label htmlFor='email'>Email</Label>
@@ -128,10 +143,13 @@ export default function AdminPage() {
 										}
 										placeholder='Enter your email'
 										required
-										aria-describedby="email-help"
-										autoComplete="email"
+										aria-describedby='email-help'
+										autoComplete='email'
 									/>
-									<div id="email-help" className="sr-only">
+									<div
+										id='email-help'
+										className='sr-only'
+									>
 										Enter your registered email address
 									</div>
 								</div>
@@ -146,24 +164,40 @@ export default function AdminPage() {
 										}
 										placeholder='Enter your password'
 										required
-										aria-describedby="password-help"
-										autoComplete="current-password"
+										aria-describedby='password-help'
+										autoComplete='current-password'
 									/>
-									<div id="password-help" className="sr-only">
-										Enter your password to access the admin dashboard
+									<div
+										id='password-help'
+										className='sr-only'
+									>
+										Enter your password to access the admin
+										dashboard
 									</div>
 								</div>
 								<Button
 									type='submit'
 									className='w-full'
 									disabled={loading}
-									aria-describedby={loading ? "login-status" : undefined}
+									aria-describedby={
+										loading ? 'login-status' : undefined
+									}
 								>
 									{loading ? (
 										<>
-											<div className='animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2' role="status" aria-hidden="true"></div>
+											<div
+												className='animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2'
+												role='status'
+												aria-hidden='true'
+											></div>
 											Signing in...
-											<span className="sr-only" id="login-status">Processing your login request, please wait</span>
+											<span
+												className='sr-only'
+												id='login-status'
+											>
+												Processing your login request,
+												please wait
+											</span>
 										</>
 									) : (
 										'Sign In'
@@ -177,100 +211,80 @@ export default function AdminPage() {
 		);
 	}
 
-	const uiUser = user
-		? {
-				name: user.name,
-				email: user.email,
-				avatar: undefined, // Add avatar logic if available
-		  }
-		: undefined;
-
 	return (
 		<DashboardLayout
-			user={uiUser}
+			user={user}
 			breadcrumbs={[{ label: 'Dashboard' }]}
-			title='Dashboard'
-			description="Welcome back! Here's what's happening with your blog."
+			title='Admin Dashboard'
+			description={`Welcome back, ${
+				user?.name || 'Admin'
+			}!`}
 		>
-			<div className='space-y-6'>
-				{/* Stats Overview */}
-				<DashboardStats />
-
-				{/* Main Dashboard Content */}
-				<DashboardOverview />
-
-				{/* Quick Actions Footer */}
+			<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
 				<Card>
 					<CardHeader>
-						<CardTitle>Quick Start</CardTitle>
+						<CardTitle>Posts</CardTitle>
 						<CardDescription>
-							Get started with these common tasks
+							Manage your blog posts
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
-						<div className='grid grid-cols-1 md:grid-cols-3 gap-4' role="list">
-							<Card className='p-4 hover:shadow-md transition-shadow cursor-pointer' role="listitem">
-								<a
-									href='/admin/posts/new'
-									className='block focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-md'
-									aria-describedby="post-action-desc"
-								>
-									<div className='text-center space-y-2'>
-										<div className='h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center mx-auto' aria-hidden="true">
-											📝
-										</div>
-										<h4 className='font-medium'>
-											Write Your First Post
-										</h4>
-										<p id="post-action-desc" className='text-sm text-muted-foreground'>
-											Share your thoughts and insights with
-											your readers
-										</p>
-									</div>
-								</a>
-							</Card>
+						<div className='space-y-2'>
+							<p className='text-sm text-muted-foreground'>
+								Create and manage your blog content
+							</p>
+							<Button
+								asChild
+								className='w-full'
+							>
+								<a href='/admin/posts'>View Posts</a>
+							</Button>
+						</div>
+					</CardContent>
+				</Card>
 
-							<Card className='p-4 hover:shadow-md transition-shadow cursor-pointer' role="listitem">
-								<a
-									href='/admin/goals'
-									className='block focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-md'
-									aria-describedby="goals-action-desc"
-								>
-									<div className='text-center space-y-2'>
-										<div className='h-8 w-8 bg-green-100 rounded-full flex items-center justify-center mx-auto' aria-hidden="true">
-											🎯
-										</div>
-										<h4 className='font-medium'>
-											Set Up Goals
-										</h4>
-										<p id="goals-action-desc" className='text-sm text-muted-foreground'>
-											Create fundraising goals for your
-											ministry
-										</p>
-									</div>
-								</a>
-							</Card>
+				<Card>
+					<CardHeader>
+						<CardTitle>Goals</CardTitle>
+						<CardDescription>
+							Manage ministry goals
+						</CardDescription>
+					</CardHeader>
+					<CardContent>
+						<div className='space-y-2'>
+							<p className='text-sm text-muted-foreground'>
+								Set up fundraising goals
+							</p>
+							<Button
+								asChild
+								className='w-full'
+							>
+								<a href='/admin/goals'>View Goals</a>
+							</Button>
+						</div>
+					</CardContent>
+				</Card>
 
-							<Card className='p-4 hover:shadow-md transition-shadow cursor-pointer' role="listitem">
-								<a
-									href='/admin/donations'
-									className='block focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-md'
-									aria-describedby="donations-action-desc"
-								>
-									<div className='text-center space-y-2'>
-										<div className='h-8 w-8 bg-purple-100 rounded-full flex items-center justify-center mx-auto' aria-hidden="true">
-											💝
-										</div>
-										<h4 className='font-medium'>
-											Share Donation Page
-										</h4>
-										<p id="donations-action-desc" className='text-sm text-muted-foreground'>
-											Let supporters contribute to your
-											ministry
-										</p>
-									</div>
+				<Card>
+					<CardHeader>
+						<CardTitle>Donations</CardTitle>
+						<CardDescription>
+							View donation history
+						</CardDescription>
+					</CardHeader>
+					<CardContent>
+						<div className='space-y-2'>
+							<p className='text-sm text-muted-foreground'>
+								Track supporter contributions
+							</p>
+							<Button
+								asChild
+								className='w-full'
+							>
+								<a href='/admin/donations'>
+									View Donations
 								</a>
-							</Card>
+							</Button>
 						</div>
 					</CardContent>
 				</Card>

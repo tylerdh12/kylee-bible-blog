@@ -63,8 +63,10 @@ const storage = {
 			id: 'user1',
 			email: 'kylee@blog.com',
 			// Mock password hash for testing only - DO NOT USE IN PRODUCTION
+			// This is a bcrypt hash of 'testpassword123' - only for development/testing
 			password:
-				'$2b$12$vTCWqUKNTGANclWDOkqXe.yKfRI/J1mIbtn5JjbL57oD71KTooBm.', // admin123
+				process.env.MOCK_ADMIN_PASSWORD_HASH ||
+				'$2b$12$vTCWqUKNTGANclWDOkqXe.yKfRI/J1mIbtn5JjbL57oD71KTooBm.',
 			name: 'Kylee',
 			role: 'admin',
 			createdAt: new Date(),

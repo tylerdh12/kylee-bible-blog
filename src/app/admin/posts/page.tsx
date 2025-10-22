@@ -35,7 +35,9 @@ export default function PostsIndexPage() {
 	useEffect(() => {
 		const checkAuth = async () => {
 			try {
-				const res = await fetch('/api/auth/status');
+				const res = await fetch('/api/auth/status', {
+					credentials: 'include',
+				});
 				const data = await res.json();
 				if (data.authenticated) {
 					setUser(data.user);
@@ -59,7 +61,9 @@ export default function PostsIndexPage() {
 
 	const fetchPosts = async () => {
 		try {
-			const res = await fetch('/api/posts');
+			const res = await fetch('/api/posts', {
+				credentials: 'include',
+			});
 			if (res.ok) {
 				const data = await res.json();
 				setPosts(data.posts || []);

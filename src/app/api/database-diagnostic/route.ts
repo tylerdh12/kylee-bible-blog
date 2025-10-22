@@ -43,39 +43,39 @@ export async function GET() {
 			connection: {
 				status: 'pending',
 				duration: 0,
-				error: null as string | null,
+				error: null,
 			},
 			basic_query: {
 				status: 'pending',
 				duration: 0,
-				error: null as string | null,
-				result: null as any,
+				error: null,
+				result: null,
 			},
 			user_table: {
 				status: 'pending',
 				duration: 0,
-				error: null as string | null,
+				error: null,
 				count: 0,
 			},
 			post_table: {
 				status: 'pending',
 				duration: 0,
-				error: null as string | null,
+				error: null,
 				count: 0,
 			},
 			goal_table: {
 				status: 'pending',
 				duration: 0,
-				error: null as string | null,
+				error: null,
 				count: 0,
 			},
 			sample_data: {
 				status: 'pending',
 				duration: 0,
-				error: null as string | null,
-				users: [] as any[],
-				posts: [] as any[],
-				goals: [] as any[],
+				error: null,
+				users: [],
+				posts: [],
+				goals: [],
 			},
 		},
 	};
@@ -130,9 +130,7 @@ export async function GET() {
 				diagnostics.tests.basic_query.status = 'success';
 				diagnostics.tests.basic_query.duration =
 					Date.now() - queryStart;
-				diagnostics.tests.basic_query.result = (
-					result as any[]
-				)[0];
+				diagnostics.tests.basic_query.result = result[0];
 			} catch (error) {
 				diagnostics.tests.basic_query.status = 'failed';
 				diagnostics.tests.basic_query.duration =

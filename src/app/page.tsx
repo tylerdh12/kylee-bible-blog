@@ -43,13 +43,13 @@ export const metadata: Metadata = {
 
 export default function Home() {
 	return (
-		<div className='container mx-auto px-4 py-8'>
+		<div className='container px-4 py-8 mx-auto'>
 			{/* Hero Section */}
-			<div className='text-center mb-12'>
-				<h1 className='text-4xl font-bold mb-4'>
+			<div className='mb-12 text-center'>
+				<h1 className='mb-4 text-4xl font-bold'>
 					Welcome to Kylee's Blog
 				</h1>
-				<p className='text-xl text-muted-foreground max-w-2xl mx-auto'>
+				<p className='mx-auto max-w-2xl text-xl text-muted-foreground'>
 					Join me on my Bible study journey as I explore
 					God&apos;s word, share insights, and grow in
 					faith. Together, we can support ministry goals and
