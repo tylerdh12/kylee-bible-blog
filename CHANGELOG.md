@@ -1,3 +1,14 @@
+# [1.1.0](https://github.com/tylerdh12/kylee-bible-blog/compare/v1.0.1...v1.1.0) (2025-10-22)
+
+
+### Features
+
+* add Snyk security configuration ([20f8637](https://github.com/tylerdh12/kylee-bible-blog/commit/20f8637a7ec21ec1d83ca36c3d7f1fc2f2177f32))
+* enhance admin and workflow automation scripts ([4533d28](https://github.com/tylerdh12/kylee-bible-blog/commit/4533d284eede51e2db1a5d10cb558a045d416b65))
+* enhance page components with improved functionality ([2928621](https://github.com/tylerdh12/kylee-bible-blog/commit/2928621aa158753b353ff6b55f8ffe698798e4a3))
+* enhance UI components with improved functionality ([d3c2c4b](https://github.com/tylerdh12/kylee-bible-blog/commit/d3c2c4b3622d202de3d60531ddf8bba1599e3297))
+* improve database diagnostic and currency utilities ([383a97c](https://github.com/tylerdh12/kylee-bible-blog/commit/383a97c85acc27bce5c61e87816f289ba59327d5))
+
 ## [1.0.1](https://github.com/tylerdh12/kylee-bible-blog/compare/v1.0.0...v1.0.1) (2025-09-29)
 
 
