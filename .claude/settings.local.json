@@ -56,7 +56,8 @@
       "Bash(brew:*)",
       "Bash(export NODE_ENV=production)",
       "Bash(export SKIP_ENV_VALIDATION=true)",
-      "Bash(npm run check-env:*)"
+      "Bash(npm run check-env:*)",
+      "Bash(npm view:*)"
     ],
     "deny": [],
     "ask": []

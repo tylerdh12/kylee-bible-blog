@@ -1,6 +1,5 @@
 'use client';
 
-import * as Sentry from '@sentry/nextjs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -9,8 +8,9 @@ export default function SentryTestPage() {
     try {
       throw new Error('Test Client-Side Error from Sentry Test Page');
     } catch (error) {
-      Sentry.captureException(error);
-      alert('Client error captured! Check your Sentry dashboard.');
+      // Sentry temporarily disabled for deployment
+      console.error('Client error (would be sent to Sentry):', error);
+      alert('Client error captured! (Sentry currently disabled)');
     }
   };
 
