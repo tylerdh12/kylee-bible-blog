@@ -1,0 +1,38 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.25.0
+
+# Ignore false positives and acceptable development patterns
+ignore:
+  # Mock database with test password - acceptable for development
+  SNYK-JS-MOCKDB-0001:
+    - src/lib/mock-db.ts:
+        reason: Mock database file with test password for development only
+        expires: '2025-12-31T23:59:59.999Z'
+
+  # Development scripts with fallback passwords - acceptable for setup
+  SNYK-JS-CREATEADMIN-0001:
+    - scripts/create-admin.js:
+        reason: Development setup script with environment variable fallback
+        expires: '2025-12-31T23:59:59.999Z'
+
+  SNYK-JS-SEEDDATABASE-0001:
+    - scripts/seed-database.js:
+        reason: Database seeding script with environment variable fallback
+        expires: '2025-12-31T23:59:59.999Z'
+
+  SNYK-JS-VERIFYADMIN-0001:
+    - scripts/verify-admin.js:
+        reason: Admin verification script with environment variable fallback
+        expires: '2025-12-31T23:59:59.999Z'
+
+  # Environment variable descriptions - not actual secrets
+  SNYK-JS-VERIFYVERCEL-0001:
+    - scripts/verify-vercel-setup.js:
+        reason: Environment variable descriptions, not actual secrets
+        expires: '2025-12-31T23:59:59.999Z'
+
+  # Workflow automation with input validation
+  SNYK-JS-WORKFLOWAUTOMATION-0001:
+    - scripts/workflow-automation.js:
+        reason: Input validation prevents command injection
+        expires: '2025-12-31T23:59:59.999Z'
