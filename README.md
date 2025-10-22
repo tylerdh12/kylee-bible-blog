@@ -23,6 +23,7 @@ A modern, production-ready blog platform built specifically for Bible study enth
 - **Styling**: Tailwind CSS + ShadCN UI components
 - **Editor**: TipTap rich text editor
 - **Authentication**: Custom JWT auth with bcryptjs
+- **Error Monitoring**: Sentry for error tracking and performance monitoring
 - **Testing**: Jest + React Testing Library + Playwright
 - **Language**: TypeScript
 - **Deployment**: Vercel optimized with security headers
@@ -115,8 +116,13 @@ NEXT_PUBLIC_BASE_URL="http://localhost:3000"
 # Admin Configuration
 ADMIN_EMAIL="admin@example.com"
 ADMIN_PASSWORD="change-this-password"
+
+# Sentry Configuration (See SENTRY_SETUP.md for details)
+NEXT_PUBLIC_SENTRY_DSN="your-sentry-dsn-here"
+SENTRY_AUTH_TOKEN="your-sentry-auth-token-here"
 ```
 
+For Sentry setup instructions, see [SENTRY_SETUP.md](./SENTRY_SETUP.md).
 For production deployment, see [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed instructions.
 
 ## 🚀 Deployment
