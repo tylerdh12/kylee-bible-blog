@@ -15,8 +15,8 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { RichTextEditor } from '@/components/rich-text-editor';
 import { Badge } from '@/components/ui/badge';
+import { DashboardLayout } from '@/components/dashboard-layout';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
 
 interface EditPostPageProps {
 	params: Promise<{ id: string }>;
@@ -27,6 +27,7 @@ export default function EditPostPage({
 }: EditPostPageProps) {
 	const [id, setId] = useState<string>('');
 	const router = useRouter();
+	const [user, setUser] = useState<any>(null);
 	const [post, setPost] = useState<any>(null);
 	const [title, setTitle] = useState('');
 	const [content, setContent] = useState('');
@@ -67,7 +68,24 @@ export default function EditPostPage({
 		}
 	}, [id, router]);
 
+	const checkAuth = async () => {
+		try {
+			const response = await fetch('/api/auth/status', {
+				credentials: 'include',
+			});
+			const data = await response.json();
+			if (data.authenticated) {
+				setUser(data.user);
+			} else {
+				window.location.href = '/admin';
+			}
+		} catch {
+			window.location.href = '/admin';
+		}
+	};
+
 	useEffect(() => {
+		checkAuth();
 		params.then(({ id: paramId }) => {
 			setId(paramId);
 		});
@@ -203,34 +221,32 @@ export default function EditPostPage({
 	}
 
 	return (
-		<div className='container mx-auto px-4 py-8 max-w-4xl'>
-			<div className='flex justify-between items-center mb-8'>
-				<div className='flex items-center gap-4'>
-					<Link href='/admin/posts'>
-						<Button
-							variant='ghost'
-							size='sm'
+		<DashboardLayout
+			user={user}
+			breadcrumbs={[
+				{ label: 'Dashboard', href: '/admin' },
+				{ label: 'Posts', href: '/admin/posts' },
+				{ label: 'Edit Post' },
+			]}
+			title='Edit Post'
+			description={
+				post ? (
+					<span>
+						Status:{' '}
+						<Badge
+							variant={
+								post.published ? 'default' : 'secondary'
+							}
 						>
-							<ArrowLeft className='h-4 w-4 mr-2' />
-							Back to Posts
-						</Button>
-					</Link>
-					<div>
-						<h1 className='text-3xl font-bold'>
-							Edit Post
-						</h1>
-						<p className='text-muted-foreground'>
-							Status:{' '}
-							<Badge
-								variant={
-									post.published ? 'default' : 'secondary'
-								}
-							>
-								{post.published ? 'Published' : 'Draft'}
-							</Badge>
-						</p>
-					</div>
-				</div>
+							{post.published ? 'Published' : 'Draft'}
+						</Badge>
+					</span>
+				) : (
+					'Edit your blog post'
+				)
+			}
+		>
+			<div className='flex justify-end mb-6'>
 				<Button
 					variant='destructive'
 					onClick={handleDelete}
@@ -337,6 +353,6 @@ export default function EditPostPage({
 					</div>
 				</CardContent>
 			</Card>
-		</div>
+		</DashboardLayout>
 	);
 }
