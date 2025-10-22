@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
 	Card,
 	CardContent,
@@ -13,36 +13,14 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { RichTextEditor } from '@/components/rich-text-editor';
 import { Badge } from '@/components/ui/badge';
-import { DashboardLayout } from '@/components/dashboard-layout';
 
 export default function NewPostPage() {
-	const [user, setUser] = useState<any>(null);
 	const [title, setTitle] = useState('');
 	const [content, setContent] = useState('');
 	const [excerpt, setExcerpt] = useState('');
 	const [tags, setTags] = useState<string[]>([]);
 	const [tagInput, setTagInput] = useState('');
 	const [loading, setLoading] = useState(false);
-
-	useEffect(() => {
-		checkAuth();
-	}, []);
-
-	const checkAuth = async () => {
-		try {
-			const response = await fetch('/api/auth/status', {
-				credentials: 'include',
-			});
-			const data = await response.json();
-			if (data.authenticated) {
-				setUser(data.user);
-			} else {
-				window.location.href = '/admin';
-			}
-		} catch {
-			window.location.href = '/admin';
-		}
-	};
 
 	const addTag = () => {
 		if (
@@ -108,16 +86,7 @@ export default function NewPostPage() {
 	};
 
 	return (
-		<DashboardLayout
-			user={user}
-			breadcrumbs={[
-				{ label: 'Dashboard', href: '/admin' },
-				{ label: 'Posts', href: '/admin/posts' },
-				{ label: 'New Post' },
-			]}
-			title='Create New Post'
-			description='Write and publish a new blog post'
-		>
+		<>
 			<Card>
 				<CardHeader>
 					<CardTitle>Write Your Post</CardTitle>
@@ -211,6 +180,6 @@ export default function NewPostPage() {
 					</div>
 				</CardContent>
 			</Card>
-		</DashboardLayout>
+		</>
 	);
 }

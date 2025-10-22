@@ -12,34 +12,17 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { Plus, Edit } from 'lucide-react';
-import { DashboardLayout } from '@/components/dashboard-layout';
 import { Goal } from '@/types';
 import { useCurrency } from '@/hooks/use-currency';
 
 export default function GoalsPage() {
 	const [goals, setGoals] = useState<Goal[]>([]);
 	const [loading, setLoading] = useState(true);
-	const [user, setUser] = useState<any>(null);
 	const { formatAmount } = useCurrency();
 
 	useEffect(() => {
-		checkAuth();
 		fetchGoals();
 	}, []);
-
-	const checkAuth = async () => {
-		try {
-			const response = await fetch('/api/auth/status');
-			const data = await response.json();
-			if (data.authenticated) {
-				setUser(data.user);
-			} else {
-				window.location.href = '/admin';
-			}
-		} catch {
-			window.location.href = '/admin';
-		}
-	};
 
 	const fetchGoals = async () => {
 		try {
@@ -57,35 +40,15 @@ export default function GoalsPage() {
 
 	if (loading) {
 		return (
-			<DashboardLayout
-				user={user}
-				breadcrumbs={[
-					{ label: 'Dashboard', href: '/admin' },
-					{ label: 'Goals' },
-				]}
-				title='Goals'
-				description='Manage your fundraising goals'
-			>
-				<div className='text-center py-8'>
-					<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4'></div>
-					<p className='text-muted-foreground'>
-						Loading goals...
-					</p>
-				</div>
-			</DashboardLayout>
+			<div className='text-center py-8'>
+				<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4'></div>
+				<p className='text-muted-foreground'>Loading goals...</p>
+			</div>
 		);
 	}
 
 	return (
-		<DashboardLayout
-			user={user}
-			breadcrumbs={[
-				{ label: 'Dashboard', href: '/admin' },
-				{ label: 'Goals' },
-			]}
-			title='Goals'
-			description='Create and manage your fundraising goals'
-		>
+		<>
 			<div className='flex justify-between items-center mb-6'>
 				<div className='flex items-center gap-2'>
 					<span className='text-sm text-muted-foreground'>
@@ -234,6 +197,6 @@ export default function GoalsPage() {
 					})}
 				</div>
 			)}
-		</DashboardLayout>
+		</>
 	);
 }

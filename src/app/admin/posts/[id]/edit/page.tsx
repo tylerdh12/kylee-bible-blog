@@ -15,7 +15,6 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { RichTextEditor } from '@/components/rich-text-editor';
 import { Badge } from '@/components/ui/badge';
-import { DashboardLayout } from '@/components/dashboard-layout';
 import Link from 'next/link';
 
 interface EditPostPageProps {
@@ -27,7 +26,6 @@ export default function EditPostPage({
 }: EditPostPageProps) {
 	const [id, setId] = useState<string>('');
 	const router = useRouter();
-	const [user, setUser] = useState<any>(null);
 	const [post, setPost] = useState<any>(null);
 	const [title, setTitle] = useState('');
 	const [content, setContent] = useState('');
@@ -35,8 +33,7 @@ export default function EditPostPage({
 	const [tags, setTags] = useState<string[]>([]);
 	const [tagInput, setTagInput] = useState('');
 	const [loading, setLoading] = useState(false);
-	const [initialLoading, setInitialLoading] =
-		useState(true);
+	const [initialLoading, setInitialLoading] = useState(true);
 
 	const fetchPost = useCallback(async () => {
 		try {
@@ -68,24 +65,7 @@ export default function EditPostPage({
 		}
 	}, [id, router]);
 
-	const checkAuth = async () => {
-		try {
-			const response = await fetch('/api/auth/status', {
-				credentials: 'include',
-			});
-			const data = await response.json();
-			if (data.authenticated) {
-				setUser(data.user);
-			} else {
-				window.location.href = '/admin';
-			}
-		} catch {
-			window.location.href = '/admin';
-		}
-	};
-
 	useEffect(() => {
-		checkAuth();
 		params.then(({ id: paramId }) => {
 			setId(paramId);
 		});
@@ -194,58 +174,26 @@ export default function EditPostPage({
 
 	if (initialLoading) {
 		return (
-			<div className='container mx-auto px-4 py-8 max-w-4xl'>
-				<div className='text-center py-12'>
-					<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4'></div>
-					<p className='text-muted-foreground'>
-						Loading post...
-					</p>
-				</div>
+			<div className='text-center py-12'>
+				<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4'></div>
+				<p className='text-muted-foreground'>Loading post...</p>
 			</div>
 		);
 	}
 
 	if (!post) {
 		return (
-			<div className='container mx-auto px-4 py-8 max-w-4xl'>
-				<div className='text-center py-12'>
-					<p className='text-muted-foreground mb-4'>
-						Post not found
-					</p>
-					<Link href='/admin/posts'>
-						<Button variant='outline'>Back to Posts</Button>
-					</Link>
-				</div>
+			<div className='text-center py-12'>
+				<p className='text-muted-foreground mb-4'>Post not found</p>
+				<Link href='/admin/posts'>
+					<Button variant='outline'>Back to Posts</Button>
+				</Link>
 			</div>
 		);
 	}
 
 	return (
-		<DashboardLayout
-			user={user}
-			breadcrumbs={[
-				{ label: 'Dashboard', href: '/admin' },
-				{ label: 'Posts', href: '/admin/posts' },
-				{ label: 'Edit Post' },
-			]}
-			title='Edit Post'
-			description={
-				post ? (
-					<span>
-						Status:{' '}
-						<Badge
-							variant={
-								post.published ? 'default' : 'secondary'
-							}
-						>
-							{post.published ? 'Published' : 'Draft'}
-						</Badge>
-					</span>
-				) : (
-					'Edit your blog post'
-				)
-			}
-		>
+		<>
 			<div className='flex justify-end mb-6'>
 				<Button
 					variant='destructive'
@@ -353,6 +301,6 @@ export default function EditPostPage({
 					</div>
 				</CardContent>
 			</Card>
-		</DashboardLayout>
+		</>
 	);
 }

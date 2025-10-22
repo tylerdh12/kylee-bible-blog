@@ -57,7 +57,11 @@
       "Bash(export NODE_ENV=production)",
       "Bash(export SKIP_ENV_VALIDATION=true)",
       "Bash(npm run check-env:*)",
-      "Bash(npm view:*)"
+      "Bash(npm view:*)",
+      "Bash(npm run vercel-build:*)",
+      "WebFetch(domain:vercel.com)",
+      "mcp__Playwright__browser_navigate",
+      "mcp__Playwright__browser_close"
     ],
     "deny": [],
     "ask": []

@@ -10,12 +10,10 @@ import {
 	CardHeader,
 	CardTitle,
 } from '@/components/ui/card';
-import { DashboardLayout } from '@/components/dashboard-layout';
 import { Plus, Edit, Eye, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function PostsIndexPage() {
-	const [user, setUser] = useState<any>(null);
 	const [loading, setLoading] = useState(true);
 	const [posts, setPosts] = useState<
 		Array<{
@@ -33,31 +31,8 @@ export default function PostsIndexPage() {
 	>([]);
 
 	useEffect(() => {
-		const checkAuth = async () => {
-			try {
-				const res = await fetch('/api/auth/status', {
-					credentials: 'include',
-				});
-				const data = await res.json();
-				if (data.authenticated) {
-					setUser(data.user);
-				} else {
-					window.location.href = '/admin';
-				}
-			} catch {
-				window.location.href = '/admin';
-			} finally {
-				setLoading(false);
-			}
-		};
-		checkAuth();
+		fetchPosts();
 	}, []);
-
-	useEffect(() => {
-		if (user) {
-			fetchPosts();
-		}
-	}, [user]);
 
 	const fetchPosts = async () => {
 		try {
@@ -70,40 +45,22 @@ export default function PostsIndexPage() {
 			}
 		} catch (err) {
 			console.error('Failed to load posts', err);
+		} finally {
+			setLoading(false);
 		}
 	};
 
 	if (loading) {
 		return (
-			<DashboardLayout
-				user={user}
-				breadcrumbs={[
-					{ label: 'Dashboard', href: '/admin' },
-					{ label: 'Posts' },
-				]}
-				title='Posts'
-				description='Manage your blog posts'
-			>
-				<div className='text-center py-8'>
-					<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4'></div>
-					<p className='text-muted-foreground'>
-						Loading posts...
-					</p>
-				</div>
-			</DashboardLayout>
+			<div className='text-center py-8'>
+				<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4'></div>
+				<p className='text-muted-foreground'>Loading posts...</p>
+			</div>
 		);
 	}
 
 	return (
-		<DashboardLayout
-			user={user}
-			breadcrumbs={[
-				{ label: 'Dashboard', href: '/admin' },
-				{ label: 'Posts' },
-			]}
-			title='Posts'
-			description='Create and manage your posts'
-		>
+		<>
 			<div className='flex justify-between items-center mb-6'>
 				<div className='flex items-center gap-2'>
 					<span className='text-sm text-muted-foreground'>
@@ -246,6 +203,6 @@ export default function PostsIndexPage() {
 					)}
 				</CardContent>
 			</Card>
-		</DashboardLayout>
+		</>
 	);
 }

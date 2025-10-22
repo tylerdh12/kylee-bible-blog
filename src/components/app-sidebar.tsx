@@ -56,33 +56,25 @@ const contentItems = [
 		title: 'Posts',
 		url: '/admin/posts',
 		icon: FileText,
-		items: [{ title: 'New Post', url: '/admin/posts/new' }],
 	},
 	{
 		title: 'Goals',
 		url: '/admin/goals',
 		icon: Target,
-		items: [
-			{ title: 'All Goals', url: '/admin/goals' },
-			{ title: 'New Goal', url: '/admin/goals/new' },
-		],
 	},
 	{
 		title: 'Donations',
 		url: '/admin/donations',
 		icon: Heart,
-		items: [
-			{ title: 'All Donations', url: '/admin/donations' },
-		],
 	},
 ];
 
 const engagementItems = [
-		{
-			title: 'Prayer Requests',
-			url: '/admin/prayer-requests',
-			icon: HeartHandshake,
-		},
+	{
+		title: 'Prayer Requests',
+		url: '/admin/prayer-requests',
+		icon: HeartHandshake,
+	},
 	{
 		title: 'Comments',
 		url: '/admin/comments',
@@ -97,6 +89,19 @@ const engagementItems = [
 		title: 'Schedule',
 		url: '/admin/schedule',
 		icon: Calendar,
+	},
+];
+
+const adminItems = [
+	{
+		title: 'Users',
+		url: '/admin/users',
+		icon: Users,
+	},
+	{
+		title: 'Settings',
+		url: '/admin/settings',
+		icon: Settings,
 	},
 ];
 
@@ -125,34 +130,6 @@ export function AppSidebar({
 			collapsible='icon'
 			{...props}
 		>
-			<SidebarHeader>
-				<SidebarMenu>
-					<SidebarMenuItem>
-						<SidebarMenuButton
-							size='lg'
-							asChild
-						>
-							<Link
-								href='/admin'
-								className='flex items-center gap-2'
-							>
-								<div className='flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground'>
-									<BookOpen className='size-4' />
-								</div>
-								<div className='grid flex-1 text-left text-sm leading-tight'>
-									<span className='truncate font-semibold'>
-										Kylee's Blog
-									</span>
-									<span className='truncate text-xs'>
-										Admin Dashboard
-									</span>
-								</div>
-							</Link>
-						</SidebarMenuButton>
-					</SidebarMenuItem>
-				</SidebarMenu>
-			</SidebarHeader>
-
 			<SidebarContent>
 				{/* Quick Actions */}
 				<SidebarGroup>
@@ -161,7 +138,7 @@ export function AppSidebar({
 							<SidebarMenuItem>
 								<SidebarMenuButton
 									asChild
-									className='bg-primary text-primary-foreground hover:bg-primary/90'
+									className='bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90'
 								>
 									<Link href='/admin/posts/new'>
 										<PlusCircle className='size-4' />
@@ -243,7 +220,30 @@ export function AppSidebar({
 					</SidebarGroupContent>
 				</SidebarGroup>
 
-				{/* Settings (hidden until implemented) */}
+				{/* Admin */}
+				<SidebarGroup>
+					<SidebarGroupLabel>
+						Administration
+					</SidebarGroupLabel>
+					<SidebarGroupContent>
+						<SidebarMenu>
+							{adminItems.map((item) => (
+								<SidebarMenuItem key={item.title}>
+									<SidebarMenuButton
+										asChild
+										tooltip={item.title}
+										isActive={pathname === item.url}
+									>
+										<Link href={item.url}>
+											<item.icon className='size-4' />
+											<span>{item.title}</span>
+										</Link>
+									</SidebarMenuButton>
+								</SidebarMenuItem>
+							))}
+						</SidebarMenu>
+					</SidebarGroupContent>
+				</SidebarGroup>
 			</SidebarContent>
 
 			<SidebarFooter>
@@ -253,9 +253,9 @@ export function AppSidebar({
 							<DropdownMenuTrigger asChild>
 								<SidebarMenuButton
 									size='lg'
-									className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
+									className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground data-[collapsible=icon]:justify-center'
 								>
-									<Avatar className='h-8 w-8 rounded-lg'>
+									<Avatar className='w-8 h-8 rounded-lg'>
 										<AvatarImage
 											src={user?.avatar}
 											alt={user?.name || undefined}
@@ -264,11 +264,11 @@ export function AppSidebar({
 											{user?.name?.charAt(0) || 'K'}
 										</AvatarFallback>
 									</Avatar>
-									<div className='grid flex-1 text-left text-sm leading-tight'>
-										<span className='truncate font-semibold'>
+									<div className='grid flex-1 text-sm leading-tight text-left group-data-[collapsible=icon]:hidden'>
+										<span className='font-semibold truncate'>
 											{user?.name || 'Kylee'}
 										</span>
-										<span className='truncate text-xs'>
+										<span className='text-xs truncate'>
 											{user?.email || 'admin'}
 										</span>
 									</div>
