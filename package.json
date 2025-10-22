@@ -59,7 +59,7 @@
 		"@radix-ui/react-separator": "^1.1.7",
 		"@radix-ui/react-slot": "^1.2.3",
 		"@radix-ui/react-tooltip": "^1.2.8",
-		"@sentry/nextjs": "7.114.0",
+		"@sentry/nextjs": "7.120.4",
 		"@tiptap/pm": "^3.5.2",
 		"@tiptap/react": "^3.5.2",
 		"@tiptap/starter-kit": "^3.5.2",
