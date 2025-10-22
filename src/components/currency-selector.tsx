@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/select';
 import { useCurrency } from '@/hooks/use-currency';
 import { getAvailableCurrencies } from '@/lib/utils/currency';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 interface CurrencySelectorProps {
 	value?: string;
@@ -27,8 +27,9 @@ export function CurrencySelector({
 	showName = true,
 }: CurrencySelectorProps) {
 	const { currency, setCurrency } = useCurrency();
-	const [availableCurrencies, setAvailableCurrencies] =
-		useState(getAvailableCurrencies());
+	const [availableCurrencies] = useState(
+		getAvailableCurrencies()
+	);
 
 	const selectedCurrency = value || currency;
 
