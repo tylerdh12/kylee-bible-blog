@@ -1,13 +1,10 @@
 'use client';
 
-import * as React from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import {
-	BookOpen,
 	Calendar,
 	FileText,
 	Heart,
+	HeartHandshake,
 	Home,
 	LogOut,
 	MessageCircle,
@@ -15,21 +12,16 @@ import {
 	Settings,
 	Target,
 	Users,
-	HeartHandshake,
 } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import * as React from 'react';
 
 import {
-	Sidebar,
-	SidebarContent,
-	SidebarFooter,
-	SidebarHeader,
-	SidebarMenu,
-	SidebarMenuButton,
-	SidebarMenuItem,
-	SidebarGroup,
-	SidebarGroupLabel,
-	SidebarGroupContent,
-} from '@/components/ui/sidebar';
+	Avatar,
+	AvatarFallback,
+	AvatarImage,
+} from '@/components/ui/avatar';
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -37,10 +29,16 @@ import {
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
-	Avatar,
-	AvatarFallback,
-	AvatarImage,
-} from '@/components/ui/avatar';
+	Sidebar,
+	SidebarContent,
+	SidebarFooter,
+	SidebarGroup,
+	SidebarGroupContent,
+	SidebarGroupLabel,
+	SidebarMenu,
+	SidebarMenuButton,
+	SidebarMenuItem,
+} from '@/components/ui/sidebar';
 import { UIUser } from '@/types';
 
 const navigationItems = [

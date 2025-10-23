@@ -33,18 +33,10 @@ export default function SchedulePage() {
 	}, []);
 
 	return (
-		<DashboardLayout
-			user={user}
-			breadcrumbs={[
-				{ label: 'Dashboard', href: '/admin' },
-				{ label: 'Schedule' },
-			]}
-			title='Schedule'
-			description='Plan your content schedule'
-		>
+		<>
 			{loading ? (
-				<div className='text-center py-8'>
-					<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4'></div>
+				<div className='py-8 text-center'>
+					<div className='mx-auto mb-4 w-12 h-12 rounded-full border-b-2 animate-spin border-primary'></div>
 					<p className='text-muted-foreground'>
 						Loading...
 					</p>
@@ -61,6 +53,6 @@ export default function SchedulePage() {
 					</CardContent>
 				</Card>
 			)}
-		</DashboardLayout>
+		</>
 	);
 }

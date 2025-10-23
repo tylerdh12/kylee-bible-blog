@@ -131,7 +131,7 @@ export default function PrayerRequestsPage() {
 
 	if (loading) {
 		return (
-			<DashboardLayout>
+			<>
 				<div className='space-y-6'>
 					<div className='flex justify-between items-center'>
 						<h1 className='text-3xl font-bold'>
@@ -146,21 +146,21 @@ export default function PrayerRequestsPage() {
 							>
 								<CardContent className='p-6'>
 									<div className='space-y-3'>
-										<div className='h-4 bg-muted rounded w-1/4'></div>
-										<div className='h-4 bg-muted rounded w-3/4'></div>
-										<div className='h-4 bg-muted rounded w-1/2'></div>
+										<div className='w-1/4 h-4 rounded bg-muted'></div>
+										<div className='w-3/4 h-4 rounded bg-muted'></div>
+										<div className='w-1/2 h-4 rounded bg-muted'></div>
 									</div>
 								</CardContent>
 							</Card>
 						))}
 					</div>
 				</div>
-			</DashboardLayout>
+			</>
 		);
 	}
 
 	return (
-		<DashboardLayout>
+		<>
 			<div className='space-y-6'>
 				<div className='flex justify-between items-center'>
 					<div>
@@ -177,8 +177,8 @@ export default function PrayerRequestsPage() {
 				{prayerRequests.length === 0 ? (
 					<Card>
 						<CardContent className='py-12 text-center'>
-							<Heart className='h-12 w-12 text-muted-foreground mx-auto mb-4' />
-							<h3 className='text-xl font-semibold mb-2'>
+							<Heart className='mx-auto mb-4 w-12 h-12 text-muted-foreground' />
+							<h3 className='mb-2 text-xl font-semibold'>
 								No Prayer Requests Yet
 							</h3>
 							<p className='text-muted-foreground'>
@@ -202,7 +202,7 @@ export default function PrayerRequestsPage() {
 								<CardHeader>
 									<div className='flex justify-between items-start'>
 										<div className='space-y-1'>
-											<div className='flex items-center gap-2'>
+											<div className='flex gap-2 items-center'>
 												<CardTitle className='text-lg'>
 													{request.name || 'Anonymous'}
 												</CardTitle>
@@ -241,9 +241,9 @@ export default function PrayerRequestsPage() {
 												}
 											>
 												{request.isRead ? (
-													<EyeOff className='h-4 w-4' />
+													<EyeOff className='w-4 h-4' />
 												) : (
-													<Eye className='h-4 w-4' />
+													<Eye className='w-4 h-4' />
 												)}
 												<span className='ml-2'>
 													{request.isRead
@@ -258,13 +258,13 @@ export default function PrayerRequestsPage() {
 													deletePrayerRequest(request.id)
 												}
 											>
-												<Trash2 className='h-4 w-4' />
+												<Trash2 className='w-4 h-4' />
 											</Button>
 										</div>
 									</div>
 								</CardHeader>
 								<CardContent>
-									<div className='bg-muted/50 rounded-lg p-4'>
+									<div className='p-4 rounded-lg bg-muted/50'>
 										<p className='whitespace-pre-wrap'>
 											{request.request}
 										</p>
@@ -275,6 +275,6 @@ export default function PrayerRequestsPage() {
 					</div>
 				)}
 			</div>
-		</DashboardLayout>
+		</>
 	);
 }

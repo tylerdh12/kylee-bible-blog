@@ -42,7 +42,7 @@ export function DashboardLayout({
 			<SidebarInset>
 				{/* Header */}
 				<header className='flex h-16 shrink-0 items-center gap-2 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
-					<div className='flex w-full items-center gap-2 px-4'>
+					<div className='flex gap-2 items-center px-4 w-full'>
 						<SidebarTrigger className='-ml-1' />
 						<Separator
 							orientation='vertical'
@@ -85,24 +85,8 @@ export function DashboardLayout({
 				</header>
 
 				{/* Main Content */}
-				<main className='flex flex-1 flex-col'>
-					<div className='flex-1 space-y-4 p-4 pt-6 md:p-8'>
-						{title && breadcrumbs.length > 0 && (
-							<div className='space-y-0.5'>
-								<h1 className='text-2xl font-bold tracking-tight'>
-									{title}
-								</h1>
-								{description && (
-									<div className='text-muted-foreground'>
-										{typeof description === 'string' ? (
-											<p>{description}</p>
-										) : (
-											description
-										)}
-									</div>
-								)}
-							</div>
-						)}
+				<main className='flex flex-col flex-1'>
+					<div className='flex-1 p-4 pt-6 space-y-4 md:p-8'>
 						{children}
 					</div>
 				</main>
