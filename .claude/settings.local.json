@@ -61,7 +61,12 @@
       "Bash(npm run vercel-build:*)",
       "WebFetch(domain:vercel.com)",
       "mcp__Playwright__browser_navigate",
-      "mcp__Playwright__browser_close"
+      "mcp__Playwright__browser_close",
+      "Bash(npm run migrate:*)",
+      "Bash(cat:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm run:*)"
     ],
     "deny": [],
     "ask": []

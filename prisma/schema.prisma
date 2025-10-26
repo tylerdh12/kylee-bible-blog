@@ -110,3 +110,15 @@ model PrayerRequest {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model Subscriber {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String?
+  status        String   @default("active") // active, inactive
+  subscribedAt  DateTime @default(now())
+  lastEmailSent DateTime?
+  tags          Json?    // Store tags as JSON array
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}

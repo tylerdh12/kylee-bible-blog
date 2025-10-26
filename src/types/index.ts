@@ -89,6 +89,16 @@ export interface PrayerRequest {
 	updatedAt: Date | string;
 }
 
+export interface Subscriber {
+	id: string;
+	email: string;
+	name?: string;
+	status: 'active' | 'inactive';
+	subscribedAt: string;
+	lastEmailSent?: string;
+	tags: string[];
+}
+
 // API Response types
 export interface ApiResponse<T = any> {
 	success?: boolean;

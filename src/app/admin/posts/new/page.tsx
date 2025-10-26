@@ -1,185 +1,410 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
 import {
 	Card,
 	CardContent,
 	CardHeader,
 	CardTitle,
 } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { ArrowLeft, Save, Eye, X } from 'lucide-react';
+import Link from 'next/link';
+import { toast } from 'sonner';
 import { RichTextEditor } from '@/components/rich-text-editor';
-import { Badge } from '@/components/ui/badge';
+
+interface Tag {
+	id: string;
+	name: string;
+}
 
 export default function NewPostPage() {
-	const [title, setTitle] = useState('');
-	const [content, setContent] = useState('');
-	const [excerpt, setExcerpt] = useState('');
-	const [tags, setTags] = useState<string[]>([]);
-	const [tagInput, setTagInput] = useState('');
+	const router = useRouter();
 	const [loading, setLoading] = useState(false);
+	const [availableTags, setAvailableTags] = useState<Tag[]>([]);
+	const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
+	const [newTagInput, setNewTagInput] = useState('');
+	const [useRichEditor, setUseRichEditor] = useState(true);
+	const [formData, setFormData] = useState({
+		title: '',
+		content: '',
+		excerpt: '',
+		published: false,
+		scheduledAt: '',
+	});
 
-	const addTag = () => {
-		if (
-			tagInput.trim() &&
-			!tags.includes(tagInput.trim())
-		) {
-			setTags([...tags, tagInput.trim()]);
-			setTagInput('');
-		}
-	};
+	useEffect(() => {
+		fetchTags();
+	}, []);
 
-	const removeTag = (tagToRemove: string) => {
-		setTags(tags.filter((tag) => tag !== tagToRemove));
-	};
-
-	const handleKeyDown = (e: React.KeyboardEvent) => {
-		if (e.key === 'Enter') {
-			e.preventDefault();
-			addTag();
-		}
-	};
-
-	const handleSave = async (publish: boolean = false) => {
-		if (!title.trim() || !content.trim()) {
-			alert('Title and content are required');
-			return;
-		}
-
-		setLoading(true);
+	const fetchTags = async () => {
 		try {
+			const response = await fetch('/api/tags');
+			if (response.ok) {
+				const data = await response.json();
+				setAvailableTags(data.tags || []);
+			}
+		} catch (error) {
+			console.error('Failed to fetch tags:', error);
+		}
+	};
+
+	const handleAddTag = (tagName: string) => {
+		if (!tagName.trim()) return;
+
+		const existingTag = availableTags.find(tag =>
+			tag.name.toLowerCase() === tagName.toLowerCase()
+		);
+
+		if (existingTag) {
+			if (!selectedTags.find(tag => tag.id === existingTag.id)) {
+				setSelectedTags([...selectedTags, existingTag]);
+			}
+		} else {
+			const newTag = {
+				id: `new-${Date.now()}`,
+				name: tagName.trim(),
+			};
+			setSelectedTags([...selectedTags, newTag]);
+			setAvailableTags([...availableTags, newTag]);
+		}
+		setNewTagInput('');
+	};
+
+	const handleRemoveTag = (tagId: string) => {
+		setSelectedTags(selectedTags.filter(tag => tag.id !== tagId));
+	};
+
+	const generateSlug = (title: string) => {
+		return title
+			.toLowerCase()
+			.replace(/[^a-z0-9]+/g, '-')
+			.replace(/(^-|-$)/g, '');
+	};
+
+	const handleSubmit = async (e: React.FormEvent) => {
+		e.preventDefault();
+		setLoading(true);
+
+		try {
+			const slug = generateSlug(formData.title);
 			const response = await fetch('/api/posts', {
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				credentials: 'include',
+				headers: {
+					'Content-Type': 'application/json',
+				},
 				body: JSON.stringify({
-					title,
-					content,
-					excerpt: excerpt || null,
-					published: publish,
-					tags,
+					...formData,
+					slug,
+					tags: selectedTags.map(tag => tag.name),
+					scheduledAt: formData.scheduledAt || null,
 				}),
 			});
 
 			if (response.ok) {
-				alert(
-					publish
-						? 'Post published successfully!'
-						: 'Post saved as draft!'
-				);
-				// Reset form or redirect
-				setTitle('');
-				setContent('');
-				setExcerpt('');
-				setTags([]);
+				const data = await response.json();
+				toast.success('Post created successfully!');
+				router.push('/admin/posts');
 			} else {
-				alert('Failed to save post');
+				const error = await response.json();
+				toast.error(error.message || 'Failed to create post');
 			}
-		} catch {
-			alert('Error saving post');
+		} catch (error) {
+			console.error('Error creating post:', error);
+			toast.error('Failed to create post');
 		} finally {
 			setLoading(false);
 		}
 	};
 
+	const handlePreview = () => {
+		const previewData = {
+			...formData,
+			slug: generateSlug(formData.title),
+			tags: selectedTags,
+		};
+		// Store in sessionStorage for preview
+		sessionStorage.setItem('previewPost', JSON.stringify(previewData));
+		window.open('/admin/posts/preview', '_blank');
+	};
+
 	return (
-		<>
-			<Card>
-				<CardHeader>
-					<CardTitle>Write Your Post</CardTitle>
-				</CardHeader>
-				<CardContent className='space-y-6'>
-					<div className='space-y-2'>
-						<Label htmlFor='title'>Title</Label>
-						<Input
-							id='title'
-							value={title}
-							onChange={(e) => setTitle(e.target.value)}
-							placeholder='Enter your post title...'
-						/>
+		<div className='space-y-6'>
+			<div className='flex items-center justify-between'>
+				<div className='flex items-center gap-4'>
+					<Link href='/admin/posts'>
+						<Button variant='outline' size='sm'>
+							<ArrowLeft className='w-4 h-4 mr-2' />
+							Back to Posts
+						</Button>
+					</Link>
+					<div>
+						<h1 className='text-3xl font-bold'>Create New Post</h1>
+						<p className='text-muted-foreground'>Share your biblical insights with the community</p>
+					</div>
+				</div>
+				<Button
+					type='button'
+					variant='outline'
+					onClick={handlePreview}
+					disabled={!formData.title || !formData.content}
+				>
+					<Eye className='w-4 h-4 mr-2' />
+					Preview
+				</Button>
+			</div>
+
+			<form onSubmit={handleSubmit} className='space-y-6'>
+				<div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
+					{/* Main Content */}
+					<div className='lg:col-span-2 space-y-6'>
+						<Card>
+							<CardHeader>
+								<CardTitle>Post Content</CardTitle>
+							</CardHeader>
+							<CardContent className='space-y-4'>
+								<div>
+									<Label htmlFor='title'>Title *</Label>
+									<Input
+										id='title'
+										value={formData.title}
+										onChange={(e) =>
+											setFormData({
+												...formData,
+												title: e.target.value,
+											})
+										}
+										placeholder='Enter post title'
+										required
+										className='text-lg'
+									/>
+									{formData.title && (
+										<p className='text-sm text-muted-foreground mt-1'>
+											Slug: {generateSlug(formData.title)}
+										</p>
+									)}
+								</div>
+
+								<div>
+									<Label htmlFor='excerpt'>Excerpt</Label>
+									<Textarea
+										id='excerpt'
+										value={formData.excerpt}
+										onChange={(e) =>
+											setFormData({
+												...formData,
+												excerpt: e.target.value,
+											})
+										}
+										placeholder='Brief description that will appear in post previews'
+										rows={3}
+									/>
+									<p className='text-sm text-muted-foreground mt-1'>
+										Optional. If not provided, the first 150 characters of content will be used.
+									</p>
+								</div>
+
+								<div>
+									<div className='flex items-center justify-between mb-2'>
+										<Label htmlFor='content'>Content *</Label>
+										<div className='flex items-center space-x-2'>
+											<Label htmlFor='rich-editor' className='text-sm'>Rich Editor</Label>
+											<Switch
+												id='rich-editor'
+												checked={useRichEditor}
+												onCheckedChange={setUseRichEditor}
+											/>
+										</div>
+									</div>
+									{useRichEditor ? (
+										<RichTextEditor
+											content={formData.content}
+											onChange={(content) =>
+												setFormData({
+													...formData,
+													content,
+												})
+											}
+											placeholder='Write your biblical insights here...'
+										/>
+									) : (
+										<Textarea
+											id='content'
+											value={formData.content}
+											onChange={(e) =>
+												setFormData({
+													...formData,
+													content: e.target.value,
+												})
+											}
+											placeholder='Write your biblical insights here...
+
+You can use Markdown formatting or switch to the rich editor above.'
+											rows={20}
+											required
+											className='font-mono text-sm'
+										/>
+									)}
+								</div>
+							</CardContent>
+						</Card>
 					</div>
 
-					<div className='space-y-2'>
-						<Label htmlFor='excerpt'>
-							Excerpt (Optional)
-						</Label>
-						<Textarea
-							id='excerpt'
-							value={excerpt}
-							onChange={(e) => setExcerpt(e.target.value)}
-							placeholder='Brief summary of your post...'
-							rows={3}
-						/>
-					</div>
+					{/* Sidebar */}
+					<div className='space-y-6'>
+						{/* Publishing Options */}
+						<Card>
+							<CardHeader>
+								<CardTitle className='text-lg'>Publishing</CardTitle>
+							</CardHeader>
+							<CardContent className='space-y-4'>
+								<div className='flex items-center space-x-2'>
+									<Switch
+										id='published'
+										checked={formData.published}
+										onCheckedChange={(checked) =>
+											setFormData({
+												...formData,
+												published: checked,
+											})
+										}
+									/>
+									<Label htmlFor='published' className='font-normal'>
+										{formData.published ? 'Publish immediately' : 'Save as draft'}
+									</Label>
+								</div>
 
-					<div className='space-y-2'>
-						<Label>Content</Label>
-						<RichTextEditor
-							content={content}
-							onChange={setContent}
-						/>
-					</div>
+								{!formData.published && (
+									<div>
+										<Label htmlFor='scheduledAt'>Schedule for later</Label>
+										<Input
+											id='scheduledAt'
+											type='datetime-local'
+											value={formData.scheduledAt}
+											onChange={(e) =>
+												setFormData({
+													...formData,
+													scheduledAt: e.target.value,
+												})
+											}
+											min={new Date().toISOString().slice(0, 16)}
+										/>
+										<p className='text-sm text-muted-foreground mt-1'>
+											Optional. Leave empty to save as draft.
+										</p>
+									</div>
+								)}
+							</CardContent>
+						</Card>
 
-					<div className='space-y-2'>
-						<Label htmlFor='tags'>Tags</Label>
-						<div className='flex gap-2'>
-							<Input
-								id='tags'
-								value={tagInput}
-								onChange={(e) =>
-									setTagInput(e.target.value)
-								}
-								onKeyDown={handleKeyDown}
-								placeholder='Add a tag and press Enter'
-							/>
-							<Button
-								type='button'
-								onClick={addTag}
-							>
-								Add
-							</Button>
-						</div>
-						{tags.length > 0 && (
-							<div className='flex flex-wrap gap-2 mt-2'>
-								{tags.map((tag) => (
-									<Badge
-										key={tag}
-										variant='secondary'
-										className='cursor-pointer'
-									>
-										{tag}
-										<button
-											onClick={() => removeTag(tag)}
-											className='ml-2 hover:text-destructive'
+						{/* Tags */}
+						<Card>
+							<CardHeader>
+								<CardTitle className='text-lg'>Tags</CardTitle>
+							</CardHeader>
+							<CardContent className='space-y-4'>
+								<div>
+									<Label>Add Tag</Label>
+									<div className='flex gap-2'>
+										<Input
+											value={newTagInput}
+											onChange={(e) => setNewTagInput(e.target.value)}
+											placeholder='bible-study'
+											onKeyPress={(e) => {
+												if (e.key === 'Enter') {
+													e.preventDefault();
+													handleAddTag(newTagInput);
+												}
+											}}
+										/>
+										<Button
+											type='button'
+											variant='outline'
+											size='sm'
+											onClick={() => handleAddTag(newTagInput)}
 										>
-											×
-										</button>
-									</Badge>
-								))}
-							</div>
-						)}
-					</div>
+											Add
+										</Button>
+									</div>
+								</div>
 
-					<div className='flex gap-4 pt-4'>
-						<Button
-							onClick={() => handleSave(false)}
-							disabled={loading}
-							variant='outline'
-						>
-							{loading ? 'Saving...' : 'Save Draft'}
-						</Button>
-						<Button
-							onClick={() => handleSave(true)}
-							disabled={loading}
-						>
-							{loading ? 'Publishing...' : 'Publish Post'}
-						</Button>
+								{selectedTags.length > 0 && (
+									<div>
+										<Label>Selected Tags</Label>
+										<div className='flex flex-wrap gap-2 mt-2'>
+											{selectedTags.map((tag) => (
+												<Badge
+													key={tag.id}
+													variant='secondary'
+													className='flex items-center gap-1'
+												>
+													{tag.name}
+													<button
+														type='button'
+														onClick={() => handleRemoveTag(tag.id)}
+														className='ml-1 hover:text-destructive'
+													>
+														<X className='w-3 h-3' />
+													</button>
+												</Badge>
+											))}
+										</div>
+									</div>
+								)}
+
+								{availableTags.length > 0 && (
+									<div>
+										<Label>Popular Tags</Label>
+										<div className='flex flex-wrap gap-2 mt-2'>
+											{availableTags
+												.filter(tag => !selectedTags.find(selected => selected.id === tag.id))
+												.slice(0, 10)
+												.map((tag) => (
+													<Badge
+														key={tag.id}
+														variant='outline'
+														className='cursor-pointer hover:bg-primary hover:text-primary-foreground'
+														onClick={() => handleAddTag(tag.name)}
+													>
+														{tag.name}
+													</Badge>
+												))}
+										</div>
+									</div>
+								)}
+							</CardContent>
+						</Card>
 					</div>
-				</CardContent>
-			</Card>
-		</>
+				</div>
+
+				<div className='flex justify-end gap-4 border-t pt-6'>
+					<Button
+						type='button'
+						variant='outline'
+						onClick={() => router.back()}
+					>
+						Cancel
+					</Button>
+					<Button
+						type='button'
+						variant='outline'
+						onClick={() => setFormData({ ...formData, published: false })}
+						disabled={loading}
+					>
+						Save Draft
+					</Button>
+					<Button type='submit' disabled={loading}>
+						<Save className='w-4 h-4 mr-2' />
+						{loading ? 'Saving...' : formData.published ? 'Publish Post' : 'Save Post'}
+					</Button>
+				</div>
+			</form>
+		</div>
 	);
 }
