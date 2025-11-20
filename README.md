@@ -16,16 +16,52 @@ A modern, production-ready blog platform built specifically for Bible study enth
 - **⚡ Performance**: Optimized with Next.js 15 and Turbopack
 - **🚀 Production Ready**: Complete CI/CD pipeline and deployment configurations
 
+## 🔒 Security
+
+This application implements comprehensive security measures:
+
+### Authentication & Authorization
+- **JWT-based authentication** with secure httpOnly cookies
+- **Role-Based Access Control (RBAC)** for admin endpoints
+- **Password strength validation** (minimum 12 characters, complexity requirements)
+- **Bcrypt password hashing** with 12 salt rounds
+- **Rate limiting** on login endpoints to prevent brute force attacks
+
+### Input Validation & Sanitization
+- **XSS prevention** with DOMPurify sanitization for all user-generated content
+- **Input validation** for all API endpoints
+- **Secure file upload** handling with type validation
+
+### API Security
+- **Authentication middleware** protecting all admin routes
+- **Permission checks** on sensitive operations
+- **No diagnostic endpoints** exposed in production
+- **Secure error handling** without information leakage
+
+### Database Security
+- **Parameterized queries** via Prisma ORM
+- **SQL injection prevention**
+- **Environment-based credentials** (no hardcoded secrets)
+
+### Production Best Practices
+- **Security headers** configured in Next.js
+- **HTTPS enforcement** in production
+- **Environment variable validation**
+- **Secure session management**
+
+For detailed security documentation, see [SECURITY_ISSUES_AND_FIXES.md](./SECURITY_ISSUES_AND_FIXES.md).
+
 ## 🛠️ Tech Stack
 
 - **Framework**: Next.js 15 with App Router and Turbopack
 - **Database**: PostgreSQL with Prisma ORM
 - **Styling**: Tailwind CSS + ShadCN UI components
-- **Editor**: TipTap rich text editor
+- **Editor**: TipTap 3.x rich text editor
 - **Authentication**: Custom JWT auth with bcryptjs
+- **Security**: DOMPurify for XSS prevention, RBAC, rate limiting
 - **Error Monitoring**: Sentry for error tracking and performance monitoring
 - **Testing**: Jest + React Testing Library + Playwright
-- **Language**: TypeScript
+- **Language**: TypeScript with strict mode
 - **Deployment**: Vercel optimized with security headers
 
 ## Getting Started
