@@ -2,27 +2,27 @@
 
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import TextStyle from '@tiptap/extension-text-style';
-import TextAlign from '@tiptap/extension-text-align';
-import Link from '@tiptap/extension-link';
-import Image from '@tiptap/extension-image';
+import { TextStyle } from '@tiptap/extension-text-style';
+import { TextAlign } from '@tiptap/extension-text-align';
+import { Link } from '@tiptap/extension-link';
+import { Image } from '@tiptap/extension-image';
 import { Table } from '@tiptap/extension-table';
-import TableRow from '@tiptap/extension-table-row';
-import TableHeader from '@tiptap/extension-table-header';
-import TableCell from '@tiptap/extension-table-cell';
-import Underline from '@tiptap/extension-underline';
-import Strike from '@tiptap/extension-strike';
-import Superscript from '@tiptap/extension-superscript';
-import Subscript from '@tiptap/extension-subscript';
-import CharacterCount from '@tiptap/extension-character-count';
-import Typography from '@tiptap/extension-typography';
-import Placeholder from '@tiptap/extension-placeholder';
-import Focus from '@tiptap/extension-focus';
-import Dropcursor from '@tiptap/extension-dropcursor';
-import Gapcursor from '@tiptap/extension-gapcursor';
-import History from '@tiptap/extension-history';
-import HardBreak from '@tiptap/extension-hard-break';
-import HorizontalRule from '@tiptap/extension-horizontal-rule';
+import { TableRow } from '@tiptap/extension-table-row';
+import { TableHeader } from '@tiptap/extension-table-header';
+import { TableCell } from '@tiptap/extension-table-cell';
+import { Underline } from '@tiptap/extension-underline';
+import { Strike } from '@tiptap/extension-strike';
+import { Superscript } from '@tiptap/extension-superscript';
+import { Subscript } from '@tiptap/extension-subscript';
+import { CharacterCount } from '@tiptap/extension-character-count';
+import { Typography } from '@tiptap/extension-typography';
+import { Placeholder } from '@tiptap/extension-placeholder';
+import { Focus } from '@tiptap/extension-focus';
+import { Dropcursor } from '@tiptap/extension-dropcursor';
+import { Gapcursor } from '@tiptap/extension-gapcursor';
+import { History } from '@tiptap/extension-history';
+import { HardBreak } from '@tiptap/extension-hard-break';
+import { HorizontalRule } from '@tiptap/extension-horizontal-rule';
 
 import { Button } from './ui/button';
 import { Separator } from './ui/separator';
@@ -182,9 +182,7 @@ export function RichTextEditor({
 
 	const editor = useEditor({
 		extensions: [
-			StarterKit.configure({
-				history: false, // We're using the History extension instead
-			}),
+			StarterKit,
 			TextStyle,
 			TextAlign.configure({
 				types: ['heading', 'paragraph', 'div'],
@@ -240,7 +238,6 @@ export function RichTextEditor({
 				closeSingleQuote: "'",
 				ellipsis: '…',
 				emDash: '—',
-				enDash: '–',
 			}),
 			Placeholder.configure({
 				placeholder: ({ node, pos, hasAnchor }) => {
@@ -347,7 +344,7 @@ export function RichTextEditor({
 						const reader = new FileReader();
 						reader.onload = (e) => {
 							const src = e.target?.result as string;
-							editor.chain().focus().setImage({ src }).run();
+							editor?.chain().focus().setImage({ src }).run();
 						};
 						reader.readAsDataURL(file);
 						return true;

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthenticatedUser } from '@/lib/auth'
 import { hasPermission } from '@/lib/rbac'
+import { sanitizeUserInput } from '@/lib/utils/sanitize'
 
 interface RouteParams {
   params: Promise<{ slug: string }>
@@ -101,6 +102,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       )
     }
 
+    // Sanitize comment content to prevent XSS
+    const sanitizedContent = sanitizeUserInput(content);
+
     // Find the post
     const post = await prisma.post.findUnique({
       where: { slug },
@@ -134,7 +138,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     const comment = await prisma.comment.create({
       data: {
-        content: content.trim(),
+        content: sanitizedContent,
         authorId: user.id,
         postId: post.id,
         parentId: parentId || null,

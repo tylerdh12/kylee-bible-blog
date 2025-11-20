@@ -30,7 +30,7 @@ async function verifyAuth(req: NextRequest) {
 
 export async function DELETE(
 	req: NextRequest,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
 		const user = await verifyAuth(req);
@@ -41,7 +41,7 @@ export async function DELETE(
 			);
 		}
 
-		const { id } = params;
+		const { id } = await params;
 
 		// Check if subscriber exists
 		const subscriber = await prisma.subscriber.findUnique({
@@ -73,7 +73,7 @@ export async function DELETE(
 
 export async function PUT(
 	req: NextRequest,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
 		const user = await verifyAuth(req);
@@ -84,7 +84,7 @@ export async function PUT(
 			);
 		}
 
-		const { id } = params;
+		const { id } = await params;
 		const { name, status } = await req.json();
 
 		// Check if subscriber exists

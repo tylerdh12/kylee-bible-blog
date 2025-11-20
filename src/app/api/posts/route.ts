@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/auth';
 import { DatabaseService } from '@/lib/services/database';
+import { sanitizeHtml, sanitizeText } from '@/lib/utils/sanitize';
 import type { PostsResponse } from '@/types';
 
 const db = DatabaseService.getInstance();
@@ -25,6 +26,11 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
+		// Sanitize inputs to prevent XSS
+		const sanitizedTitle = sanitizeText(title);
+		const sanitizedContent = sanitizeHtml(content);
+		const sanitizedExcerpt = excerpt ? sanitizeText(excerpt) : null;
+
 		const slug = title
 			.toLowerCase()
 			.replace(/[^a-z0-9]+/g, '-')
@@ -41,11 +47,11 @@ export async function POST(request: NextRequest) {
 			}
 		}
 
-		// Create post with validated data
+		// Create post with validated and sanitized data
 		const post = await db.createPost({
-			title: title.trim(),
-			content: content.trim(),
-			excerpt: excerpt?.trim() || null,
+			title: sanitizedTitle,
+			content: sanitizedContent,
+			excerpt: sanitizedExcerpt,
 			published: Boolean(published),
 			publishedAt: published ? new Date() : null,
 			slug,

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getAuthenticatedUser } from '@/lib/auth'
+import { hasPermission } from '@/lib/rbac'
 import { mockDb } from '@/lib/mock-db'
 
 export async function GET() {
@@ -7,6 +8,11 @@ export async function GET() {
     const user = await getAuthenticatedUser()
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Check for donations read permission
+    if (!hasPermission(user.role, 'read:donations')) {
+      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
 
     const donations = await mockDb.donation.findMany({

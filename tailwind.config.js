@@ -8,6 +8,27 @@ module.exports = {
 	],
 	theme: {
     	extend: {
+    		fontFamily: {
+    			sans: [
+    				'system-ui',
+    				'-apple-system',
+    				'BlinkMacSystemFont',
+    				'"Segoe UI"',
+    				'Roboto',
+    				'"Helvetica Neue"',
+    				'Arial',
+    				'sans-serif',
+    			],
+    			mono: [
+    				'ui-monospace',
+    				'SFMono-Regular',
+    				'"SF Mono"',
+    				'Menlo',
+    				'Consolas',
+    				'"Liberation Mono"',
+    				'monospace',
+    			],
+    		},
     		colors: {
     			background: 'hsl(var(--background))',
     			foreground: 'hsl(var(--foreground))',

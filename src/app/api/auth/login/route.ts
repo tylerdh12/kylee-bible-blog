@@ -1,8 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getUserByEmail, verifyPassword, createAuthToken } from '@/lib/auth'
+import { rateLimit, rateLimitConfigs } from '@/lib/utils/rate-limit'
 
 export async function POST(request: NextRequest) {
   try {
+    // Apply strict rate limiting (5 attempts per minute)
+    const limiter = rateLimit(rateLimitConfigs.strict)
+    const rateLimitResult = limiter(request)
+
+    if (!rateLimitResult.success) {
+      const retryAfter = Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)
+      return NextResponse.json(
+        {
+          error: 'Too many login attempts. Please try again later.',
+          resetTime: rateLimitResult.resetTime
+        },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(retryAfter),
+            'X-RateLimit-Limit': String(rateLimitResult.limit),
+            'X-RateLimit-Remaining': String(rateLimitResult.remaining),
+            'X-RateLimit-Reset': String(rateLimitResult.resetTime)
+          }
+        }
+      )
+    }
+
     const { email, password } = await request.json()
 
     if (!email || !password) {
