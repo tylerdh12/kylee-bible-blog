@@ -75,6 +75,10 @@ export default function SubscribersPage() {
 	}, []);
 
 	useEffect(() => {
+		setLoading(false);
+	}, []);
+
+	useEffect(() => {
 		let filtered = subscribers;
 
 		if (searchQuery) {

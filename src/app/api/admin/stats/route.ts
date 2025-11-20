@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getAuthenticatedUser } from '@/lib/auth'
 import { hasPermission } from '@/lib/rbac'
 import { DatabaseService } from '@/lib/services/database'
+import { prisma } from '@/lib/db'
 import type { StatsResponse, ApiResponse } from '@/types'
 
 export async function GET() {
@@ -27,10 +28,20 @@ export async function GET() {
     const db = DatabaseService.getInstance()
 
     // Get all data
-    const [allPosts, allGoals, allDonations] = await Promise.all([
+    const [
+      allPosts,
+      allGoals,
+      allDonations,
+      commentsCount,
+      subscribersCount,
+      prayerRequestsCount
+    ] = await Promise.all([
       db.findPosts({ includeAuthor: false, includeTags: false }),
       db.findGoals({ includeDonations: false }),
-      db.findDonations({ includeGoal: false })
+      db.findDonations({ includeGoal: false }),
+      prisma.comment.count(),
+      prisma.subscriber.count({ where: { status: 'active' } }),
+      prisma.prayerRequest.count()
     ])
 
     const totalPosts = allPosts.length
@@ -46,7 +57,10 @@ export async function GET() {
       totalGoals,
       activeGoals,
       totalDonations,
-      totalDonationAmount
+      totalDonationAmount,
+      totalComments: commentsCount,
+      totalSubscribers: subscribersCount,
+      totalPrayerRequests: prayerRequestsCount
     }
 
     return NextResponse.json(response)

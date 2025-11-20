@@ -135,6 +135,9 @@ export interface StatsResponse {
 	activeGoals: number;
 	totalDonations: number;
 	totalDonationAmount: number;
+	totalComments?: number;
+	totalSubscribers?: number;
+	totalPrayerRequests?: number;
 }
 
 // Form types
