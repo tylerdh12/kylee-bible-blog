@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getAuthenticatedUser } from '@/lib/auth'
 import { hasPermission } from '@/lib/rbac'
 import { DatabaseService } from '@/lib/services/database'
+import { prisma } from '@/lib/db'
 import type { StatsResponse, ApiResponse } from '@/types'
 
 export async function GET() {
@@ -38,9 +39,9 @@ export async function GET() {
       db.findPosts({ includeAuthor: false, includeTags: false }),
       db.findGoals({ includeDonations: false }),
       db.findDonations({ includeGoal: false }),
-      db.prisma.comment.count(),
-      db.prisma.subscriber.count({ where: { status: 'active' } }),
-      db.prisma.prayerRequest.count()
+      prisma.comment.count(),
+      prisma.subscriber.count({ where: { status: 'active' } }),
+      prisma.prayerRequest.count()
     ])
 
     const totalPosts = allPosts.length
