@@ -48,9 +48,7 @@ export default function ProfilePage() {
 	const [loading, setLoading] = useState(true);
 	const [saving, setSaving] = useState(false);
 	const [editing, setEditing] = useState(false);
-	const [user, setUser] = useState<any>(null);
-	const [profile, setProfile] =
-		useState<UserProfile | null>(null);
+	const [profile, setProfile] = useState<UserProfile | null>(null);
 	const [formData, setFormData] = useState({
 		name: '',
 		bio: '',
@@ -58,30 +56,8 @@ export default function ProfilePage() {
 	});
 
 	useEffect(() => {
-		checkAuth();
+		fetchProfile();
 	}, []);
-
-	useEffect(() => {
-		if (user) {
-			fetchProfile();
-		}
-	}, [user]);
-
-	const checkAuth = async () => {
-		try {
-			const res = await fetch('/api/auth/status');
-			const data = await res.json();
-			if (data.authenticated) {
-				setUser(data.user);
-			} else {
-				window.location.href = '/admin';
-			}
-		} catch {
-			window.location.href = '/admin';
-		} finally {
-			setLoading(false);
-		}
-	};
 
 	const fetchProfile = async () => {
 		try {
@@ -97,6 +73,8 @@ export default function ProfilePage() {
 			}
 		} catch (error) {
 			console.error('Error fetching profile:', error);
+		} finally {
+			setLoading(false);
 		}
 	};
 

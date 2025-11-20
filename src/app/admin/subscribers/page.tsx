@@ -61,7 +61,6 @@ interface Subscriber {
 }
 
 export default function SubscribersPage() {
-	const [user, setUser] = useState<any>(null);
 	const [loading, setLoading] = useState(true);
 	const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
 	const [filteredSubscribers, setFilteredSubscribers] = useState<Subscriber[]>([]);
@@ -72,23 +71,7 @@ export default function SubscribersPage() {
 	const [addingSubscriber, setAddingSubscriber] = useState(false);
 
 	useEffect(() => {
-		const checkAuth = async () => {
-			try {
-				const res = await fetch('/api/auth/status');
-				const data = await res.json();
-				if (data.authenticated) {
-					setUser(data.user);
-					await fetchSubscribers();
-				} else {
-					window.location.href = '/admin';
-				}
-			} catch {
-				window.location.href = '/admin';
-			} finally {
-				setLoading(false);
-			}
-		};
-		checkAuth();
+		fetchSubscribers();
 	}, []);
 
 	useEffect(() => {
