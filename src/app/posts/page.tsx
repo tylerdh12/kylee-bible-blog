@@ -1,9 +1,20 @@
 import { Metadata } from 'next';
-import { PostsContent } from '@/components/posts-content';
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import Link from 'next/link';
+import { format } from 'date-fns';
+import { DatabaseService } from '@/lib/services/database';
+import type { Post } from '@/types';
 
-// Force static rendering for better performance
-export const dynamic = 'force-static';
-export const revalidate = 300; // Revalidate every 5 minutes
+// Use dynamic rendering to fetch fresh data
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export const metadata: Metadata = {
 	title: "All Blog Posts - Kylee's Bible Study Journey",
@@ -32,7 +43,27 @@ export const metadata: Metadata = {
 	},
 };
 
-export default function PostsPage() {
+async function getPosts() {
+	const db = DatabaseService.getInstance();
+
+	try {
+		const posts = await db.findPosts({
+			published: true,
+			includeAuthor: true,
+			includeTags: true,
+			sort: { field: 'publishedAt', order: 'desc' },
+		});
+
+		return posts;
+	} catch (error) {
+		console.error('Error fetching posts:', error);
+		return [] as Post[];
+	}
+}
+
+export default async function PostsPage() {
+	const posts = await getPosts();
+
 	return (
 		<div className='min-h-screen bg-gradient-to-br from-background to-muted/20'>
 			<div className='container px-4 py-8 mx-auto'>
@@ -47,8 +78,69 @@ export default function PostsPage() {
 					</p>
 				</div>
 
-				{/* Dynamic Content */}
-				<PostsContent />
+				{/* Posts Grid */}
+				{posts.length === 0 ? (
+					<Card>
+						<CardContent className='py-12 text-center'>
+							<h3 className='text-xl font-semibold mb-4'>
+								No Posts Yet
+							</h3>
+							<p className='text-muted-foreground mb-4'>
+								Welcome to Kylee's Bible Blog! Posts are being
+								prepared and will be available soon.
+							</p>
+							<p className='text-sm text-muted-foreground'>
+								Check back soon for inspiring Bible studies and
+								spiritual insights, or visit the admin panel to
+								create your first post.
+							</p>
+						</CardContent>
+					</Card>
+				) : (
+					<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+						{posts.map((post) => (
+							<Card
+								key={post.id}
+								className='hover:shadow-lg transition-shadow'
+							>
+								<CardHeader>
+									<CardTitle className='line-clamp-2'>
+										{post.title}
+									</CardTitle>
+									<CardDescription>
+										{post.publishedAt &&
+											format(new Date(post.publishedAt), 'PPP')}
+										{post.author && ` • By ${post.author.name}`}
+									</CardDescription>
+								</CardHeader>
+								<CardContent>
+									<p className='text-muted-foreground mb-4 line-clamp-3'>
+										{post.excerpt ||
+											post.content.substring(0, 150) + '...'}
+									</p>
+									{post.tags && post.tags.length > 0 && (
+										<div className='flex flex-wrap gap-2 mb-4'>
+											{post.tags.map((tag) => (
+												<Badge
+													key={tag.id}
+													variant='secondary'
+												>
+													{tag.name}
+												</Badge>
+											))}
+										</div>
+									)}
+									<Link
+										href={`/posts/${post.slug}`}
+										className='text-primary hover:underline font-medium'
+									>
+										Read more →
+									</Link>
+								</CardContent>
+							</Card>
+						))}
+					</div>
+				)}
 			</div>
 		</div>
 	);

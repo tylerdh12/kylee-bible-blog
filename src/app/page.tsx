@@ -1,9 +1,20 @@
 import { Metadata } from 'next';
-import { HomeContent } from '@/components/home-content';
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import Link from 'next/link';
+import { format } from 'date-fns';
+import { DatabaseService } from '@/lib/services/database';
+import type { Post, Goal } from '@/types';
 
-// Force static rendering for better performance
-export const dynamic = 'force-static';
-export const revalidate = 300; // Revalidate every 5 minutes
+// Use dynamic rendering to fetch fresh data
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export const metadata: Metadata = {
 	title:
@@ -41,7 +52,42 @@ export const metadata: Metadata = {
 	},
 };
 
-export default function Home() {
+async function getHomeData() {
+	const db = DatabaseService.getInstance();
+
+	try {
+		const [posts, goals] = await Promise.all([
+			db.findPosts({
+				published: true,
+				includeAuthor: true,
+				includeTags: true,
+				sort: { field: 'publishedAt', order: 'desc' },
+				take: 6,
+			}).catch(() => [] as Post[]),
+			db.findGoals({
+				completed: false,
+				sort: { field: 'createdAt', order: 'desc' },
+				take: 3,
+			}).catch(() => [] as Goal[]),
+		]);
+
+		return { posts, goals };
+	} catch (error) {
+		console.error('Error fetching home data:', error);
+		return { posts: [] as Post[], goals: [] as Goal[] };
+	}
+}
+
+function formatCurrency(amount: number): string {
+	return new Intl.NumberFormat('en-US', {
+		style: 'currency',
+		currency: 'USD',
+	}).format(amount);
+}
+
+export default async function Home() {
+	const { posts, goals } = await getHomeData();
+
 	return (
 		<div className='container px-4 py-8 mx-auto'>
 			{/* Hero Section */}
@@ -57,8 +103,166 @@ export default function Home() {
 				</p>
 			</div>
 
-			{/* Dynamic Content */}
-			<HomeContent />
+			{/* Recent Posts Section */}
+			<div className='space-y-12'>
+				<div>
+					<div className='flex justify-between items-center mb-6'>
+						<h2 className='text-3xl font-semibold'>
+							Recent Posts
+						</h2>
+						<Link
+							href='/posts'
+							className='text-primary hover:underline'
+						>
+							View all posts →
+						</Link>
+					</div>
+
+					{posts.length === 0 ? (
+						<Card>
+							<CardContent className='py-8 text-center'>
+								<p className='text-muted-foreground mb-4'>
+									Welcome to Kylee's Bible Blog!
+								</p>
+								<p className='text-sm text-muted-foreground'>
+									Posts are loading or will be available soon.
+									In the meantime, explore other sections of
+									the site or check out the admin setup.
+								</p>
+							</CardContent>
+						</Card>
+					) : (
+						<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+							{posts.map((post) => (
+								<Card
+									key={post.id}
+									className='hover:shadow-lg transition-shadow'
+								>
+									<CardHeader>
+										<CardTitle className='line-clamp-2'>
+											{post.title}
+										</CardTitle>
+										<CardDescription>
+											{post.publishedAt &&
+												format(
+													new Date(post.publishedAt),
+													'PPP'
+												)}
+										</CardDescription>
+									</CardHeader>
+									<CardContent>
+										<p className='text-muted-foreground mb-4 line-clamp-3'>
+											{post.excerpt ||
+												post.content.substring(0, 150) +
+													'...'}
+										</p>
+										{post.tags && post.tags.length > 0 && (
+											<div className='flex flex-wrap gap-2 mb-4'>
+												{post.tags.map((tag) => (
+													<Badge
+														key={tag.id}
+														variant='secondary'
+													>
+														{tag.name}
+													</Badge>
+												))}
+											</div>
+										)}
+										<Link
+											href={`/posts/${post.slug}`}
+											className='text-primary hover:underline font-medium'
+										>
+											Read more →
+										</Link>
+									</CardContent>
+								</Card>
+							))}
+						</div>
+					)}
+				</div>
+
+				{/* Goals Section */}
+				<div>
+					<div className='flex justify-between items-center mb-6'>
+						<h2 className='text-3xl font-semibold'>
+							Current Goals
+						</h2>
+						<Link
+							href='/goals'
+							className='text-primary hover:underline'
+						>
+							View all goals →
+						</Link>
+					</div>
+
+					{goals.length === 0 ? (
+						<Card>
+							<CardContent className='py-8 text-center'>
+								<p className='text-muted-foreground mb-4'>
+									Goals will be available soon!
+								</p>
+								<p className='text-sm text-muted-foreground'>
+									Ministry goals and donation tracking are
+									being set up. Visit the admin panel to
+									configure goals once the system is ready.
+								</p>
+							</CardContent>
+						</Card>
+					) : (
+						<div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
+							{goals.map((goal) => {
+								const progress =
+									(goal.currentAmount / goal.targetAmount) *
+									100;
+								return (
+									<Card key={goal.id}>
+										<CardHeader>
+											<CardTitle className='line-clamp-1'>
+												{goal.title}
+											</CardTitle>
+											<CardDescription className='line-clamp-2'>
+												{goal.description}
+											</CardDescription>
+										</CardHeader>
+										<CardContent>
+											<div className='mb-4'>
+												<div className='flex justify-between text-sm mb-2'>
+													<span>
+														{formatCurrency(goal.currentAmount)}
+													</span>
+													<span>
+														{formatCurrency(goal.targetAmount)}
+													</span>
+												</div>
+												<div className='w-full bg-secondary rounded-full h-2'>
+													<div
+														className='bg-primary h-2 rounded-full transition-all'
+														style={{
+															width: `${Math.min(
+																progress,
+																100
+															)}%`,
+														}}
+													/>
+												</div>
+												<p className='text-center text-sm text-muted-foreground mt-2'>
+													{progress.toFixed(1)}% completed
+												</p>
+											</div>
+											<Link
+												href={`/donate?goal=${goal.id}`}
+												className='text-primary hover:underline font-medium'
+											>
+												Support this goal →
+											</Link>
+										</CardContent>
+									</Card>
+								);
+							})}
+						</div>
+					)}
+				</div>
+			</div>
 		</div>
 	);
 }
