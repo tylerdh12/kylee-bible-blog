@@ -38,7 +38,7 @@ interface SiteSettings {
 }
 
 export default function SettingsPage() {
-	const [loading, setLoading] = useState(false);
+	const [loading, setLoading] = useState(true);
 	const [saving, setSaving] = useState(false);
 	const [settings, setSettings] = useState<SiteSettings>({
 		siteName: "Kylee's Blog",
@@ -52,20 +52,56 @@ export default function SettingsPage() {
 		maintenanceMode: false,
 	});
 
+	useEffect(() => {
+		fetchSettings();
+	}, []);
+
+	const fetchSettings = async () => {
+		try {
+			const response = await fetch('/api/admin/settings');
+			if (response.ok) {
+				const data = await response.json();
+				setSettings(data.settings);
+			}
+		} catch (error) {
+			console.error('Error fetching settings:', error);
+		} finally {
+			setLoading(false);
+		}
+	};
+
 	const handleSave = async () => {
 		setSaving(true);
 		try {
-			// TODO: Implement settings save API
-			await new Promise((resolve) =>
-				setTimeout(resolve, 1000)
-			); // Simulate API call
-			console.log('Settings saved:', settings);
+			const response = await fetch('/api/admin/settings', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(settings),
+			});
+
+			if (response.ok) {
+				const data = await response.json();
+				setSettings(data.settings);
+				alert('Settings saved successfully!');
+			} else {
+				alert('Failed to save settings');
+			}
 		} catch (error) {
 			console.error('Error saving settings:', error);
+			alert('Failed to save settings');
 		} finally {
 			setSaving(false);
 		}
 	};
+
+	if (loading) {
+		return (
+			<div className='text-center py-8'>
+				<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4'></div>
+				<p className='text-muted-foreground'>Loading settings...</p>
+			</div>
+		);
+	}
 
 	return (
 		<div className='space-y-6'>

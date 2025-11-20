@@ -27,10 +27,20 @@ export async function GET() {
     const db = DatabaseService.getInstance()
 
     // Get all data
-    const [allPosts, allGoals, allDonations] = await Promise.all([
+    const [
+      allPosts,
+      allGoals,
+      allDonations,
+      commentsCount,
+      subscribersCount,
+      prayerRequestsCount
+    ] = await Promise.all([
       db.findPosts({ includeAuthor: false, includeTags: false }),
       db.findGoals({ includeDonations: false }),
-      db.findDonations({ includeGoal: false })
+      db.findDonations({ includeGoal: false }),
+      db.prisma.comment.count(),
+      db.prisma.subscriber.count({ where: { status: 'active' } }),
+      db.prisma.prayerRequest.count()
     ])
 
     const totalPosts = allPosts.length
@@ -46,7 +56,10 @@ export async function GET() {
       totalGoals,
       activeGoals,
       totalDonations,
-      totalDonationAmount
+      totalDonationAmount,
+      totalComments: commentsCount,
+      totalSubscribers: subscribersCount,
+      totalPrayerRequests: prayerRequestsCount
     }
 
     return NextResponse.json(response)

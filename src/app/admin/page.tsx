@@ -31,6 +31,9 @@ interface DashboardStats {
 	activeGoals: number;
 	totalDonations: number;
 	totalDonationAmount: number;
+	totalComments?: number;
+	totalSubscribers?: number;
+	totalPrayerRequests?: number;
 }
 
 export default function AdminPage() {
@@ -180,8 +183,8 @@ export default function AdminPage() {
 
 				{/* Stats Overview */}
 				{statsLoading ? (
-					<div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4'>
-						{Array.from({ length: 4 }).map((_, i) => (
+					<div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
+						{Array.from({ length: 8 }).map((_, i) => (
 							<Card key={`loading-stat-${i}`}>
 								<CardContent className='p-6'>
 									<div className='animate-pulse'>
@@ -193,7 +196,7 @@ export default function AdminPage() {
 						))}
 					</div>
 				) : (
-					<div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4'>
+					<div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
 						<Card>
 							<CardContent className='p-6'>
 								<div className='flex items-center'>
@@ -227,6 +230,36 @@ export default function AdminPage() {
 						<Card>
 							<CardContent className='p-6'>
 								<div className='flex items-center'>
+									<MessageCircle className='w-4 h-4 text-muted-foreground' />
+									<div className='ml-2'>
+										<p className='text-sm font-medium text-muted-foreground'>
+											Comments
+										</p>
+										<p className='text-2xl font-bold'>
+											{stats?.totalComments || 0}
+										</p>
+									</div>
+								</div>
+							</CardContent>
+						</Card>
+						<Card>
+							<CardContent className='p-6'>
+								<div className='flex items-center'>
+									<Users className='w-4 h-4 text-muted-foreground' />
+									<div className='ml-2'>
+										<p className='text-sm font-medium text-muted-foreground'>
+											Subscribers
+										</p>
+										<p className='text-2xl font-bold'>
+											{stats?.totalSubscribers || 0}
+										</p>
+									</div>
+								</div>
+							</CardContent>
+						</Card>
+						<Card>
+							<CardContent className='p-6'>
+								<div className='flex items-center'>
 									<Target className='w-4 h-4 text-muted-foreground' />
 									<div className='ml-2'>
 										<p className='text-sm font-medium text-muted-foreground'>
@@ -252,6 +285,36 @@ export default function AdminPage() {
 											{stats?.totalDonationAmount?.toFixed(
 												2
 											) || '0.00'}
+										</p>
+									</div>
+								</div>
+							</CardContent>
+						</Card>
+						<Card>
+							<CardContent className='p-6'>
+								<div className='flex items-center'>
+									<Heart className='w-4 h-4 text-muted-foreground' />
+									<div className='ml-2'>
+										<p className='text-sm font-medium text-muted-foreground'>
+											Donations
+										</p>
+										<p className='text-2xl font-bold'>
+											{stats?.totalDonations || 0}
+										</p>
+									</div>
+								</div>
+							</CardContent>
+						</Card>
+						<Card>
+							<CardContent className='p-6'>
+								<div className='flex items-center'>
+									<HeartHandshake className='w-4 h-4 text-muted-foreground' />
+									<div className='ml-2'>
+										<p className='text-sm font-medium text-muted-foreground'>
+											Prayer Requests
+										</p>
+										<p className='text-2xl font-bold'>
+											{stats?.totalPrayerRequests || 0}
 										</p>
 									</div>
 								</div>
