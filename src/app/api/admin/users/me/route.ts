@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getSessionUser } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/auth';
 import bcrypt from 'bcryptjs';
 
 // GET - Get current user profile
 export async function GET(request: NextRequest) {
 	try {
-		const user = await getSessionUser();
+		const user = await getAuthenticatedUser();
 		if (!user) {
 			return NextResponse.json(
 				{ error: 'Unauthorized' },
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
 // PATCH - Update current user profile
 export async function PATCH(request: NextRequest) {
 	try {
-		const user = await getSessionUser();
+		const user = await getAuthenticatedUser();
 		if (!user) {
 			return NextResponse.json(
 				{ error: 'Unauthorized' },

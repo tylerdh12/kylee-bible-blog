@@ -18,7 +18,7 @@ const defaultSettings = {
 // GET - Fetch current settings
 export async function GET(request: NextRequest) {
 	try {
-		const authCheck = await requirePermissions('manage:settings')();
+		const authCheck = await requirePermissions('admin:settings')();
 		if (authCheck instanceof NextResponse) return authCheck;
 
 		// In production, you'd fetch from database
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
 // POST/PATCH - Update settings
 export async function POST(request: NextRequest) {
 	try {
-		const authCheck = await requirePermissions('manage:settings')();
+		const authCheck = await requirePermissions('admin:settings')();
 		if (authCheck instanceof NextResponse) return authCheck;
 
 		const body = await request.json();
