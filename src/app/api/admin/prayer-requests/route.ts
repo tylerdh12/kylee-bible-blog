@@ -2,9 +2,29 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { prayerRequestQuerySchema } from '@/lib/validation/schemas';
 import { createValidationErrorResponse } from '@/lib/validation/schemas';
+import { getAuthenticatedUser } from '@/lib/auth';
+import { hasPermission } from '@/lib/rbac';
 
 export async function GET(request: NextRequest) {
 	try {
+		// Authentication check
+		const user = await getAuthenticatedUser();
+
+		if (!user) {
+			return NextResponse.json(
+				{ error: 'Authentication required' },
+				{ status: 401 }
+			);
+		}
+
+		// Permission check - require read:analytics permission
+		if (!hasPermission(user.role, 'read:analytics')) {
+			return NextResponse.json(
+				{ error: 'Insufficient permissions' },
+				{ status: 403 }
+			);
+		}
+
 		const { searchParams } = new URL(request.url);
 		const validation = prayerRequestQuerySchema.safeParse({
 			take: searchParams.get('take') || '50',

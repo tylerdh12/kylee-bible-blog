@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken'
 import { cookies } from 'next/headers'
 import { NextRequest } from 'next/server'
 import { DatabaseService } from './services/database'
+import { validatePasswordStrength } from './validation/password'
 
 // Lazy validation function for JWT_SECRET
 function getValidatedJwtSecret(): string {
@@ -19,6 +20,12 @@ function getValidatedJwtSecret(): string {
 const db = DatabaseService.getInstance()
 
 export async function createUser(email: string, password: string, name?: string, role: 'ADMIN' | 'DEVELOPER' | 'SUBSCRIBER' = 'SUBSCRIBER') {
+  // Validate password strength
+  const passwordValidation = validatePasswordStrength(password)
+  if (!passwordValidation.valid) {
+    throw new Error(`Password validation failed: ${passwordValidation.errors.join(', ')}`)
+  }
+
   const hashedPassword = await bcryptjs.hash(password, 12)
 
   return db.createUser({

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/auth';
+import { hasPermission } from '@/lib/rbac';
 import { DatabaseService } from '@/lib/services/database';
 
 const db = DatabaseService.getInstance();
@@ -11,6 +12,14 @@ export async function POST(request: NextRequest) {
 			return NextResponse.json(
 				{ error: 'Unauthorized' },
 				{ status: 401 }
+			);
+		}
+
+		// Check for write:goals permission
+		if (!hasPermission(user.role, 'write:goals')) {
+			return NextResponse.json(
+				{ error: 'Insufficient permissions' },
+				{ status: 403 }
 			);
 		}
 
@@ -56,6 +65,14 @@ export async function GET() {
 			return NextResponse.json(
 				{ error: 'Unauthorized' },
 				{ status: 401 }
+			);
+		}
+
+		// Check for read:goals permission
+		if (!hasPermission(user.role, 'read:goals')) {
+			return NextResponse.json(
+				{ error: 'Insufficient permissions' },
+				{ status: 403 }
 			);
 		}
 

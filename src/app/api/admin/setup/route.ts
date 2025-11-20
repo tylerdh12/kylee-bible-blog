@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import bcryptjs from 'bcryptjs';
+import { validatePasswordStrength } from '@/lib/validation/password';
 
 export async function POST(request: Request) {
 	try {
@@ -70,10 +71,19 @@ export async function POST(request: Request) {
 		const { email, password, name, setupKey } =
 			await request.json();
 
-		// Configurable protection key with fallback
-		const expectedSetupKey =
-			process.env.ADMIN_SETUP_KEY ||
-			'kylee-blog-setup-2024';
+		// Require setup key from environment variable
+		const expectedSetupKey = process.env.ADMIN_SETUP_KEY;
+
+		if (!expectedSetupKey) {
+			return NextResponse.json(
+				{
+					error: 'Setup key not configured',
+					help: 'Please set ADMIN_SETUP_KEY environment variable'
+				},
+				{ status: 500 }
+			);
+		}
+
 		if (setupKey !== expectedSetupKey) {
 			return NextResponse.json(
 				{ error: 'Invalid setup key' },
@@ -88,11 +98,13 @@ export async function POST(request: Request) {
 			);
 		}
 
-		if (password.length < 8) {
+		// Validate password strength
+		const passwordValidation = validatePasswordStrength(password);
+		if (!passwordValidation.valid) {
 			return NextResponse.json(
 				{
-					error:
-						'Password must be at least 8 characters long',
+					error: 'Password does not meet security requirements',
+					details: passwordValidation.errors
 				},
 				{ status: 400 }
 			);

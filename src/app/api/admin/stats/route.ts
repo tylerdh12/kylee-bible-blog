@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getAuthenticatedUser } from '@/lib/auth'
+import { hasPermission } from '@/lib/rbac'
 import { DatabaseService } from '@/lib/services/database'
 import type { StatsResponse, ApiResponse } from '@/types'
 
@@ -12,6 +13,15 @@ export async function GET() {
         error: 'Unauthorized'
       }
       return NextResponse.json(errorResponse, { status: 401 })
+    }
+
+    // Check for analytics permission
+    if (!hasPermission(user.role, 'read:analytics')) {
+      const errorResponse: ApiResponse = {
+        success: false,
+        error: 'Insufficient permissions'
+      }
+      return NextResponse.json(errorResponse, { status: 403 })
     }
 
     const db = DatabaseService.getInstance()
