@@ -12,41 +12,17 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { ExternalLink, Heart } from 'lucide-react';
-import { DashboardLayout } from '@/components/dashboard-layout';
 import { Donation } from '@/types';
 import { useCurrency } from '@/hooks/use-currency';
 
 export default function DonationsPage() {
-	const [donations, setDonations] = useState<Donation[]>(
-		[]
-	);
+	const [donations, setDonations] = useState<Donation[]>([]);
 	const [loading, setLoading] = useState(true);
-	const [user, setUser] = useState<any>(null);
 	const { formatAmount } = useCurrency();
 
 	useEffect(() => {
-		checkAuth();
+		fetchDonations();
 	}, []);
-
-	useEffect(() => {
-		if (user) {
-			fetchDonations();
-		}
-	}, [user]);
-
-	const checkAuth = async () => {
-		try {
-			const response = await fetch('/api/auth/status');
-			const data = await response.json();
-			if (data.authenticated) {
-				setUser(data.user);
-			} else {
-				window.location.href = '/admin';
-			}
-		} catch {
-			window.location.href = '/admin';
-		}
-	};
 
 	const fetchDonations = async () => {
 		try {
@@ -69,27 +45,17 @@ export default function DonationsPage() {
 
 	if (loading) {
 		return (
-			<DashboardLayout
-				user={user}
-				breadcrumbs={[
-					{ label: 'Dashboard', href: '/admin' },
-					{ label: 'Donations' },
-				]}
-				title='Donations'
-				description='View and manage donations'
-			>
-				<div className='py-8 text-center'>
-					<div className='mx-auto mb-4 w-12 h-12 rounded-full border-b-2 animate-spin border-primary'></div>
-					<p className='text-muted-foreground'>
-						Loading donations...
-					</p>
-				</div>
-			</DashboardLayout>
+			<div className='py-8 text-center'>
+				<div className='mx-auto mb-4 w-12 h-12 rounded-full border-b-2 animate-spin border-primary'></div>
+				<p className='text-muted-foreground'>
+					Loading donations...
+				</p>
+			</div>
 		);
 	}
 
 	return (
-		<>
+		<div className='space-y-6'>
 			<div className='flex justify-between items-center mb-6'>
 				<div className='flex gap-2 items-center'>
 					<span className='text-sm text-muted-foreground'>
@@ -234,6 +200,6 @@ export default function DonationsPage() {
 					)}
 				</CardContent>
 			</Card>
-		</>
+		</div>
 	);
 }

@@ -10,40 +10,16 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
-import { DashboardLayout } from '@/components/dashboard-layout';
 import { PrayerRequest } from '@/types';
 import { Heart, Eye, EyeOff, Trash2 } from 'lucide-react';
 
 export default function PrayerRequestsPage() {
-	const [prayerRequests, setPrayerRequests] = useState<
-		PrayerRequest[]
-	>([]);
+	const [prayerRequests, setPrayerRequests] = useState<PrayerRequest[]>([]);
 	const [loading, setLoading] = useState(true);
-	const [user, setUser] = useState<any>(null);
 
 	useEffect(() => {
-		checkAuth();
+		fetchPrayerRequests();
 	}, []);
-
-	useEffect(() => {
-		if (user) {
-			fetchPrayerRequests();
-		}
-	}, [user]);
-
-	const checkAuth = async () => {
-		try {
-			const response = await fetch('/api/auth/status');
-			const data = await response.json();
-			if (data.authenticated) {
-				setUser(data.user);
-			} else {
-				window.location.href = '/admin';
-			}
-		} catch {
-			window.location.href = '/admin';
-		}
-	};
 
 	const fetchPrayerRequests = async () => {
 		try {
@@ -131,38 +107,18 @@ export default function PrayerRequestsPage() {
 
 	if (loading) {
 		return (
-			<>
-				<div className='space-y-6'>
-					<div className='flex justify-between items-center'>
-						<h1 className='text-3xl font-bold'>
-							Prayer Requests
-						</h1>
-					</div>
-					<div className='grid gap-4'>
-						{[1, 2, 3].map((i) => (
-							<Card
-								key={i}
-								className='animate-pulse'
-							>
-								<CardContent className='p-6'>
-									<div className='space-y-3'>
-										<div className='w-1/4 h-4 rounded bg-muted'></div>
-										<div className='w-3/4 h-4 rounded bg-muted'></div>
-										<div className='w-1/2 h-4 rounded bg-muted'></div>
-									</div>
-								</CardContent>
-							</Card>
-						))}
-					</div>
-				</div>
-			</>
+			<div className='py-8 text-center'>
+				<div className='mx-auto mb-4 w-12 h-12 rounded-full border-b-2 animate-spin border-primary'></div>
+				<p className='text-muted-foreground'>
+					Loading prayer requests...
+				</p>
+			</div>
 		);
 	}
 
 	return (
-		<>
-			<div className='space-y-6'>
-				<div className='flex justify-between items-center'>
+		<div className='space-y-6'>
+			<div className='flex justify-between items-center'>
 					<div>
 						<h1 className='text-3xl font-bold'>
 							Prayer Requests
@@ -274,7 +230,6 @@ export default function PrayerRequestsPage() {
 						))}
 					</div>
 				)}
-			</div>
-		</>
+		</div>
 	);
 }
