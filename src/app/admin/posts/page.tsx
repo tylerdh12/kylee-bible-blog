@@ -29,9 +29,11 @@ export default async function PostsIndexPage() {
 		content: post.content || '',
 		excerpt: post.excerpt || undefined,
 		published: post.published,
-		publishedAt: post.publishedAt?.toISOString() || undefined,
-		createdAt: post.createdAt.toISOString(),
-		updatedAt: post.updatedAt.toISOString(),
+		publishedAt: post.publishedAt
+			? (typeof post.publishedAt === 'string' ? post.publishedAt : post.publishedAt.toISOString())
+			: undefined,
+		createdAt: typeof post.createdAt === 'string' ? post.createdAt : post.createdAt.toISOString(),
+		updatedAt: typeof post.updatedAt === 'string' ? post.updatedAt : post.updatedAt.toISOString(),
 		author: post.author ? {
 			name: post.author.name || undefined,
 			email: post.author.email,
