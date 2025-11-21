@@ -82,7 +82,7 @@ describe('AdminPage', () => {
       await user.click(submitButton)
 
       await waitFor(() => {
-        expect(screen.getByText('Admin Dashboard')).toBeInTheDocument()
+        expect(screen.getByText(/Welcome back/i)).toBeInTheDocument()
       })
     })
 
