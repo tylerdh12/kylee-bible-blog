@@ -27,6 +27,8 @@ interface Tag {
 export default function NewPostPage() {
 	const router = useRouter();
 	const [loading, setLoading] = useState(false);
+	const [pageLoading, setPageLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
 	const [availableTags, setAvailableTags] = useState<Tag[]>([]);
 	const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
 	const [newTagInput, setNewTagInput] = useState('');
@@ -45,13 +47,20 @@ export default function NewPostPage() {
 
 	const fetchTags = async () => {
 		try {
+			setError(null);
 			const response = await fetch('/api/tags');
 			if (response.ok) {
 				const data = await response.json();
 				setAvailableTags(data.tags || []);
+			} else {
+				console.error('Failed to fetch tags: HTTP', response.status);
+				// Continue even if tags fail to load
 			}
 		} catch (error) {
 			console.error('Failed to fetch tags:', error);
+			// Continue even if tags fail to load
+		} finally {
+			setPageLoading(false);
 		}
 	};
 
@@ -91,6 +100,7 @@ export default function NewPostPage() {
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		setLoading(true);
+		setError(null);
 
 		try {
 			const slug = generateSlug(formData.title);
@@ -112,12 +122,16 @@ export default function NewPostPage() {
 				toast.success('Post created successfully!');
 				router.push('/admin/posts');
 			} else {
-				const error = await response.json();
-				toast.error(error.message || 'Failed to create post');
+				const errorData = await response.json();
+				const errorMessage = errorData.error || errorData.message || 'Failed to create post';
+				setError(errorMessage);
+				toast.error(errorMessage);
 			}
 		} catch (error) {
 			console.error('Error creating post:', error);
-			toast.error('Failed to create post');
+			const errorMessage = error instanceof Error ? error.message : 'Failed to create post';
+			setError(errorMessage);
+			toast.error('Failed to create post. Please try again.');
 		} finally {
 			setLoading(false);
 		}
@@ -134,8 +148,26 @@ export default function NewPostPage() {
 		window.open('/admin/posts/preview', '_blank');
 	};
 
+	// Show loading state while page initializes
+	if (pageLoading) {
+		return (
+			<div className='flex items-center justify-center min-h-[400px]'>
+				<div className='text-center'>
+					<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4' />
+					<p className='text-muted-foreground'>Loading editor...</p>
+				</div>
+			</div>
+		);
+	}
+
 	return (
 		<div className='space-y-6'>
+			{error && (
+				<div className='bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded-md'>
+					<p className='font-semibold'>Error</p>
+					<p className='text-sm'>{error}</p>
+				</div>
+			)}
 			<div className='flex items-center justify-between'>
 				<div className='flex items-center gap-4'>
 					<Link href='/admin/posts'>
@@ -223,16 +255,18 @@ export default function NewPostPage() {
 										</div>
 									</div>
 									{useRichEditor ? (
-										<RichTextEditor
-											content={formData.content}
-											onChange={(content) =>
-												setFormData({
-													...formData,
-													content,
-												})
-											}
-											placeholder='Write your biblical insights here...'
-										/>
+										<div className='rich-editor-wrapper'>
+											<RichTextEditor
+												content={formData.content}
+												onChange={(content) =>
+													setFormData({
+														...formData,
+														content,
+													})
+												}
+												placeholder='Write your biblical insights here...'
+											/>
+										</div>
 									) : (
 										<Textarea
 											id='content'
