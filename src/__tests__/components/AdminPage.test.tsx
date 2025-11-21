@@ -203,9 +203,11 @@ describe('AdminPage', () => {
       render(<AdminPage />)
 
       await waitFor(() => {
-        expect(screen.getByText('Write Your First Post')).toBeInTheDocument()
-        expect(screen.getByText('Set Up Goals')).toBeInTheDocument()
-        expect(screen.getByText('Share Donation Page')).toBeInTheDocument()
+        expect(screen.getByText('Posts')).toBeInTheDocument()
+        expect(screen.getByText('Goals')).toBeInTheDocument()
+        expect(screen.getByText('Donations')).toBeInTheDocument()
+        expect(screen.getByText('View Posts')).toBeInTheDocument()
+        expect(screen.getByText('View Goals')).toBeInTheDocument()
       })
     })
   })
