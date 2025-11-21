@@ -1,6 +1,6 @@
 import { getAuthenticatedUser } from '@/lib/auth';
-import { DatabaseService } from '@/lib/services/database';
 import { redirect, notFound } from 'next/navigation';
+import { prisma } from '@/lib/prisma';
 import EditPostClient from './edit-post-client';
 
 export const dynamic = 'force-dynamic';
@@ -20,11 +20,13 @@ export default async function EditPostPage({ params }: EditPostPageProps) {
 	// Get the post ID from params
 	const { id } = await params;
 
-	// Fetch post directly from database
-	const db = DatabaseService.getInstance();
-	const post = await db.findPostById(id, {
-		includeAuthor: true,
-		includeTags: true,
+	// Fetch post directly from database using Prisma
+	const post = await prisma.post.findUnique({
+		where: { id },
+		include: {
+			author: true,
+			tags: true,
+		},
 	});
 
 	if (!post) {
