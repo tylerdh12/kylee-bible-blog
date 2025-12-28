@@ -182,7 +182,17 @@ export function RichTextEditor({
 
 	const editor = useEditor({
 		extensions: [
-			StarterKit,
+			StarterKit.configure({
+				// Disable extensions that we're adding separately with custom configs
+				strike: false,
+				dropcursor: false,
+				gapcursor: false,
+				undoRedo: false,
+				hardBreak: false,
+				horizontalRule: false,
+				link: false,
+				underline: false,
+			}),
 			TextStyle,
 			TextAlign.configure({
 				types: ['heading', 'paragraph', 'div'],
