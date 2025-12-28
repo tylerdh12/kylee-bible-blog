@@ -12,7 +12,7 @@ describe('NewGoalPage', () => {
   it('renders create goal form', () => {
     render(<NewGoalPage />)
 
-    expect(screen.getByText('Create New Goal')).toBeInTheDocument()
+    expect(screen.getByText('Set Ministry Goal')).toBeInTheDocument()
     expect(screen.getByLabelText('Goal Title *')).toBeInTheDocument()
     expect(screen.getByLabelText('Description')).toBeInTheDocument()
     expect(screen.getByLabelText('Target Amount * ($)')).toBeInTheDocument()
