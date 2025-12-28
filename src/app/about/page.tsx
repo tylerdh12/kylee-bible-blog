@@ -126,13 +126,10 @@ export default function AboutPage() {
               </p>
             </div>
           </div>
-          <div className="flex gap-4 mt-6">
-            <Link href="/goals">
-              <Button>View Ministry Goals</Button>
-            </Link>
-            <Link href="/donate">
-              <Button variant="outline">Make a Donation</Button>
-            </Link>
+          <div className="mt-6">
+            <p className="text-muted-foreground text-sm">
+              Ministry goals and donation features are coming soon! Stay tuned for updates.
+            </p>
           </div>
         </CardContent>
       </Card>

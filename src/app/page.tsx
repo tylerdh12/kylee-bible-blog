@@ -187,12 +187,6 @@ export default async function Home() {
 						<h2 className='text-3xl font-semibold'>
 							Current Goals
 						</h2>
-						<Link
-							href='/goals'
-							className='text-primary hover:underline'
-						>
-							View all goals →
-						</Link>
 					</div>
 
 					{goals.length === 0 ? (
@@ -249,12 +243,9 @@ export default async function Home() {
 													{progress.toFixed(1)}% completed
 												</p>
 											</div>
-											<Link
-												href={`/donate?goal=${goal.id}`}
-												className='text-primary hover:underline font-medium'
-											>
-												Support this goal →
-											</Link>
+											<p className='text-muted-foreground text-sm'>
+												Donation functionality coming soon!
+											</p>
 										</CardContent>
 									</Card>
 								);

@@ -13,8 +13,6 @@ export function Navbar() {
 		{ href: '/', label: 'Home' },
 		{ href: '/posts', label: 'Posts' },
 		{ href: '/about', label: 'About' },
-		{ href: '/goals', label: 'Goals' },
-		{ href: '/donate', label: 'Donate' },
 		{ href: '/prayer-requests', label: 'Prayer Requests' },
 	];
 
