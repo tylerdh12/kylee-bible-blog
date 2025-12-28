@@ -70,7 +70,7 @@ export async function PATCH(request: NextRequest) {
 		}
 
 		const body = await request.json();
-		const { name, bio, website, avatar, currentPassword, newPassword } =
+		const { name, email, bio, website, avatar, currentPassword, newPassword } =
 			body;
 
 		// If changing password, verify current password
@@ -106,9 +106,42 @@ export async function PATCH(request: NextRequest) {
 			}
 		}
 
+		// Email validation if provided
+		if (email !== undefined) {
+			if (!email.trim()) {
+				return NextResponse.json(
+					{ error: 'Email is required' },
+					{ status: 400 }
+				);
+			}
+
+			if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+				return NextResponse.json(
+					{ error: 'Invalid email address' },
+					{ status: 400 }
+				);
+			}
+
+			// Check if email is already in use by another user
+			const existingUser = await prisma.user.findFirst({
+				where: {
+					email: email,
+					NOT: { id: user.id }
+				}
+			});
+
+			if (existingUser) {
+				return NextResponse.json(
+					{ error: 'Email is already in use by another account' },
+					{ status: 400 }
+				);
+			}
+		}
+
 		// Update user profile
 		const updateData: any = {};
 		if (name !== undefined) updateData.name = name;
+		if (email !== undefined) updateData.email = email;
 		if (bio !== undefined) updateData.bio = bio;
 		if (website !== undefined) updateData.website = website;
 		if (avatar !== undefined) updateData.avatar = avatar;

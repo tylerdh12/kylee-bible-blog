@@ -37,7 +37,7 @@ export function DashboardLayout({
 	description,
 }: DashboardLayoutProps) {
 	return (
-		<SidebarProvider>
+		<SidebarProvider defaultOpen={true}>
 			<AppSidebar user={user} />
 			<SidebarInset>
 				{/* Header */}

@@ -113,6 +113,11 @@ export default function AdminPage() {
 				setUser(data.user);
 				setEmail('');
 				setPassword('');
+
+				// Dispatch custom event to notify layout of authentication change
+				window.dispatchEvent(new CustomEvent('auth-changed', {
+					detail: { authenticated: true, user: data.user }
+				}));
 			} else {
 				alert('Invalid credentials');
 			}

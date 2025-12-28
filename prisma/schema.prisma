@@ -16,20 +16,19 @@ enum UserRole {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String? // Optional for social logins
+  id        String    @id @default(cuid())
+  email     String    @unique
+  password  String?
   name      String?
-  role      UserRole @default(SUBSCRIBER)
-  isActive  Boolean  @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   avatar    String?
   bio       String?
+  isActive  Boolean   @default(true)
   website   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  posts    Post[]
-  comments Comment[]
+  role      UserRole  @default(SUBSCRIBER)
+  comments  Comment[]
+  posts     Post[]
 }
 
 model Post {
@@ -42,50 +41,44 @@ model Post {
   publishedAt DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-
-  authorId String
-  author   User   @relation(fields: [authorId], references: [id])
-
-  tags     Tag[]
-  comments Comment[]
+  authorId    String
+  comments    Comment[]
+  author      User      @relation(fields: [authorId], references: [id])
+  tags        Tag[]     @relation("PostToTag")
 }
 
 model Tag {
   id    String @id @default(cuid())
   name  String @unique
-  posts Post[]
+  posts Post[] @relation("PostToTag")
 }
 
 model Comment {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   content    String
-  isApproved Boolean  @default(false)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  authorId String
-  author   User   @relation(fields: [authorId], references: [id])
-
-  postId String
-  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
-
-  parentId String?
-  parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
-  replies  Comment[] @relation("CommentReplies")
+  isApproved Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  authorId   String
+  postId     String
+  parentId   String?
+  author     User      @relation(fields: [authorId], references: [id])
+  parent     Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies    Comment[] @relation("CommentReplies")
+  post       Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
 
 model Goal {
-  id            String    @id @default(cuid())
+  id            String     @id @default(cuid())
   title         String
   description   String?
   targetAmount  Float
-  currentAmount Float     @default(0)
+  currentAmount Float      @default(0)
   deadline      DateTime?
-  completed     Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  donations Donation[]
+  completed     Boolean    @default(false)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  donations     Donation[]
 }
 
 model Donation {
@@ -95,9 +88,8 @@ model Donation {
   message   String?
   anonymous Boolean  @default(false)
   createdAt DateTime @default(now())
-
-  goalId String?
-  goal   Goal?   @relation(fields: [goalId], references: [id])
+  goalId    String?
+  goal      Goal?    @relation(fields: [goalId], references: [id])
 }
 
 model PrayerRequest {
@@ -112,13 +104,24 @@ model PrayerRequest {
 }
 
 model Subscriber {
-  id            String   @id @default(cuid())
-  email         String   @unique
+  id            String    @id @default(cuid())
+  email         String    @unique
   name          String?
-  status        String   @default("active") // active, inactive
-  subscribedAt  DateTime @default(now())
+  status        String    @default("active")
+  subscribedAt  DateTime  @default(now())
   lastEmailSent DateTime?
-  tags          Json?    // Store tags as JSON array
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  tags          Json?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Setting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String?
+  description String?
+  type        String   @default("string")
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

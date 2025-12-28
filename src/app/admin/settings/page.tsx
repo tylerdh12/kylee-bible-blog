@@ -14,6 +14,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Switch } from '@/components/ui/switch';
 import {
 	Settings,
 	User,
@@ -24,6 +26,8 @@ import {
 	Bell,
 	Palette,
 	Save,
+	AlertCircle,
+	CheckCircle,
 } from 'lucide-react';
 
 interface SiteSettings {
@@ -40,6 +44,8 @@ interface SiteSettings {
 export default function SettingsPage() {
 	const [loading, setLoading] = useState(true);
 	const [saving, setSaving] = useState(false);
+	const [error, setError] = useState<string | null>(null);
+	const [success, setSuccess] = useState<string | null>(null);
 	const [settings, setSettings] = useState<SiteSettings>({
 		siteName: "Kylee's Blog",
 		siteDescription:
@@ -72,23 +78,41 @@ export default function SettingsPage() {
 
 	const handleSave = async () => {
 		setSaving(true);
+		setError(null);
+		setSuccess(null);
+
 		try {
+			// Basic validation
+			if (!settings.siteName.trim()) {
+				setError('Site name is required');
+				setSaving(false);
+				return;
+			}
+
+			if (settings.adminEmail && !settings.adminEmail.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+				setError('Please enter a valid admin email address');
+				setSaving(false);
+				return;
+			}
+
 			const response = await fetch('/api/admin/settings', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(settings),
 			});
 
+			const data = await response.json();
+
 			if (response.ok) {
-				const data = await response.json();
 				setSettings(data.settings);
-				alert('Settings saved successfully!');
+				setSuccess('Settings saved successfully!');
+				setTimeout(() => setSuccess(null), 3000);
 			} else {
-				alert('Failed to save settings');
+				setError(data.error || 'Failed to save settings');
 			}
 		} catch (error) {
 			console.error('Error saving settings:', error);
-			alert('Failed to save settings');
+			setError('An unexpected error occurred');
 		} finally {
 			setSaving(false);
 		}
@@ -123,6 +147,20 @@ export default function SettingsPage() {
 				</Button>
 			</div>
 
+			{/* Error/Success Alerts */}
+			{error && (
+				<Alert variant='destructive'>
+					<AlertCircle className='h-4 w-4' />
+					<AlertDescription>{error}</AlertDescription>
+				</Alert>
+			)}
+			{success && (
+				<Alert className='border-green-500 bg-green-50 text-green-700'>
+					<CheckCircle className='h-4 w-4' />
+					<AlertDescription>{success}</AlertDescription>
+				</Alert>
+			)}
+
 			<div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
 				{/* General Settings */}
 				<Card>
@@ -137,7 +175,7 @@ export default function SettingsPage() {
 					</CardHeader>
 					<CardContent className='space-y-4'>
 						<div className='space-y-2'>
-							<Label htmlFor='siteName'>Site Name</Label>
+							<Label htmlFor='siteName'>Site Name *</Label>
 							<Input
 								id='siteName'
 								value={settings.siteName}
@@ -148,7 +186,11 @@ export default function SettingsPage() {
 									})
 								}
 								placeholder='Your blog name'
+								className={!settings.siteName.trim() ? 'border-red-500' : ''}
 							/>
+							{!settings.siteName.trim() && (
+								<p className='text-xs text-red-500'>Site name is required</p>
+							)}
 						</div>
 						<div className='space-y-2'>
 							<Label htmlFor='siteDescription'>
@@ -215,18 +257,16 @@ export default function SettingsPage() {
 						</div>
 						<div className='space-y-2'>
 							<Label>Maintenance Mode</Label>
-							<div className='flex items-center space-x-2'>
-								<input
-									type='checkbox'
+							<div className='flex items-center space-x-3'>
+								<Switch
 									id='maintenanceMode'
 									checked={settings.maintenanceMode}
-									onChange={(e) =>
+									onCheckedChange={(checked) =>
 										setSettings({
 											...settings,
-											maintenanceMode: e.target.checked,
+											maintenanceMode: checked,
 										})
 									}
-									className='rounded'
 								/>
 								<Label
 									htmlFor='maintenanceMode'
@@ -236,8 +276,7 @@ export default function SettingsPage() {
 								</Label>
 							</div>
 							<p className='text-xs text-muted-foreground'>
-								When enabled, visitors will see a
-								maintenance page
+								When enabled, visitors will see a maintenance page
 							</p>
 						</div>
 					</CardContent>
@@ -254,79 +293,73 @@ export default function SettingsPage() {
 							Enable or disable site features
 						</CardDescription>
 					</CardHeader>
-					<CardContent className='space-y-4'>
+					<CardContent className='space-y-6'>
 						<div className='space-y-2'>
-							<div className='flex items-center space-x-2'>
-								<input
-									type='checkbox'
+							<div className='flex items-center space-x-3'>
+								<Switch
 									id='allowComments'
 									checked={settings.allowComments}
-									onChange={(e) =>
+									onCheckedChange={(checked) =>
 										setSettings({
 											...settings,
-											allowComments: e.target.checked,
+											allowComments: checked,
 										})
 									}
-									className='rounded'
 								/>
 								<Label
 									htmlFor='allowComments'
-									className='text-sm'
+									className='text-sm font-medium'
 								>
 									Allow Comments
 								</Label>
 							</div>
-							<p className='text-xs text-muted-foreground'>
+							<p className='text-xs text-muted-foreground ml-9'>
 								Let visitors comment on your posts
 							</p>
 						</div>
 						<div className='space-y-2'>
-							<div className='flex items-center space-x-2'>
-								<input
-									type='checkbox'
+							<div className='flex items-center space-x-3'>
+								<Switch
 									id='allowPrayerRequests'
 									checked={settings.allowPrayerRequests}
-									onChange={(e) =>
+									onCheckedChange={(checked) =>
 										setSettings({
 											...settings,
-											allowPrayerRequests: e.target.checked,
+											allowPrayerRequests: checked,
 										})
 									}
-									className='rounded'
 								/>
 								<Label
 									htmlFor='allowPrayerRequests'
-									className='text-sm'
+									className='text-sm font-medium'
 								>
 									Allow Prayer Requests
 								</Label>
 							</div>
-							<p className='text-xs text-muted-foreground'>
+							<p className='text-xs text-muted-foreground ml-9'>
 								Let visitors submit prayer requests
 							</p>
 						</div>
 						<div className='space-y-2'>
-							<div className='flex items-center space-x-2'>
-								<input
-									type='checkbox'
+							<div className='flex items-center space-x-3'>
+								<Switch
 									id='allowDonations'
 									checked={settings.allowDonations}
-									onChange={(e) =>
+									onCheckedChange={(checked) =>
 										setSettings({
 											...settings,
-											allowDonations: e.target.checked,
+											allowDonations: checked,
 										})
 									}
-									className='rounded'
 								/>
 								<Label
 									htmlFor='allowDonations'
-									className='text-sm'
+									className='text-sm font-medium'
 								>
 									Allow Donations
 								</Label>
 							</div>
-							<p className='text-xs text-muted-foreground'>
+							<p className='text-xs text-muted-foreground ml-9'>
 								Enable donation functionality
 							</p>
 						</div>

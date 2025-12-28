@@ -18,6 +18,21 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   useEffect(() => {
     checkAuthStatus();
+
+    // Listen for authentication changes from login
+    const handleAuthChange = (event: CustomEvent) => {
+      if (event.detail.authenticated) {
+        setIsAuthenticated(true);
+        setUser(event.detail.user);
+        setLoading(false);
+      }
+    };
+
+    window.addEventListener('auth-changed', handleAuthChange as EventListener);
+
+    return () => {
+      window.removeEventListener('auth-changed', handleAuthChange as EventListener);
+    };
   }, []);
 
   const checkAuthStatus = async () => {
