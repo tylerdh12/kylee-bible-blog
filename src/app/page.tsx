@@ -57,18 +57,22 @@ async function getHomeData() {
 
 	try {
 		const [posts, goals] = await Promise.all([
-			db.findPosts({
-				published: true,
-				includeAuthor: true,
-				includeTags: true,
-				sort: { field: 'publishedAt', order: 'desc' },
-				take: 6,
-			}).catch(() => [] as Post[]),
-			db.findGoals({
-				completed: false,
-				sort: { field: 'createdAt', order: 'desc' },
-				take: 3,
-			}).catch(() => [] as Goal[]),
+			db
+				.findPosts({
+					published: true,
+					includeAuthor: true,
+					includeTags: true,
+					sort: { field: 'publishedAt', order: 'desc' },
+					take: 6,
+				})
+				.catch(() => [] as Post[]),
+			db
+				.findGoals({
+					completed: false,
+					sort: { field: 'createdAt', order: 'desc' },
+					take: 3,
+				})
+				.catch(() => [] as Goal[]),
 		]);
 
 		return { posts, goals };
@@ -121,22 +125,23 @@ export default async function Home() {
 					{posts.length === 0 ? (
 						<Card>
 							<CardContent className='py-8 text-center'>
-								<p className='text-muted-foreground mb-4'>
+								<p className='mb-4 text-muted-foreground'>
 									Welcome to Kylee's Bible Blog!
 								</p>
 								<p className='text-sm text-muted-foreground'>
-									Posts are loading or will be available soon.
-									In the meantime, explore other sections of
-									the site or check out the admin setup.
+									Posts are loading or will be available
+									soon. In the meantime, explore other
+									sections of the site or check out the
+									admin setup.
 								</p>
 							</CardContent>
 						</Card>
 					) : (
-						<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+						<div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
 							{posts.map((post) => (
 								<Card
 									key={post.id}
-									className='hover:shadow-lg transition-shadow'
+									className='transition-shadow hover:shadow-lg'
 								>
 									<CardHeader>
 										<CardTitle className='line-clamp-2'>
@@ -151,7 +156,7 @@ export default async function Home() {
 										</CardDescription>
 									</CardHeader>
 									<CardContent>
-										<p className='text-muted-foreground mb-4 line-clamp-3'>
+										<p className='mb-4 text-muted-foreground line-clamp-3'>
 											{post.excerpt ||
 												post.content.substring(0, 150) +
 													'...'}
@@ -170,7 +175,7 @@ export default async function Home() {
 										)}
 										<Link
 											href={`/posts/${post.slug}`}
-											className='text-primary hover:underline font-medium'
+											className='font-medium text-primary hover:underline'
 										>
 											Read more →
 										</Link>
@@ -192,7 +197,7 @@ export default async function Home() {
 					{goals.length === 0 ? (
 						<Card>
 							<CardContent className='py-8 text-center'>
-								<p className='text-muted-foreground mb-4'>
+								<p className='mb-4 text-muted-foreground'>
 									Goals will be available soon!
 								</p>
 								<p className='text-sm text-muted-foreground'>
@@ -203,7 +208,7 @@ export default async function Home() {
 							</CardContent>
 						</Card>
 					) : (
-						<div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
+						<div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
 							{goals.map((goal) => {
 								const progress =
 									(goal.currentAmount / goal.targetAmount) *
@@ -220,17 +225,21 @@ export default async function Home() {
 										</CardHeader>
 										<CardContent>
 											<div className='mb-4'>
-												<div className='flex justify-between text-sm mb-2'>
+												<div className='flex justify-between mb-2 text-sm'>
 													<span>
-														{formatCurrency(goal.currentAmount)}
+														{formatCurrency(
+															goal.currentAmount
+														)}
 													</span>
 													<span>
-														{formatCurrency(goal.targetAmount)}
+														{formatCurrency(
+															goal.targetAmount
+														)}
 													</span>
 												</div>
-												<div className='w-full bg-secondary rounded-full h-2'>
+												<div className='w-full h-2 rounded-full bg-secondary'>
 													<div
-														className='bg-primary h-2 rounded-full transition-all'
+														className='h-2 rounded-full transition-all bg-primary'
 														style={{
 															width: `${Math.min(
 																progress,
@@ -239,11 +248,11 @@ export default async function Home() {
 														}}
 													/>
 												</div>
-												<p className='text-center text-sm text-muted-foreground mt-2'>
+												<p className='mt-2 text-sm text-center text-muted-foreground'>
 													{progress.toFixed(1)}% completed
 												</p>
 											</div>
-											<p className='text-muted-foreground text-sm'>
+											<p className='text-sm text-muted-foreground'>
 												Donation functionality coming soon!
 											</p>
 										</CardContent>

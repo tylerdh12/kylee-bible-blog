@@ -27,7 +27,7 @@ export default function RootLayout({
             Skip to main content
           </a>
           <Navbar />
-          <main id="main-content" className="pt-16 lg:pt-20 min-h-screen bg-background">
+          <main id="main-content" className="min-h-screen bg-background pt-16 md:pt-[4.5rem] lg:pt-20">
             <ErrorBoundary>
               {children}
             </ErrorBoundary>

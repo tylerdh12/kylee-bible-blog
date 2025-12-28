@@ -72,9 +72,9 @@ export default function PrayerRequestsPage() {
 	};
 
 	return (
-		<div className='container mx-auto px-4 py-8 max-w-2xl'>
-			<div className='text-center mb-8'>
-				<h1 className='text-4xl font-bold mb-4'>
+		<div className='container px-4 py-8 mx-auto max-w-2xl'>
+			<div className='mb-8 text-center'>
+				<h1 className='mb-4 text-4xl font-bold'>
 					Prayer Requests
 				</h1>
 				<p className='text-xl text-muted-foreground'>
@@ -158,7 +158,7 @@ export default function PrayerRequestsPage() {
 						</div>
 
 						<div className='space-y-2'>
-							<div className='flex items-center gap-2'>
+							<div className='flex gap-2 items-center'>
 								<input
 									type='checkbox'
 									id='isPrivate'
@@ -183,7 +183,7 @@ export default function PrayerRequestsPage() {
 							disabled={isLoading}
 						>
 							{isLoading ? (
-								<span className='flex items-center gap-2'>
+								<span className='flex gap-2 items-center'>
 									<Loading size='sm' />
 									Submitting...
 								</span>
@@ -197,7 +197,7 @@ export default function PrayerRequestsPage() {
 
 			<Card className='mt-8'>
 				<CardContent className='py-6'>
-					<h3 className='font-semibold mb-2'>
+					<h3 className='mb-2 font-semibold'>
 						About Prayer Requests
 					</h3>
 					<p className='text-sm text-muted-foreground'>

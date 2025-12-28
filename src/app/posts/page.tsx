@@ -82,26 +82,26 @@ export default async function PostsPage() {
 				{posts.length === 0 ? (
 					<Card>
 						<CardContent className='py-12 text-center'>
-							<h3 className='text-xl font-semibold mb-4'>
+							<h3 className='mb-4 text-xl font-semibold'>
 								No Posts Yet
 							</h3>
-							<p className='text-muted-foreground mb-4'>
-								Welcome to Kylee's Bible Blog! Posts are being
-								prepared and will be available soon.
+							<p className='mb-4 text-muted-foreground'>
+								Welcome to Kylee's Bible Blog! Posts are
+								being prepared and will be available soon.
 							</p>
 							<p className='text-sm text-muted-foreground'>
-								Check back soon for inspiring Bible studies and
-								spiritual insights, or visit the admin panel to
-								create your first post.
+								Check back soon for inspiring Bible studies
+								and spiritual insights, or visit the admin
+								panel to create your first post.
 							</p>
 						</CardContent>
 					</Card>
 				) : (
-					<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+					<div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
 						{posts.map((post) => (
 							<Card
 								key={post.id}
-								className='hover:shadow-lg transition-shadow'
+								className='transition-shadow hover:shadow-lg'
 							>
 								<CardHeader>
 									<CardTitle className='line-clamp-2'>
@@ -109,14 +109,19 @@ export default async function PostsPage() {
 									</CardTitle>
 									<CardDescription>
 										{post.publishedAt &&
-											format(new Date(post.publishedAt), 'PPP')}
-										{post.author && ` • By ${post.author.name}`}
+											format(
+												new Date(post.publishedAt),
+												'PPP'
+											)}
+										{post.author &&
+											` • By ${post.author.name}`}
 									</CardDescription>
 								</CardHeader>
 								<CardContent>
-									<p className='text-muted-foreground mb-4 line-clamp-3'>
+									<p className='mb-4 text-muted-foreground line-clamp-3'>
 										{post.excerpt ||
-											post.content.substring(0, 150) + '...'}
+											post.content.substring(0, 150) +
+												'...'}
 									</p>
 									{post.tags && post.tags.length > 0 && (
 										<div className='flex flex-wrap gap-2 mb-4'>
@@ -132,7 +137,7 @@ export default async function PostsPage() {
 									)}
 									<Link
 										href={`/posts/${post.slug}`}
-										className='text-primary hover:underline font-medium'
+										className='font-medium text-primary hover:underline'
 									>
 										Read more →
 									</Link>

@@ -128,7 +128,7 @@ export function AppSidebar({
 			collapsible='icon'
 			{...props}
 		>
-			<SidebarContent>
+			<SidebarContent className='pt-20'>
 				{/* Quick Actions */}
 				<SidebarGroup>
 					<SidebarGroupContent>
@@ -144,14 +144,7 @@ export function AppSidebar({
 									</Link>
 								</SidebarMenuButton>
 							</SidebarMenuItem>
-						</SidebarMenu>
-					</SidebarGroupContent>
-				</SidebarGroup>
 
-				{/* Main Navigation */}
-				<SidebarGroup>
-					<SidebarGroupContent>
-						<SidebarMenu>
 							{navigationItems.map((item) => (
 								<SidebarMenuItem key={item.title}>
 									<SidebarMenuButton
