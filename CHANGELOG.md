@@ -1,3 +1,36 @@
+# [1.2.0](https://github.com/tylerdh12/kylee-bible-blog/compare/v1.1.0...v1.2.0) (2025-12-28)
+
+
+### Bug Fixes
+
+* add missing fields to StatsResponse type ([70aeb2c](https://github.com/tylerdh12/kylee-bible-blog/commit/70aeb2c777776179e6e0a349227aa23eac13d9f4))
+* clean up admin pages and remove unnecessary code ([8f0c828](https://github.com/tylerdh12/kylee-bible-blog/commit/8f0c82873fb8259d14dcc0f64edc5cf129169809))
+* convert post edit page to server-side rendering ([2018afd](https://github.com/tylerdh12/kylee-bible-blog/commit/2018afd7b78096ee4687c8ae14f77b00d3fa9b54))
+* correct auth function and permissions in admin API routes ([0a598cd](https://github.com/tylerdh12/kylee-bible-blog/commit/0a598cdc116ed3469c12e9ffe7b84da4f4723903))
+* handle date serialization for both Date objects and strings ([b54a340](https://github.com/tylerdh12/kylee-bible-blog/commit/b54a340120d4cb61f938a485b10e934aa63fcaad))
+* implement consistent DashboardLayout across admin pages ([2ce2b65](https://github.com/tylerdh12/kylee-bible-blog/commit/2ce2b65e26503cdf51b6141416a7f34c4b21c5cf))
+* remove remaining Sentry imports to resolve build conflicts ([761deeb](https://github.com/tylerdh12/kylee-bible-blog/commit/761deeb8c9bf5991bbda1299a6952b9984cb946a))
+* resolve admin post creation errors and API route bugs ([7896e50](https://github.com/tylerdh12/kylee-bible-blog/commit/7896e501da9674457797670ed6008b6e316a3af9))
+* resolve admin posts list not displaying posts ([87ef005](https://github.com/tylerdh12/kylee-bible-blog/commit/87ef005f29bbfcde6addb6228e858667fdfce91d))
+* resolve app misconfigurations and improve data fetching ([095bc90](https://github.com/tylerdh12/kylee-bible-blog/commit/095bc90fd209863634a7b30bdc96e0dfd475597f))
+* resolve production build errors and add migration documentation ([53b448e](https://github.com/tylerdh12/kylee-bible-blog/commit/53b448e290e04fcf0f682d39da7e7348eb88d335))
+* resolve Sentry configuration issues ([b8d7ac4](https://github.com/tylerdh12/kylee-bible-blog/commit/b8d7ac43a90da59a663a5f4f86ef80a086e168ff))
+* resolve TipTap dependency version conflicts ([27cce6f](https://github.com/tylerdh12/kylee-bible-blog/commit/27cce6f07be5ec31d26539b1fa39cedf7cd3fdd5))
+* resolve TipTap duplicate extension errors ([00b50c3](https://github.com/tylerdh12/kylee-bible-blog/commit/00b50c3cc7f08536f5f206a875939b5be83cc21b))
+* resolve Vercel deployment dependency conflicts ([476d621](https://github.com/tylerdh12/kylee-bible-blog/commit/476d6212f73b5c66a4ec3aade8d1172c0616c86e))
+* use prisma directly for counts in stats route ([e6ed73c](https://github.com/tylerdh12/kylee-bible-blog/commit/e6ed73ccf7d617a7ccf2007a24792ddd4705a275))
+* use Prisma directly to fetch post by ID in edit page ([2509db4](https://github.com/tylerdh12/kylee-bible-blog/commit/2509db44dc820091f7922e6823099f5ef21c0900))
+
+
+### Features
+
+* add Sentry error tracking and performance monitoring ([ba9ce0e](https://github.com/tylerdh12/kylee-bible-blog/commit/ba9ce0ec3213f1bbffc33870ee7d211e62d65908))
+* add subscriber management and tags API functionality ([468c0ba](https://github.com/tylerdh12/kylee-bible-blog/commit/468c0bab59c0130175d5ba763c04a7c02c1a3ca9))
+* enhance database and deployment scripts ([13eeccd](https://github.com/tylerdh12/kylee-bible-blog/commit/13eeccdbffe0f22c1631da8a0cbdf0c75ce7697b))
+* fully implement and enhance admin posts pages ([fd36fd0](https://github.com/tylerdh12/kylee-bible-blog/commit/fd36fd08e61f37f170ee51e7ea2ffc462b00877e))
+* fully implement and refine admin pages with real database data ([302f42f](https://github.com/tylerdh12/kylee-bible-blog/commit/302f42f53ab209409c9fce503a96159ee2bddbf6))
+* improve application pages and components ([a98ff99](https://github.com/tylerdh12/kylee-bible-blog/commit/a98ff997a2a21eedd1b45fd229f3b5af3aafbb35))
+
 # [1.1.0](https://github.com/tylerdh12/kylee-bible-blog/compare/v1.0.1...v1.1.0) (2025-10-22)
 
 
