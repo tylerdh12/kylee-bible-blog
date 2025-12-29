@@ -35,11 +35,13 @@ export default function NotFound() {
               </Link>
             </Button>
           </div>
-          <Button asChild variant="ghost" className="w-full">
-            <Link href="javascript:history.back()">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Go Back
-            </Link>
+          <Button
+            variant="ghost"
+            className="w-full"
+            onClick={() => window.history.back()}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Go Back
           </Button>
         </CardContent>
       </Card>

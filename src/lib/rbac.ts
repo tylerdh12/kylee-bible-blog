@@ -22,6 +22,8 @@ export const PERMISSIONS = {
 		'write:donations',
 		'read:analytics',
 		'admin:settings',
+		'read:content',
+		'write:content',
 	],
 	DEVELOPER: [
 		'read:posts',
@@ -35,6 +37,8 @@ export const PERMISSIONS = {
 		'write:goals',
 		'read:donations',
 		'read:analytics',
+		'read:content',
+		'write:content',
 	],
 	SUBSCRIBER: [
 		'read:posts',

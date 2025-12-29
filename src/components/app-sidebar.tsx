@@ -13,6 +13,7 @@ import {
 	Settings,
 	Target,
 	Users,
+	Globe,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -89,6 +90,11 @@ const contentItems = [
 		title: 'Donations',
 		url: '/admin/donations',
 		icon: Heart,
+	},
+	{
+		title: 'Site Content',
+		url: '/admin/site-content',
+		icon: Globe,
 	},
 ];
 
@@ -176,31 +182,6 @@ export function AppSidebar({
 			</SidebarHeader>
 
 			<SidebarContent>
-				{/* Main Site Navigation */}
-				<SidebarGroup>
-					<SidebarGroupLabel>
-						Site Navigation
-					</SidebarGroupLabel>
-					<SidebarGroupContent>
-						<SidebarMenu>
-							{mainSiteItems.map((item) => (
-								<SidebarMenuItem key={item.title}>
-									<SidebarMenuButton
-										asChild
-										tooltip={item.title}
-										isActive={pathname === item.url}
-									>
-										<Link href={item.url}>
-											<item.icon className='size-4' />
-											<span>{item.title}</span>
-										</Link>
-									</SidebarMenuButton>
-								</SidebarMenuItem>
-							))}
-						</SidebarMenu>
-					</SidebarGroupContent>
-				</SidebarGroup>
-
 				{/* Quick Actions */}
 				<SidebarGroup>
 					<SidebarGroupLabel>
@@ -221,6 +202,31 @@ export function AppSidebar({
 							</SidebarMenuItem>
 
 							{navigationItems.map((item) => (
+								<SidebarMenuItem key={item.title}>
+									<SidebarMenuButton
+										asChild
+										tooltip={item.title}
+										isActive={pathname === item.url}
+									>
+										<Link href={item.url}>
+											<item.icon className='size-4' />
+											<span>{item.title}</span>
+										</Link>
+									</SidebarMenuButton>
+								</SidebarMenuItem>
+							))}
+						</SidebarMenu>
+					</SidebarGroupContent>
+				</SidebarGroup>
+
+				{/* Main Site Navigation */}
+				<SidebarGroup>
+					<SidebarGroupLabel>
+						Site Navigation
+					</SidebarGroupLabel>
+					<SidebarGroupContent>
+						<SidebarMenu>
+							{mainSiteItems.map((item) => (
 								<SidebarMenuItem key={item.title}>
 									<SidebarMenuButton
 										asChild
@@ -312,7 +318,7 @@ export function AppSidebar({
 				</SidebarGroup>
 			</SidebarContent>
 
-			<SidebarFooter>
+			<SidebarFooter className='border-t'>
 				<SidebarMenu>
 					<SidebarMenuItem>
 						<DropdownMenu>

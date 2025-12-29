@@ -405,7 +405,7 @@ async function seedDonations(goals) {
 }
 
 async function seedPrayerRequests() {
-	logStep(6, 6, 'Seeding prayer requests...');
+	logStep(6, 7, 'Seeding prayer requests...');
 
 	try {
 		const prayerRequests = [];
@@ -426,6 +426,187 @@ async function seedPrayerRequests() {
 	} catch (error) {
 		log(
 			`Failed to seed prayer requests: ${error.message}`,
+			'error'
+		);
+		throw error;
+	}
+}
+
+async function seedSiteContent() {
+	logStep(7, 7, 'Seeding site content...');
+
+	try {
+		const defaultContent = [
+			{
+				key: 'home.hero.title',
+				page: 'home',
+				section: 'hero',
+				title: 'Hero Title',
+				content: "Welcome to Kylee's Blog",
+				contentType: 'text',
+				order: 1,
+			},
+			{
+				key: 'home.hero.description',
+				page: 'home',
+				section: 'hero',
+				title: 'Hero Description',
+				content:
+					"Join me on my Bible study journey as I explore God's word, share insights, and grow in faith. Together, we can support ministry goals and build community.",
+				contentType: 'text',
+				order: 2,
+			},
+			{
+				key: 'home.recent-posts.title',
+				page: 'home',
+				section: 'recent-posts',
+				title: 'Recent Posts Section Title',
+				content: 'Recent Posts',
+				contentType: 'text',
+				order: 1,
+			},
+			{
+				key: 'home.goals.title',
+				page: 'home',
+				section: 'goals',
+				title: 'Goals Section Title',
+				content: 'Current Goals',
+				contentType: 'text',
+				order: 1,
+			},
+			{
+				key: 'about.title',
+				page: 'about',
+				section: 'header',
+				title: 'Page Title',
+				content: 'About Kylee',
+				contentType: 'text',
+				order: 1,
+			},
+			{
+				key: 'about.subtitle',
+				page: 'about',
+				section: 'header',
+				title: 'Page Subtitle',
+				content:
+					'Welcome to my corner of the internet where faith meets daily life',
+				contentType: 'text',
+				order: 2,
+			},
+			{
+				key: 'about.journey.title',
+				page: 'about',
+				section: 'journey',
+				title: 'Journey Card Title',
+				content: 'My Journey',
+				contentType: 'text',
+				order: 1,
+			},
+			{
+				key: 'about.journey.content',
+				page: 'about',
+				section: 'journey',
+				title: 'Journey Card Content',
+				content: `Hi! I'm Kylee, a passionate Bible student on a journey to understand God's word more deeply and share what I learn with others. This blog is my way of documenting insights, struggles, and victories as I grow in faith.
+
+Whether you're a new believer or have been walking with Christ for years, I hope you'll find encouragement and biblical truth here that speaks to your heart and draws you closer to our Savior.
+
+I believe that studying God's word should be accessible to everyone, regardless of their background or level of biblical knowledge. That's why I write in a way that's easy to understand while staying true to Scripture.`,
+				contentType: 'text',
+				order: 2,
+			},
+			{
+				key: 'about.find-here.title',
+				page: 'about',
+				section: 'find-here',
+				title: "What You'll Find Here Title",
+				content: "What You'll Find Here",
+				contentType: 'text',
+				order: 1,
+			},
+			{
+				key: 'about.find-here.content',
+				page: 'about',
+				section: 'find-here',
+				title: "What You'll Find Here Content",
+				content: `In-depth Bible studies and verse-by-verse explorations
+Personal reflections on how Scripture applies to daily life
+Prayer requests and testimonies of God's faithfulness
+Resources for deeper Bible study and spiritual growth
+Updates on ministry goals and how you can be involved`,
+				contentType: 'list',
+				order: 2,
+			},
+			{
+				key: 'about.mission.title',
+				page: 'about',
+				section: 'mission',
+				title: 'Mission Card Title',
+				content: 'My Mission',
+				contentType: 'text',
+				order: 1,
+			},
+			{
+				key: 'about.mission.content',
+				page: 'about',
+				section: 'mission',
+				title: 'Mission Card Content',
+				content: `My heart's desire is to help others fall in love with God's word the way I have. I want to make Bible study approachable, relevant, and transformative for people from all walks of life.
+
+Through this platform, I hope to build a community where we can grow together, encourage one another, and support each other in our faith journeys. I believe that when we study God's word together, we gain insights we might miss on our own.
+
+"Your word is a lamp for my feet, a light on my path." - Psalm 119:105`,
+				contentType: 'text',
+				order: 2,
+			},
+			{
+				key: 'about.involved.title',
+				page: 'about',
+				section: 'involved',
+				title: 'Get Involved Card Title',
+				content: 'Get Involved',
+				contentType: 'text',
+				order: 1,
+			},
+			{
+				key: 'about.involved.conversation',
+				page: 'about',
+				section: 'involved',
+				title: 'Join the Conversation',
+				content: `I'd love to hear your thoughts on the posts and studies shared here. Your insights and questions help make this community stronger.`,
+				contentType: 'text',
+				order: 2,
+			},
+			{
+				key: 'about.involved.support',
+				page: 'about',
+				section: 'involved',
+				title: 'Support the Ministry',
+				content: `If God has used this ministry to bless you, consider supporting our goals to reach more people with His word.`,
+				contentType: 'text',
+				order: 3,
+			},
+		];
+
+		const siteContent = [];
+		for (const contentData of defaultContent) {
+			// Use upsert to avoid errors if content already exists
+			const content = await prisma.siteContent.upsert({
+				where: { key: contentData.key },
+				update: contentData,
+				create: contentData,
+			});
+			siteContent.push(content);
+			if (config.verbose) {
+				log(`Created/updated site content: ${contentData.key}`, 'success');
+			}
+		}
+
+		log(`Seeded ${siteContent.length} site content items`, 'success');
+		return siteContent;
+	} catch (error) {
+		log(
+			`Failed to seed site content: ${error.message}`,
 			'error'
 		);
 		throw error;
@@ -461,13 +642,14 @@ async function main() {
 		const goals = await seedGoals();
 		const donations = await seedDonations(goals);
 		const prayerRequests = await seedPrayerRequests();
+		const siteContent = await seedSiteContent();
 
 		log(
 			'Database seeding completed successfully! 🎉',
 			'success'
 		);
 		log(
-			`Created: ${users.length} users, ${tags.length} tags, ${posts.length} posts, ${goals.length} goals, ${donations.length} donations, ${prayerRequests.length} prayer requests`,
+			`Created: ${users.length} users, ${tags.length} tags, ${posts.length} posts, ${goals.length} goals, ${donations.length} donations, ${prayerRequests.length} prayer requests, ${siteContent.length} site content items`,
 			'info'
 		);
 	} catch (error) {

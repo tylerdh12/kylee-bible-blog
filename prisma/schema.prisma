@@ -125,3 +125,16 @@ model Setting {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+model SiteContent {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  page        String   // 'home' or 'about'
+  section     String   // 'hero', 'recent-posts', 'goals', 'journey', 'mission', etc.
+  title       String?
+  content     String   @default("")
+  contentType String   @default("text") // 'text', 'html', 'list'
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

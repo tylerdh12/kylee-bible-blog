@@ -177,6 +177,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         return 'Profile';
       case 'prayer-requests':
         return 'Prayer Requests';
+      case 'site-content':
+        return 'Site Content';
       default:
         return lastSegment.charAt(0).toUpperCase() + lastSegment.slice(1);
     }
@@ -211,6 +213,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         return 'Manage your profile settings';
       case 'prayer-requests':
         return 'Manage prayer requests from visitors';
+      case 'site-content':
+        return 'Manage site content for home and about pages';
       case 'new':
         if (segments.includes('posts')) return 'Write and publish a new blog post';
         if (segments.includes('goals')) return 'Set up a new fundraising goal';

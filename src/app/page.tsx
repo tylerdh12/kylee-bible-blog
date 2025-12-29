@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { DatabaseService } from '@/lib/services/database';
+import { prisma } from '@/lib/db';
 import type { Post, Goal } from '@/types';
 
 // Use dynamic rendering to fetch fresh data
@@ -52,11 +53,30 @@ export const metadata: Metadata = {
 	},
 };
 
+async function getSiteContent(page: string) {
+	try {
+		const content = await prisma.siteContent.findMany({
+			where: { page },
+			orderBy: [{ section: 'asc' }, { order: 'asc' }],
+		});
+
+		const contentMap: Record<string, string> = {};
+		content.forEach((item) => {
+			contentMap[item.key] = item.content;
+		});
+
+		return contentMap;
+	} catch (error) {
+		console.error('Error fetching site content:', error);
+		return {};
+	}
+}
+
 async function getHomeData() {
 	const db = DatabaseService.getInstance();
 
 	try {
-		const [posts, goals] = await Promise.all([
+		const [posts, goals, siteContent] = await Promise.all([
 			db
 				.findPosts({
 					published: true,
@@ -73,12 +93,17 @@ async function getHomeData() {
 					take: 3,
 				})
 				.catch(() => [] as Goal[]),
+			getSiteContent('home'),
 		]);
 
-		return { posts, goals };
+		return { posts, goals, siteContent };
 	} catch (error) {
 		console.error('Error fetching home data:', error);
-		return { posts: [] as Post[], goals: [] as Goal[] };
+		return {
+			posts: [] as Post[],
+			goals: [] as Goal[],
+			siteContent: {} as Record<string, string>,
+		};
 	}
 }
 
@@ -90,20 +115,24 @@ function formatCurrency(amount: number): string {
 }
 
 export default async function Home() {
-	const { posts, goals } = await getHomeData();
+	const { posts, goals, siteContent } = await getHomeData();
+
+	const heroTitle =
+		siteContent['home.hero.title'] || "Welcome to Kylee's Blog";
+	const heroDescription =
+		siteContent['home.hero.description'] ||
+		"Join me on my Bible study journey as I explore God's word, share insights, and grow in faith. Together, we can support ministry goals and build community.";
+	const recentPostsTitle =
+		siteContent['home.recent-posts.title'] || 'Recent Posts';
+	const goalsTitle = siteContent['home.goals.title'] || 'Current Goals';
 
 	return (
 		<div className='container px-4 py-8 mx-auto'>
 			{/* Hero Section */}
 			<div className='mb-12 text-center'>
-				<h1 className='mb-4 text-4xl font-bold'>
-					Welcome to Kylee's Blog
-				</h1>
+				<h1 className='mb-4 text-4xl font-bold'>{heroTitle}</h1>
 				<p className='mx-auto max-w-2xl text-xl text-muted-foreground'>
-					Join me on my Bible study journey as I explore
-					God&apos;s word, share insights, and grow in
-					faith. Together, we can support ministry goals and
-					build community.
+					{heroDescription}
 				</p>
 			</div>
 
@@ -112,7 +141,7 @@ export default async function Home() {
 				<div>
 					<div className='flex justify-between items-center mb-6'>
 						<h2 className='text-3xl font-semibold'>
-							Recent Posts
+							{recentPostsTitle}
 						</h2>
 						<Link
 							href='/posts'
@@ -190,7 +219,7 @@ export default async function Home() {
 				<div>
 					<div className='flex justify-between items-center mb-6'>
 						<h2 className='text-3xl font-semibold'>
-							Current Goals
+							{goalsTitle}
 						</h2>
 					</div>
 
