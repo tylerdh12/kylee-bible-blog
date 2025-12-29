@@ -59,7 +59,7 @@ export function Navbar() {
 		},
 		{
 			href: '/prayer-requests',
-			label: 'Prayer',
+			label: 'Prayer Requests',
 			icon: Heart,
 			description: 'Submit prayer requests',
 		},
@@ -100,12 +100,16 @@ export function Navbar() {
 	return (
 		<header
 			className={cn(
-				'fixed top-0 left-0 right-0 z-50 w-full transition-all duration-500 ease-out',
+				'fixed top-0 right-0 left-0 z-50 w-full transition-all duration-500 ease-out',
 				isScrolled
 					? 'border-b shadow-lg backdrop-blur-xl bg-background/95 border-border/50 shadow-black/5 dark:shadow-black/20'
-					: 'border-b backdrop-blur-md bg-background/80 border-border/30'
+					: 'border-b backdrop-blur-md bg-background border-border/30 sm:bg-background/80'
 			)}
 			role='banner'
+			style={{
+				WebkitBackdropFilter: 'blur(12px)',
+				backdropFilter: 'blur(12px)',
+			}}
 		>
 			<div className='px-4 w-full sm:px-6 lg:px-8 xl:px-12'>
 				<div className='flex justify-between items-center h-16 md:h-18 lg:h-20'>
@@ -132,13 +136,35 @@ export function Navbar() {
 								<BookOpen className='w-4 h-4 transition-transform duration-300 sm:w-5 sm:h-5 md:w-5 md:h-5 lg:w-6 lg:h-6 text-primary group-hover:scale-110' />
 							</div>
 						</div>
-						<div className='hidden sm:block'>
-							<h1 className='text-lg font-bold leading-tight text-transparent bg-clip-text bg-gradient-to-r sm:text-xl md:text-xl lg:text-2xl from-foreground via-foreground to-foreground/80'>
-								Kylee&apos;s Blog
-							</h1>
-							<p className='text-[10px] sm:text-xs text-muted-foreground/80 font-medium leading-tight mt-0.5'>
-								Bible Study Journey
-							</p>
+						<div className='flex items-center space-x-3'>
+							<div className='hidden sm:block'>
+								<h1 className='text-lg font-bold leading-tight text-transparent bg-clip-text bg-gradient-to-r sm:text-xl md:text-xl lg:text-2xl from-foreground via-foreground to-foreground/80'>
+									Kylee&apos;s Blog
+								</h1>
+								<p className='text-[10px] sm:text-xs text-muted-foreground/80 font-medium leading-tight mt-0.5'>
+									Bible Study Journey
+								</p>
+							</div>
+							{/* Mobile Current Page Indicator */}
+							<div className='flex items-center sm:hidden'>
+								{(() => {
+									const activeLink = navigationLinks.find(
+										(link) => isActive(link.href)
+									);
+									if (activeLink) {
+										const Icon = activeLink.icon;
+										return (
+											<div className='flex items-center space-x-2'>
+												<Icon className='w-4 h-4 text-primary' />
+												<span className='text-sm font-semibold text-foreground'>
+													{activeLink.label}
+												</span>
+											</div>
+										);
+									}
+									return null;
+								})()}
+							</div>
 						</div>
 					</Link>
 
@@ -187,8 +213,6 @@ export function Navbar() {
 
 					{/* Right Side Actions - Enhanced */}
 					<div className='flex items-center space-x-2 sm:space-x-3'>
-						<ThemeToggle />
-
 						{/* Admin Button - Desktop */}
 						<Link
 							href='/admin'
@@ -325,14 +349,6 @@ export function Navbar() {
 															</div>
 														)}
 													</div>
-													{active && (
-														<Badge
-															variant='secondary'
-															className='text-xs px-2 py-0.5 h-5 flex-shrink-0 mt-1 bg-primary/20 text-primary border-primary/30'
-														>
-															Active
-														</Badge>
-													)}
 												</Link>
 											</SheetClose>
 										);
@@ -341,6 +357,14 @@ export function Navbar() {
 
 								{/* Mobile Footer Section */}
 								<div className='px-4 pt-4 pb-6 space-y-3 border-t'>
+									{/* Theme Toggle */}
+									<div className='flex items-center justify-between px-1 py-2'>
+										<span className='text-sm font-medium text-muted-foreground'>
+											Theme
+										</span>
+										<ThemeToggle />
+									</div>
+
 									<SheetClose asChild>
 										<Link
 											href='/admin'

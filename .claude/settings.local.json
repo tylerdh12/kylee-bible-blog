@@ -67,7 +67,8 @@
       "Bash(npm uninstall:*)",
       "Bash(npm run typecheck:*)",
       "Bash(npm run:*)",
-      "Bash(timeout 30 npm run dev:*)"
+      "Bash(timeout 30 npm run dev:*)",
+      "mcp__shadcn__view_items_in_registries"
     ],
     "deny": [],
     "ask": []

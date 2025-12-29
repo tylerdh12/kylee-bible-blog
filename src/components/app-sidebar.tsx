@@ -1,6 +1,7 @@
 'use client';
 
 import {
+	BookOpen,
 	Calendar,
 	FileText,
 	Heart,
@@ -35,11 +36,35 @@ import {
 	SidebarGroup,
 	SidebarGroupContent,
 	SidebarGroupLabel,
+	SidebarHeader,
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { UIUser } from '@/types';
+
+const mainSiteItems = [
+	{
+		title: 'View Site',
+		url: '/',
+		icon: Home,
+	},
+	{
+		title: 'Posts',
+		url: '/posts',
+		icon: BookOpen,
+	},
+	{
+		title: 'About',
+		url: '/about',
+		icon: Users,
+	},
+	{
+		title: 'Prayer',
+		url: '/prayer-requests',
+		icon: HeartHandshake,
+	},
+];
 
 const navigationItems = [
 	{
@@ -128,9 +153,59 @@ export function AppSidebar({
 			collapsible='icon'
 			{...props}
 		>
-			<SidebarContent className='pt-20'>
+			{/* Integrated Header */}
+			<SidebarHeader className='border-b'>
+				<div className='flex items-center justify-between py-4 group-data-[variant=floating]:px-4 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-3'>
+					<Link
+						href='/'
+						className='flex items-center space-x-3 min-w-0 group-data-[collapsible=icon]:space-x-0 group-data-[collapsible=icon]:justify-center transition-all duration-200 w-full group-data-[collapsible=icon]:w-auto'
+					>
+						<div className='flex flex-shrink-0 justify-center items-center w-8 h-8 bg-gradient-to-br rounded-lg border shadow-sm transition-all duration-200 from-primary/20 via-primary/15 to-primary/10 shadow-primary/10 border-primary/10 hover:shadow-md hover:shadow-primary/20'>
+							<BookOpen className='w-4 h-4 transition-transform duration-200 text-primary hover:scale-110' />
+						</div>
+						<div className='group-data-[collapsible=icon]:hidden min-w-0 flex-1 overflow-hidden'>
+							<h1 className='text-sm font-bold leading-tight text-transparent truncate bg-clip-text bg-gradient-to-r from-foreground via-foreground to-foreground/80'>
+								Kylee&apos;s Blog
+							</h1>
+							<p className='text-[10px] text-muted-foreground/80 font-medium leading-tight mt-0.5 truncate'>
+								Bible Study Journey
+							</p>
+						</div>
+					</Link>
+				</div>
+			</SidebarHeader>
+
+			<SidebarContent>
+				{/* Main Site Navigation */}
+				<SidebarGroup>
+					<SidebarGroupLabel>
+						Site Navigation
+					</SidebarGroupLabel>
+					<SidebarGroupContent>
+						<SidebarMenu>
+							{mainSiteItems.map((item) => (
+								<SidebarMenuItem key={item.title}>
+									<SidebarMenuButton
+										asChild
+										tooltip={item.title}
+										isActive={pathname === item.url}
+									>
+										<Link href={item.url}>
+											<item.icon className='size-4' />
+											<span>{item.title}</span>
+										</Link>
+									</SidebarMenuButton>
+								</SidebarMenuItem>
+							))}
+						</SidebarMenu>
+					</SidebarGroupContent>
+				</SidebarGroup>
+
 				{/* Quick Actions */}
 				<SidebarGroup>
+					<SidebarGroupLabel>
+						Admin Dashboard
+					</SidebarGroupLabel>
 					<SidebarGroupContent>
 						<SidebarMenu>
 							<SidebarMenuItem>
