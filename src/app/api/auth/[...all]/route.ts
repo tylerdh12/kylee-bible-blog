@@ -65,13 +65,15 @@ export async function POST(request: NextRequest) {
 		}
 
 		// For sign-in requests, check user role before allowing authentication
-		// We need to read the body and reconstruct the request for better-auth
+		// Read body as text first to avoid consuming the stream
 		let requestToPass = request;
+		let bodyText: string | null = null;
 
 		if (url.pathname.includes('/sign-in/email')) {
 			try {
-				// Read the body once
-				const body = await request.json();
+				// Read body as text (this consumes the stream, so we need to reconstruct)
+				bodyText = await request.text();
+				const body = JSON.parse(bodyText);
 				const { email } = body;
 
 				if (email) {
@@ -114,12 +116,11 @@ export async function POST(request: NextRequest) {
 					}
 				}
 
-				// Reconstruct the request with the body for better-auth
-				// Create a new request with the same URL and headers, but with the body
+				// Reconstruct the request with the body text for better-auth
 				requestToPass = new NextRequest(request.url, {
 					method: request.method,
 					headers: request.headers,
-					body: JSON.stringify(body),
+					body: bodyText,
 				});
 			} catch (checkError) {
 				// If we can't check, let better-auth handle it (will fail at password check anyway)
@@ -129,18 +130,43 @@ export async function POST(request: NextRequest) {
 						checkError
 					);
 				}
-				// If body reading failed, we can't reconstruct, so use original request
-				requestToPass = request;
+				// If body reading/parsing failed, try to reconstruct with original body text
+				if (bodyText) {
+					try {
+						requestToPass = new NextRequest(request.url, {
+							method: request.method,
+							headers: request.headers,
+							body: bodyText,
+						});
+					} catch {
+						// If reconstruction fails, return error
+						return NextResponse.json(
+							{
+								error: 'Invalid request',
+								message:
+									'Could not process authentication request',
+							},
+							{ status: 400 }
+						);
+					}
+				} else {
+					// If we couldn't read body at all, return error
+					return NextResponse.json(
+						{
+							error: 'Invalid request',
+							message: 'Request body is required',
+						},
+						{ status: 400 }
+					);
+				}
 			}
 		}
 
 		const result = await handler.POST(requestToPass);
 
 		// Handle signout - ensure cookies are properly cleared
-		if (
-			url.pathname.includes('/signout') ||
-			url.pathname.includes('/sign-out')
-		) {
+		// Better-auth uses /api/auth/signout (no hyphen)
+		if (url.pathname.includes('/signout')) {
 			// Better-auth should handle cookie clearing, but we ensure it happens
 			// Convert the result to a NextResponse so we can modify cookies
 			const isProduction =
@@ -224,7 +250,8 @@ export async function POST(request: NextRequest) {
 			return response;
 		}
 
-		// After successful sign-in, verify the user is not a subscriber
+		// After sign-in attempt, verify the user is not a subscriber (if successful)
+		// Only check if status is 200 (successful sign-in)
 		if (
 			url.pathname.includes('/sign-in/email') &&
 			result.status === 200
@@ -312,7 +339,7 @@ export async function POST(request: NextRequest) {
 
 		// If error status, ensure we have a proper error response
 		if (result.status >= 400) {
-			// Clone to read without consuming
+			// Clone to read without consuming the original
 			const cloned = result.clone();
 			try {
 				const text = await cloned.text();
@@ -322,6 +349,22 @@ export async function POST(request: NextRequest) {
 					return NextResponse.json(
 						{
 							error: 'Authentication failed',
+						},
+						{ status: result.status }
+					);
+				}
+
+				// If response has content, try to parse it and return it
+				try {
+					const errorData = JSON.parse(text);
+					return NextResponse.json(errorData, {
+						status: result.status,
+					});
+				} catch {
+					// If not JSON, return the text as error message
+					return NextResponse.json(
+						{
+							error: text || 'Authentication failed',
 						},
 						{ status: result.status }
 					);
@@ -343,6 +386,7 @@ export async function POST(request: NextRequest) {
 			}
 		}
 
+		// Return the successful response as-is
 		return result;
 	} catch (error) {
 		// Log error details only in development
