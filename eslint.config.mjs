@@ -7,7 +7,9 @@ const __dirname = dirname(__filename);
 
 // Note: FlatCompat may show warnings about deprecated options (useEslintrc, extensions)
 // when converting Next.js ESLint configs. These warnings are harmless and don't affect
-// the build. This is a known issue with the compatibility layer.
+// the build. This is a known issue with the compatibility layer between ESLint 8/9
+// and Next.js configs. The warning is emitted by ESLint itself during execution,
+// not during config loading, so it cannot be suppressed here.
 const compat = new FlatCompat({
 	baseDirectory: __dirname,
 });
