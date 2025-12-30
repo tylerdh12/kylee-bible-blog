@@ -135,13 +135,22 @@ export default function AdminLayout({
 		// 2. We haven't checked yet (isAuthenticated is null)
 		// 3. We're navigating to/from a reset password page
 		// 4. We're not authenticated and navigating to a protected page
+		// 5. Don't check if we just received an auth-changed event (let it handle the state)
 		if (
 			prevPathname === null ||
 			isAuthenticated === null ||
 			isResetPasswordPage !== wasResetPasswordPage ||
 			(!isAuthenticated && pathname !== '/admin')
 		) {
-			checkAuthStatus();
+			// Add a small delay to allow cookies to be set after login
+			if (prevPathname === '/admin' && pathname === '/admin') {
+				// If staying on admin page, might be after login - wait a bit
+				setTimeout(() => {
+					checkAuthStatus();
+				}, 100);
+			} else {
+				checkAuthStatus();
+			}
 		}
 
 		// Listen for authentication changes from login/logout

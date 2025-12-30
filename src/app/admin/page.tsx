@@ -146,33 +146,54 @@ export default function AdminPage() {
 
 			if (response.ok && !responseData.error) {
 				// Sign-in successful - better-auth should have set the session cookie
+				// The response might contain user data, or we need to check auth status
+				console.log('Sign-in response data:', responseData);
+				
 				// Wait a moment for the cookie to be set, then check auth status
-				await new Promise(resolve => setTimeout(resolve, 300));
+				await new Promise(resolve => setTimeout(resolve, 500));
 				
 				// Check auth status to get user data with role
 				let statusCheckAttempts = 0;
-				const maxAttempts = 3;
+				const maxAttempts = 5; // Increased retries
 				let userData = null;
+				let lastError = null;
 				
 				while (statusCheckAttempts < maxAttempts && !userData) {
-					const statusResponse = await fetch('/api/auth/status', {
-						method: 'GET',
-						credentials: 'include',
-						cache: 'no-store',
-					});
+					try {
+						const statusResponse = await fetch('/api/auth/status', {
+							method: 'GET',
+							credentials: 'include',
+							cache: 'no-store',
+							headers: {
+								'Content-Type': 'application/json',
+							},
+						});
 
-					if (statusResponse.ok) {
-						const data = await statusResponse.json();
-						if (data.authenticated && data.user) {
-							userData = data.user;
-							break;
+						console.log(`Auth status check attempt ${statusCheckAttempts + 1}:`, statusResponse.status);
+
+						if (statusResponse.ok) {
+							const data = await statusResponse.json();
+							console.log('Auth status data:', data);
+							if (data.authenticated && data.user) {
+								userData = data.user;
+								break;
+							} else {
+								lastError = 'Not authenticated in status check';
+							}
+						} else {
+							const errorData = await statusResponse.json().catch(() => ({}));
+							lastError = `Status check failed: ${statusResponse.status} - ${JSON.stringify(errorData)}`;
+							console.error('Auth status check failed:', lastError);
 						}
+					} catch (statusError) {
+						lastError = `Status check error: ${statusError}`;
+						console.error('Auth status check error:', statusError);
 					}
 					
 					statusCheckAttempts++;
 					if (statusCheckAttempts < maxAttempts) {
 						// Wait longer between retries
-						await new Promise(resolve => setTimeout(resolve, 300));
+						await new Promise(resolve => setTimeout(resolve, 500));
 					}
 				}
 
@@ -186,6 +207,7 @@ export default function AdminPage() {
 						return;
 					}
 					
+					// Update local state
 					setIsLoggedIn(true);
 					setUser(userData);
 					setEmail('');
@@ -195,10 +217,15 @@ export default function AdminPage() {
 					window.dispatchEvent(new CustomEvent('auth-changed', {
 						detail: { authenticated: true, user: userData }
 					}));
+					
+					// Navigate to admin dashboard instead of reloading
+					// This allows the layout to properly handle the authenticated state
+					window.location.href = '/admin';
 				} else {
-					// If status check still fails after retries, the session might not be set
+					// If status check still fails after retries, show error
+					console.error('Login succeeded but auth status check failed:', lastError);
+					alert(`Login successful but session verification failed. Please try refreshing the page. Error: ${lastError}`);
 					// Try a page reload to let the browser properly set cookies and let layout handle auth
-					console.warn('Status check failed after retries. Reloading page to let layout handle auth...');
 					window.location.reload();
 				}
 			} else {
