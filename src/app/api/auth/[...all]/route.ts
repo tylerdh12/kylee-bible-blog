@@ -126,6 +126,77 @@ export async function POST(request: NextRequest) {
 
 		const result = await handler.POST(requestToPass);
 
+		// Handle signout - ensure cookies are properly cleared
+		if (url.pathname.includes('/signout') || url.pathname.includes('/sign-out')) {
+			// Better-auth should handle cookie clearing, but we ensure it happens
+			// Convert the result to a NextResponse so we can modify cookies
+			const isProduction = process.env.NODE_ENV === 'production';
+			
+			// Get response body if it exists
+			let responseBody = null;
+			let responseStatus = 200;
+			if (result instanceof Response) {
+				responseStatus = result.status;
+				try {
+					responseBody = await result.clone().json().catch(() => null);
+				} catch {
+					// If JSON parsing fails, try text
+					try {
+						responseBody = await result.clone().text().catch(() => null);
+					} catch {
+						responseBody = null;
+					}
+				}
+			}
+			
+			// Create a new NextResponse
+			const response = responseBody 
+				? NextResponse.json(responseBody, { status: responseStatus })
+				: new NextResponse(null, { status: responseStatus });
+
+			// Copy headers from original response
+			if (result instanceof Response) {
+				result.headers.forEach((value, key) => {
+					if (key.toLowerCase() !== 'set-cookie') {
+						response.headers.set(key, value);
+					}
+				});
+			}
+
+			// Explicitly clear all possible session cookie names
+			// HttpOnly cookies can only be cleared by the server
+			// Must match the exact attributes the cookie was set with
+			const cookieNames = [
+				'__Secure-better-auth.session_token',
+				'better-auth.session_token',
+				'better-auth.sessionToken',
+			];
+
+			cookieNames.forEach((cookieName) => {
+				// Clear with Secure flag (for HTTPS/production with __Secure- prefix)
+				if (cookieName.startsWith('__Secure-') || isProduction) {
+					response.cookies.set(cookieName, '', {
+						expires: new Date(0),
+						path: '/',
+						sameSite: 'lax',
+						secure: true,
+						httpOnly: true,
+					});
+				}
+				
+				// Clear without Secure flag (for HTTP/development)
+				response.cookies.set(cookieName, '', {
+					expires: new Date(0),
+					path: '/',
+					sameSite: 'lax',
+					secure: false,
+					httpOnly: true,
+				});
+			});
+
+			return response;
+		}
+
 		// After successful sign-in, verify the user is not a subscriber
 		if (url.pathname.includes('/sign-in/email') && result.status === 200) {
 			try {

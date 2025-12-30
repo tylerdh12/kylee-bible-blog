@@ -167,8 +167,26 @@ export function AppSidebar({
 			// Continue with logout even if API call fails
 		}
 
-		// Always clear local state and redirect, regardless of API response
-		// This ensures logout happens even if the API call fails
+		// Manually clear the session cookie to ensure it's removed
+		// Better-auth should handle this, but we clear it as a fallback
+		// Handle both production (__Secure-) and development cookie names
+		const cookieNames = [
+			'__Secure-better-auth.session_token',
+			'better-auth.session_token',
+			'better-auth.sessionToken',
+		];
+
+		cookieNames.forEach((cookieName) => {
+			// Clear cookie by setting it to expire in the past
+			// Must match the exact path and domain settings
+			document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname}; SameSite=Lax; Secure;`;
+			// Also try without domain (for localhost)
+			document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax; Secure;`;
+			// And without Secure flag (for http)
+			document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax;`;
+		});
+
+		// Clear any local state
 		window.dispatchEvent(
 			new CustomEvent('auth-changed', {
 				detail: { authenticated: false, user: null },
