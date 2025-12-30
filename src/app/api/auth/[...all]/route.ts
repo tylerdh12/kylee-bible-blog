@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
 		// For sign-in requests, check user role before allowing authentication
 		// We need to read the body and reconstruct the request for better-auth
 		let requestToPass = request;
-		
+
 		if (url.pathname.includes('/sign-in/email')) {
 			try {
 				// Read the body once
@@ -79,7 +79,12 @@ export async function POST(request: NextRequest) {
 					const { prisma } = await import('@/lib/db');
 					const user = await prisma.user.findUnique({
 						where: { email },
-						select: { id: true, email: true, role: true, isActive: true },
+						select: {
+							id: true,
+							email: true,
+							role: true,
+							isActive: true,
+						},
 					});
 
 					if (user) {
@@ -88,7 +93,8 @@ export async function POST(request: NextRequest) {
 							return NextResponse.json(
 								{
 									error: 'Access denied',
-									message: 'Subscribers cannot log in. Please contact an administrator.',
+									message:
+										'Subscribers cannot log in. Please contact an administrator.',
 								},
 								{ status: 403 }
 							);
@@ -99,7 +105,8 @@ export async function POST(request: NextRequest) {
 							return NextResponse.json(
 								{
 									error: 'Account deactivated',
-									message: 'Your account has been deactivated. Please contact an administrator.',
+									message:
+										'Your account has been deactivated. Please contact an administrator.',
 								},
 								{ status: 403 }
 							);
@@ -117,7 +124,10 @@ export async function POST(request: NextRequest) {
 			} catch (checkError) {
 				// If we can't check, let better-auth handle it (will fail at password check anyway)
 				if (process.env.NODE_ENV === 'development') {
-					console.warn('[Better Auth] Could not pre-check user role:', checkError);
+					console.warn(
+						'[Better Auth] Could not pre-check user role:',
+						checkError
+					);
 				}
 				// If body reading failed, we can't reconstruct, so use original request
 				requestToPass = request;
@@ -127,32 +137,46 @@ export async function POST(request: NextRequest) {
 		const result = await handler.POST(requestToPass);
 
 		// Handle signout - ensure cookies are properly cleared
-		if (url.pathname.includes('/signout') || url.pathname.includes('/sign-out')) {
+		if (
+			url.pathname.includes('/signout') ||
+			url.pathname.includes('/sign-out')
+		) {
 			// Better-auth should handle cookie clearing, but we ensure it happens
 			// Convert the result to a NextResponse so we can modify cookies
-			const isProduction = process.env.NODE_ENV === 'production';
-			
+			const isProduction =
+				process.env.NODE_ENV === 'production';
+
 			// Get response body if it exists
 			let responseBody = null;
 			let responseStatus = 200;
 			if (result instanceof Response) {
 				responseStatus = result.status;
 				try {
-					responseBody = await result.clone().json().catch(() => null);
+					responseBody = await result
+						.clone()
+						.json()
+						.catch(() => null);
 				} catch {
 					// If JSON parsing fails, try text
 					try {
-						responseBody = await result.clone().text().catch(() => null);
+						responseBody = await result
+							.clone()
+							.text()
+							.catch(() => null);
 					} catch {
 						responseBody = null;
 					}
 				}
 			}
-			
+
 			// Create a new NextResponse
-			const response = responseBody 
-				? NextResponse.json(responseBody, { status: responseStatus })
-				: new NextResponse(null, { status: responseStatus });
+			const response = responseBody
+				? NextResponse.json(responseBody, {
+						status: responseStatus,
+				  })
+				: new NextResponse(null, {
+						status: responseStatus,
+				  });
 
 			// Copy headers from original response
 			if (result instanceof Response) {
@@ -174,7 +198,10 @@ export async function POST(request: NextRequest) {
 
 			cookieNames.forEach((cookieName) => {
 				// Clear with Secure flag (for HTTPS/production with __Secure- prefix)
-				if (cookieName.startsWith('__Secure-') || isProduction) {
+				if (
+					cookieName.startsWith('__Secure-') ||
+					isProduction
+				) {
 					response.cookies.set(cookieName, '', {
 						expires: new Date(0),
 						path: '/',
@@ -183,7 +210,7 @@ export async function POST(request: NextRequest) {
 						httpOnly: true,
 					});
 				}
-				
+
 				// Clear without Secure flag (for HTTP/development)
 				response.cookies.set(cookieName, '', {
 					expires: new Date(0),
@@ -198,28 +225,50 @@ export async function POST(request: NextRequest) {
 		}
 
 		// After successful sign-in, verify the user is not a subscriber
-		if (url.pathname.includes('/sign-in/email') && result.status === 200) {
+		if (
+			url.pathname.includes('/sign-in/email') &&
+			result.status === 200
+		) {
 			try {
 				const clonedResult = result.clone();
 				const resultData = await clonedResult.json();
-				
+
 				if (resultData.user) {
 					// Double-check: if somehow a subscriber got through, revoke the session
-					if (resultData.user.role === 'SUBSCRIBER' || !resultData.user.role) {
+					if (
+						resultData.user.role === 'SUBSCRIBER' ||
+						!resultData.user.role
+					) {
 						if (process.env.NODE_ENV === 'development') {
-							console.warn('[Better Auth] Subscriber attempted login, revoking session');
+							console.warn(
+								'[Better Auth] Subscriber attempted login, revoking session'
+							);
 						}
 						// Revoke any session that might have been created
-						const { auth } = await import('@/lib/better-auth');
-						const sessionCookie = request.cookies.get('better-auth.session_token')?.value ||
-							request.cookies.get('better-auth.sessionToken')?.value;
-						
+						const { auth } = await import(
+							'@/lib/better-auth'
+						);
+						const sessionCookie =
+							request.cookies.get(
+								'better-auth.session_token'
+							)?.value ||
+							request.cookies.get(
+								'better-auth.sessionToken'
+							)?.value;
+
 						if (sessionCookie) {
 							try {
-								await auth.api.signOut({ headers: request.headers });
+								await auth.api.signOut({
+									headers: request.headers,
+								});
 							} catch (signOutError) {
-								if (process.env.NODE_ENV === 'development') {
-									console.error('[Better Auth] Error revoking subscriber session:', signOutError);
+								if (
+									process.env.NODE_ENV === 'development'
+								) {
+									console.error(
+										'[Better Auth] Error revoking subscriber session:',
+										signOutError
+									);
 								}
 							}
 						}
@@ -227,7 +276,8 @@ export async function POST(request: NextRequest) {
 						return NextResponse.json(
 							{
 								error: 'Access denied',
-								message: 'Subscribers cannot log in. Please contact an administrator.',
+								message:
+									'Subscribers cannot log in. Please contact an administrator.',
 							},
 							{ status: 403 }
 						);
@@ -236,7 +286,10 @@ export async function POST(request: NextRequest) {
 			} catch (verifyError) {
 				// If we can't verify, log but don't block (better-auth already handled it)
 				if (process.env.NODE_ENV === 'development') {
-					console.warn('[Better Auth] Could not verify post-sign-in role:', verifyError);
+					console.warn(
+						'[Better Auth] Could not verify post-sign-in role:',
+						verifyError
+					);
 				}
 			}
 		}
