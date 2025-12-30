@@ -149,36 +149,35 @@ export function AppSidebar({
 
 	const handleLogout = useCallback(async () => {
 		try {
-			// Use better-auth sign-out endpoint
-			const response = await fetch('/api/auth/sign-out', {
+			// Use better-auth sign-out endpoint (better-auth uses /api/auth/signout)
+			const response = await fetch('/api/auth/signout', {
 				method: 'POST',
 				credentials: 'include',
 				headers: {
 					'Content-Type': 'application/json',
 				},
-				body: JSON.stringify({}),
 			});
 
-			// Clear any local state immediately (don't wait for response)
-			window.dispatchEvent(
-				new CustomEvent('auth-changed', {
-					detail: { authenticated: false, user: null },
-				})
-			);
-
-			// Force redirect to login page - use replace to prevent back button
-			// Don't wait for response, redirect immediately for better UX
-			window.location.replace('/admin');
+			// Wait for the response to ensure session is cleared server-side
+			if (!response.ok) {
+				console.error('Logout failed:', response.status);
+			}
 		} catch (error) {
-			console.error('Logout error:', error);
-			// Fallback: clear state and redirect anyway
-			window.dispatchEvent(
-				new CustomEvent('auth-changed', {
-					detail: { authenticated: false, user: null },
-				})
-			);
-			window.location.replace('/admin');
+			console.error('Logout API error:', error);
+			// Continue with logout even if API call fails
 		}
+
+		// Always clear local state and redirect, regardless of API response
+		// This ensures logout happens even if the API call fails
+		window.dispatchEvent(
+			new CustomEvent('auth-changed', {
+				detail: { authenticated: false, user: null },
+			})
+		);
+
+		// Force redirect to login page - use replace to prevent back button
+		// This bypasses Next.js router and ensures immediate redirect
+		window.location.replace('/admin');
 	}, []);
 
 	return (

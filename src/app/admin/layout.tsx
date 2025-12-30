@@ -160,13 +160,14 @@ export default function AdminLayout({
 				setUser(event.detail.user);
 				setLoading(false);
 			} else {
-				// Handle logout
+				// Handle logout - force redirect immediately
 				setIsAuthenticated(false);
 				setUser(null);
 				setLoading(false);
-				// Redirect to login if not already there
+				// Force redirect using window.location to ensure it happens
+				// This bypasses Next.js router and ensures the redirect happens
 				if (pathname !== '/admin') {
-					router.push('/admin');
+					window.location.replace('/admin');
 				}
 			}
 		};
