@@ -259,39 +259,57 @@ export async function POST(request: NextRequest) {
 		) {
 			// Convert result to NextResponse to preserve headers properly
 			let nextResponse: NextResponse;
-			
+
 			try {
 				// Clone to read without consuming the original
 				const clonedResult = result.clone();
 				const resultData = await clonedResult.json();
-				
+
 				// Debug logging in development
 				if (process.env.NODE_ENV === 'development') {
-					console.log('[Better Auth] Sign-in response data:', resultData);
-					console.log('[Better Auth] Response headers:', Object.fromEntries(result.headers.entries()));
+					console.log(
+						'[Better Auth] Sign-in response data:',
+						resultData
+					);
+					console.log(
+						'[Better Auth] Response headers:',
+						Object.fromEntries(result.headers.entries())
+					);
 				}
 
 				// Check if user data exists in response
 				// Better-auth might return user data directly or in a nested structure
-				const user = resultData.user || resultData.data?.user || resultData;
-				
+				const user =
+					resultData.user ||
+					resultData.data?.user ||
+					resultData;
+
 				// Only check role if we have user data with an id or email
 				if (user && (user.id || user.email)) {
 					// Get the user's role from database to verify (better-auth response might not include it)
 					const { prisma } = await import('@/lib/db');
-					const whereClause = user.id 
+					const whereClause = user.id
 						? { id: user.id }
-						: user.email 
-							? { email: user.email }
-							: null;
-					
-					const dbUser = whereClause ? await prisma.user.findUnique({
-						where: whereClause,
-						select: { id: true, role: true, isActive: true },
-					}) : null;
-					
+						: user.email
+						? { email: user.email }
+						: null;
+
+					const dbUser = whereClause
+						? await prisma.user.findUnique({
+								where: whereClause,
+								select: {
+									id: true,
+									role: true,
+									isActive: true,
+								},
+						  })
+						: null;
+
 					// Double-check: if somehow a subscriber got through, revoke the session
-					if (dbUser && (dbUser.role === 'SUBSCRIBER' || !dbUser.role)) {
+					if (
+						dbUser &&
+						(dbUser.role === 'SUBSCRIBER' || !dbUser.role)
+					) {
 						if (process.env.NODE_ENV === 'development') {
 							console.warn(
 								'[Better Auth] Subscriber attempted login, revoking session'
@@ -339,9 +357,11 @@ export async function POST(request: NextRequest) {
 						);
 					}
 				}
-				
+
 				// Create NextResponse with the parsed body
-				nextResponse = NextResponse.json(resultData, { status: result.status });
+				nextResponse = NextResponse.json(resultData, {
+					status: result.status,
+				});
 			} catch (verifyError) {
 				// If we can't parse the response, try to preserve it as-is
 				if (process.env.NODE_ENV === 'development') {
@@ -350,7 +370,7 @@ export async function POST(request: NextRequest) {
 						verifyError
 					);
 				}
-				
+
 				// Try to get the body
 				const cloned = result.clone();
 				let responseBody = null;
@@ -363,14 +383,22 @@ export async function POST(request: NextRequest) {
 						responseBody = null;
 					}
 				}
-				
-				nextResponse = responseBody !== null
-					? (typeof responseBody === 'string' 
-						? NextResponse.json({ message: responseBody }, { status: result.status })
-						: NextResponse.json(responseBody, { status: result.status }))
-					: new NextResponse(result.body, { status: result.status });
+
+				nextResponse =
+					responseBody !== null
+						? typeof responseBody === 'string'
+							? NextResponse.json(
+									{ message: responseBody },
+									{ status: result.status }
+							  )
+							: NextResponse.json(responseBody, {
+									status: result.status,
+							  })
+						: new NextResponse(result.body, {
+								status: result.status,
+						  });
 			}
-			
+
 			// CRITICAL: Copy all headers from the original response
 			// This includes Set-Cookie headers that set the session token
 			if (result instanceof Response) {
@@ -383,7 +411,7 @@ export async function POST(request: NextRequest) {
 					}
 				});
 			}
-			
+
 			return nextResponse;
 		}
 

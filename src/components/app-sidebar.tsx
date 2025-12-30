@@ -20,6 +20,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import * as React from 'react';
 import { useCallback } from 'react';
+import { signOut } from '@/lib/better-auth-client';
 
 import {
 	Avatar,
@@ -149,42 +150,19 @@ export function AppSidebar({
 
 	const handleLogout = useCallback(async () => {
 		try {
-			// Use better-auth sign-out endpoint (better-auth uses /api/auth/signout)
-			const response = await fetch('/api/auth/signout', {
-				method: 'POST',
-				credentials: 'include',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-			});
+			// Use better-auth's signOut method to properly handle logout
+			// This will call the /api/auth/signout endpoint and handle cookie clearing
+			const { data, error } = await signOut();
 
-			// Wait for the response to ensure session is cleared server-side
-			if (!response.ok) {
-				console.error('Logout failed:', response.status);
+			// Check if signout was successful
+			if (error) {
+				console.error('Logout failed:', error);
+				// Even if there's an error, try to clear local state and redirect
 			}
 		} catch (error) {
-			console.error('Logout API error:', error);
+			console.error('Logout error:', error);
 			// Continue with logout even if API call fails
 		}
-
-		// Manually clear the session cookie to ensure it's removed
-		// Better-auth should handle this, but we clear it as a fallback
-		// Handle both production (__Secure-) and development cookie names
-		const cookieNames = [
-			'__Secure-better-auth.session_token',
-			'better-auth.session_token',
-			'better-auth.sessionToken',
-		];
-
-		cookieNames.forEach((cookieName) => {
-			// Clear cookie by setting it to expire in the past
-			// Must match the exact path and domain settings
-			document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname}; SameSite=Lax; Secure;`;
-			// Also try without domain (for localhost)
-			document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax; Secure;`;
-			// And without Secure flag (for http)
-			document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax;`;
-		});
 
 		// Clear any local state
 		window.dispatchEvent(
@@ -195,7 +173,10 @@ export function AppSidebar({
 
 		// Force redirect to login page - use replace to prevent back button
 		// This bypasses Next.js router and ensures immediate redirect
-		window.location.replace('/admin');
+		// Wait a brief moment to ensure cookies are cleared server-side
+		setTimeout(() => {
+			window.location.replace('/admin');
+		}, 100);
 	}, []);
 
 	return (
