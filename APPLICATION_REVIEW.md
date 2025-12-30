@@ -526,7 +526,7 @@ Run `npm outdated` regularly to check for:
 ### Long-term (Next Quarter)
 
 1. **Payment Integration** - Stripe or PayPal
-2. **Email Service** - SendGrid or similar
+2. **Email Service** - Resend (configured)
 3. **CDN** - CloudFront or Cloudflare
 4. **Advanced Features** - Scheduled posts, newsletters
 5. **Mobile App** - React Native app

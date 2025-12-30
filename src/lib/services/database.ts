@@ -105,15 +105,25 @@ class PrismaAdapter implements DatabaseAdapter {
 	async findUserByEmail(
 		email: string
 	): Promise<User | null> {
-		return this.prismaClient.user.findUnique({
+		const user = await this.prismaClient.user.findUnique({
 			where: { email },
-		}) as Promise<User | null>;
+		});
+		if (!user) return null;
+		return {
+			...user,
+			password: null, // Password is stored in Account model
+		} as User;
 	}
 
 	async findUserById(id: string): Promise<User | null> {
-		return this.prismaClient.user.findUnique({
+		const user = await this.prismaClient.user.findUnique({
 			where: { id },
-		}) as Promise<User | null>;
+		});
+		if (!user) return null;
+		return {
+			...user,
+			password: null, // Password is stored in Account model
+		} as User;
 	}
 
 	async createUser(
@@ -124,11 +134,17 @@ class PrismaAdapter implements DatabaseAdapter {
 			| 'updatedAt'
 			| 'posts'
 			| 'comments'
+			| 'password'
 		>
 	): Promise<User> {
-		return this.prismaClient.user.create({
-			data,
-		}) as Promise<User>;
+		const { password, ...userData } = data as any;
+		const created = await this.prismaClient.user.create({
+			data: userData,
+		});
+		return {
+			...created,
+			password: null, // Password is stored in Account model, not User
+		} as User;
 	}
 
 	async findPosts(
@@ -178,14 +194,21 @@ class PrismaAdapter implements DatabaseAdapter {
 				? pagination.page * pagination.limit
 				: undefined,
 		});
-		return posts as Post[];
+		// Transform posts to match Post type, adding password: null to author
+		return posts.map(post => ({
+			...post,
+			author: post.author ? {
+				...post.author,
+				password: null, // Password is stored in Account model
+			} : undefined,
+		})) as Post[];
 	}
 
 	async findPostBySlug(
 		slug: string,
 		published?: boolean
 	): Promise<Post | null> {
-		return this.prismaClient.post.findFirst({
+		const post = await this.prismaClient.post.findFirst({
 			where: {
 				slug,
 				...(published !== undefined && { published }),
@@ -195,6 +218,14 @@ class PrismaAdapter implements DatabaseAdapter {
 				tags: true,
 			},
 		});
+		if (!post) return null;
+		return {
+			...post,
+			author: post.author ? {
+				...post.author,
+				password: null, // Password is stored in Account model
+			} : undefined,
+		} as Post;
 	}
 
 	async createPost(
@@ -216,7 +247,14 @@ class PrismaAdapter implements DatabaseAdapter {
 				tags: true,
 			},
 		});
-		return result as Post;
+		// Transform to match Post type, adding password: null to author
+		return {
+			...result,
+			author: result.author ? {
+				...result.author,
+				password: null, // Password is stored in Account model
+			} : undefined,
+		} as Post;
 	}
 
 	async updatePost(
@@ -239,7 +277,14 @@ class PrismaAdapter implements DatabaseAdapter {
 				tags: true,
 			},
 		});
-		return result as Post;
+		// Transform to match Post type, adding password: null to author
+		return {
+			...result,
+			author: result.author ? {
+				...result.author,
+				password: null, // Password is stored in Account model
+			} : undefined,
+		} as Post;
 	}
 
 	async deletePost(id: string): Promise<boolean> {

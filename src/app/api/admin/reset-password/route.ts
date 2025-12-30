@@ -12,9 +12,15 @@ import bcryptjs from 'bcryptjs';
 export async function POST(request: NextRequest) {
 	try {
 		// Require admin authentication
-		const adminCheck = await requireAdmin(request);
-		if (adminCheck) {
-			return adminCheck; // Returns error response if not admin
+		const { error, user: adminUser } = await requireAdmin();
+		if (error) {
+			return error; // Returns error response if not admin
+		}
+		if (!adminUser) {
+			return NextResponse.json(
+				{ error: 'Unauthorized' },
+				{ status: 401 }
+			);
 		}
 
 		const body = await request.json();
@@ -34,7 +40,7 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
-		// Find the user
+		// Find the user whose password is being reset
 		const user = await prisma.user.findUnique({
 			where: { email },
 			include: {

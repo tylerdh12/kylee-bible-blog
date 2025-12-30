@@ -11,10 +11,43 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { DatabaseService } from '@/lib/services/database';
 import type { Goal } from '@/types';
+import { prisma } from '@/lib/db';
 
 // Use dynamic rendering to fetch fresh data
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+
+async function getSiteContent(page: string) {
+	try {
+		const content = await prisma.siteContent.findMany({
+			where: { page },
+			orderBy: [{ section: 'asc' }, { order: 'asc' }],
+		});
+
+		const contentMap: Record<string, string> = {};
+		content.forEach((item) => {
+			// Store content even if it's an empty string - use nullish coalescing to preserve empty strings
+			contentMap[item.key] = item.content ?? '';
+		});
+
+		// Debug logging in development
+		if (process.env.NODE_ENV === 'development') {
+			console.log(`[getSiteContent] Fetched ${content.length} items for page "${page}"`);
+			console.log(`[getSiteContent] Content keys:`, Object.keys(contentMap));
+			if (content.length > 0) {
+				console.log(`[getSiteContent] Sample content:`, content.slice(0, 3).map(c => ({ key: c.key, content: c.content?.substring(0, 50) })));
+			}
+		}
+
+		return contentMap;
+	} catch (error: any) {
+		// Silently handle errors - defaults will be used
+		if (error?.code !== 'P2021' && !error?.message?.includes('does not exist')) {
+			console.error('Error fetching site content:', error);
+		}
+		return {};
+	}
+}
 
 export const metadata: Metadata = {
 	title:
@@ -71,19 +104,34 @@ function formatCurrency(amount: number): string {
 
 export default async function GoalsPage() {
 	const goals = await getGoals();
+	const siteContent = await getSiteContent('goals');
+
+	// Debug logging in development
+	if (process.env.NODE_ENV === 'development') {
+		console.log('[Goals Page] Site content keys:', Object.keys(siteContent));
+		console.log('[Goals Page] Title from DB:', siteContent['goals.title']);
+		console.log('[Goals Page] Description from DB:', siteContent['goals.description']);
+	}
+
+	// Use nullish coalescing to check if key exists, not just if value is truthy
+	const pageTitle = siteContent['goals.title'] !== undefined ? siteContent['goals.title'] : 'Ministry Goals';
+	const pageDescription = siteContent['goals.description'] !== undefined ? siteContent['goals.description'] : "Support Kylee's Bible study journey and ministry goals. Every contribution helps further God's work and spreads His love.";
+	const emptyTitle = siteContent['goals.empty.title'] !== undefined ? siteContent['goals.empty.title'] : 'Ministry Goals Coming Soon';
+	const emptyDescription = siteContent['goals.empty.description'] !== undefined ? siteContent['goals.empty.description'] : "Kylee is setting up ministry goals to support her Bible study journey and outreach.";
+	const emptyFooter = siteContent['goals.empty.footer'] !== undefined ? siteContent['goals.empty.footer'] : 'Check back soon for opportunities to support Bible study resources, ministry events, and community outreach programs.';
+	const supportTitle = siteContent['goals.support.title'] !== undefined ? siteContent['goals.support.title'] : 'Want to Support in Other Ways?';
+	const supportDescription = siteContent['goals.support.description'] !== undefined ? siteContent['goals.support.description'] : "You can also support Kylee's ministry through prayer, sharing her posts, or connecting her with others who might benefit from her Bible studies.";
 
 	return (
 		<div className='min-h-screen bg-gradient-to-br from-background to-muted/20'>
 			<div className='container px-4 py-8 mx-auto'>
 				{/* Header */}
 				<div className='mb-12 text-center'>
-					<h1 className='mb-4 text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r md:text-5xl from-primary to-primary/60'>
-						Ministry Goals
+					<h1 className='mb-4 text-3xl font-bold leading-tight text-transparent bg-clip-text bg-gradient-to-r md:text-4xl from-primary to-primary/60 pb-1'>
+						{pageTitle}
 					</h1>
 					<p className='mx-auto max-w-2xl text-xl text-muted-foreground'>
-						Support Kylee's Bible study journey and ministry
-						goals. Every contribution helps further God's
-						work and spreads His love.
+						{pageDescription}
 					</p>
 				</div>
 
@@ -211,13 +259,10 @@ export default async function GoalsPage() {
 					<Card>
 						<CardContent className='py-8'>
 							<h3 className='mb-4 text-xl font-semibold'>
-								Want to Support in Other Ways?
+								{supportTitle}
 							</h3>
 							<p className='mb-4 text-muted-foreground'>
-								You can also support Kylee's ministry
-								through prayer, sharing her posts, or
-								connecting her with others who might benefit
-								from her Bible studies.
+								{supportDescription}
 							</p>
 							<Link href='/donate'>
 								<Button variant='outline'>

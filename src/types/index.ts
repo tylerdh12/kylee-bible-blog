@@ -4,7 +4,7 @@ export type UserRole = 'ADMIN' | 'DEVELOPER' | 'SUBSCRIBER';
 export interface User {
 	id: string;
 	email: string;
-	password: string | null;
+	password?: string | null; // Optional - passwords are stored in Account model
 	name: string | null;
 	role: UserRole;
 	isActive: boolean;
@@ -178,9 +178,14 @@ export interface PostForm {
 
 // UI Component types
 export interface UIUser {
+	id: string;
 	name: string | null;
 	email: string;
+	role: 'ADMIN' | 'DEVELOPER' | 'SUBSCRIBER';
+	isActive: boolean;
 	avatar?: string;
+	bio?: string | null;
+	website?: string | null;
 }
 
 // Component prop types

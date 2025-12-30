@@ -40,6 +40,10 @@ async function getProfile(userId: string) {
 		commentsCount: userProfile._count.comments,
 		createdAt: userProfile.createdAt.toISOString(),
 		updatedAt: userProfile.updatedAt.toISOString(),
+		role: userProfile.role || 'SUBSCRIBER', // Default to SUBSCRIBER if null
+		avatar: userProfile.avatar ?? undefined,
+		bio: userProfile.bio ?? undefined,
+		website: userProfile.website ?? undefined,
 	};
 }
 

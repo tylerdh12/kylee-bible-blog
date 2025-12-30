@@ -14,7 +14,9 @@ export default function Error({
   reset: () => void
 }) {
   useEffect(() => {
-    console.error('Global error boundary caught:', error)
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Global error boundary caught:', error)
+    }
   }, [error])
 
   const isDevelopment = process.env.NODE_ENV === 'development'

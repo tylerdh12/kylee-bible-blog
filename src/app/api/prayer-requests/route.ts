@@ -2,9 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { createPrayerRequestSchema } from '@/lib/validation/schemas';
 import { createValidationErrorResponse } from '@/lib/validation/schemas';
+import { isFeatureEnabled } from '@/lib/settings';
 
 export async function POST(request: NextRequest) {
 	try {
+		// Check if prayer requests are enabled
+		const enabled = await isFeatureEnabled('prayerRequests');
+		if (!enabled) {
+			return NextResponse.json(
+				{ error: 'Prayer requests are currently disabled' },
+				{ status: 403 }
+			);
+		}
+
 		const body = await request.json();
 		const validation =
 			createPrayerRequestSchema.safeParse(body);

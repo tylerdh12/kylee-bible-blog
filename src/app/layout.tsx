@@ -1,13 +1,31 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
-import { ConditionalNavbar, ConditionalMainLayout } from '@/components/conditional-navbar';
-import { ErrorBoundary } from '@/components/error-boundary';
+import { Toaster } from 'sonner';
+import MaintenanceCheck from '@/components/maintenance-check';
 
 export const metadata: Metadata = {
 	title: "Kylee's Blog - Bible Study Journey",
 	description:
 		"Follow Kylee's Bible study journey, support her goals, and join her community.",
+	icons: {
+		icon: [
+			{ url: '/favicon/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+			{ url: '/favicon/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+			{ url: '/favicon.ico', sizes: 'any' }, // Root-level for browser auto-discovery
+			{ url: '/favicon/favicon.ico', sizes: 'any' },
+		],
+		apple: [
+			{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }, // Root-level for browser auto-discovery
+			{ url: '/favicon/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+		],
+		other: [
+			{
+				rel: 'manifest',
+				url: '/favicon/site.webmanifest',
+			},
+		],
+	},
 };
 
 export default function RootLayout({
@@ -33,10 +51,8 @@ export default function RootLayout({
 					>
 						Skip to main content
 					</a>
-					<ConditionalNavbar />
-					<ConditionalMainLayout>
-						<ErrorBoundary>{children}</ErrorBoundary>
-					</ConditionalMainLayout>
+					<MaintenanceCheck>{children}</MaintenanceCheck>
+					<Toaster />
 				</ThemeProvider>
 			</body>
 		</html>

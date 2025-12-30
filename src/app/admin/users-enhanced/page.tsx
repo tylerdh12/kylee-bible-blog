@@ -761,7 +761,7 @@ export default function UsersEnhancedPage() {
 															<div className='flex items-center gap-3'>
 																<Avatar className='h-8 w-8'>
 																	<AvatarImage
-																		src={user.avatar || user.image || undefined}
+																		src={user.avatar || undefined}
 																	/>
 																	<AvatarFallback>
 																		{user.name
@@ -1200,7 +1200,7 @@ export default function UsersEnhancedPage() {
 							<div className='flex items-center gap-4'>
 								<Avatar className='h-20 w-20'>
 									<AvatarImage
-										src={viewingUser.avatar || viewingUser.image || undefined}
+										src={viewingUser.avatar || undefined}
 									/>
 									<AvatarFallback className='text-lg'>
 										{viewingUser.name

@@ -36,7 +36,13 @@ export function Navbar() {
 	const [isScrolled, setIsScrolled] = useState(false);
 	const [isMobileMenuOpen, setIsMobileMenuOpen] =
 		useState(false);
+	const [isMounted, setIsMounted] = useState(false);
 	const pathname = usePathname();
+
+	// Prevent hydration mismatch by only rendering Sheet on client
+	useEffect(() => {
+		setIsMounted(true);
+	}, []);
 
 	const navigationLinks: NavigationLink[] = [
 		{
@@ -231,43 +237,44 @@ export function Navbar() {
 						</Link>
 
 						{/* Mobile Menu Button */}
-						<Sheet
-							open={isMobileMenuOpen}
-							onOpenChange={setIsMobileMenuOpen}
-						>
-							<SheetTrigger asChild>
-								<Button
-									variant='outline'
-									size='sm'
-									className='relative p-0 w-9 h-9 lg:hidden group'
-									aria-label='Open navigation menu'
-									aria-expanded={isMobileMenuOpen}
-								>
-									<Menu
-										className={cn(
-											'w-5 h-5 transition-all duration-300',
-											isMobileMenuOpen &&
-												'rotate-90 opacity-0'
-										)}
-									/>
-									<X
-										className={cn(
-											'w-5 h-5 absolute transition-all duration-300',
-											!isMobileMenuOpen &&
-												'rotate-90 opacity-0',
-											isMobileMenuOpen &&
-												'rotate-0 opacity-100'
-										)}
-									/>
-									<span className='sr-only'>
-										Toggle navigation menu
-									</span>
-								</Button>
-							</SheetTrigger>
-							<SheetContent
-								side='right'
-								className='w-[85vw] max-w-sm sm:w-80 p-0 flex flex-col'
+						{isMounted ? (
+							<Sheet
+								open={isMobileMenuOpen}
+								onOpenChange={setIsMobileMenuOpen}
 							>
+								<SheetTrigger asChild>
+									<Button
+										variant='outline'
+										size='sm'
+										className='relative p-0 w-9 h-9 lg:hidden group'
+										aria-label='Open navigation menu'
+										aria-expanded={isMobileMenuOpen}
+									>
+										<Menu
+											className={cn(
+												'w-5 h-5 transition-all duration-300',
+												isMobileMenuOpen &&
+													'rotate-90 opacity-0'
+											)}
+										/>
+										<X
+											className={cn(
+												'w-5 h-5 absolute transition-all duration-300',
+												!isMobileMenuOpen &&
+													'rotate-90 opacity-0',
+												isMobileMenuOpen &&
+													'rotate-0 opacity-100'
+											)}
+										/>
+										<span className='sr-only'>
+											Toggle navigation menu
+										</span>
+									</Button>
+								</SheetTrigger>
+								<SheetContent
+									side='right'
+									className='w-[85vw] max-w-sm sm:w-80 p-0 flex flex-col'
+								>
 								{/* Mobile Menu Header */}
 								<SheetHeader className='px-6 pt-6 pb-4 border-b'>
 									<SheetTitle className='flex items-center space-x-3 text-left'>
@@ -394,6 +401,22 @@ export function Navbar() {
 								</div>
 							</SheetContent>
 						</Sheet>
+						) : (
+							// Render button without Sheet during SSR to prevent hydration mismatch
+							<Button
+								variant='outline'
+								size='sm'
+								className='relative p-0 w-9 h-9 lg:hidden group'
+								aria-label='Open navigation menu'
+								aria-expanded={false}
+								disabled
+							>
+								<Menu className='w-5 h-5 transition-all duration-300' />
+								<span className='sr-only'>
+									Toggle navigation menu
+								</span>
+							</Button>
+						)}
 					</div>
 				</div>
 			</div>

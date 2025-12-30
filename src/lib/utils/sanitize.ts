@@ -68,3 +68,29 @@ export function sanitizeText(text: string): string {
 export function sanitizeUserInput(input: string): string {
   return sanitizeText(input)
 }
+
+/**
+ * Strip HTML tags and get plain text for previews/excerpts
+ * Useful for displaying post content in cards without HTML markup
+ */
+export function stripHtmlToText(html: string, maxLength?: number): string {
+  if (!html || typeof html !== 'string') {
+    return ''
+  }
+
+  // Use sanitizeText to strip all HTML tags and get plain text
+  let text = sanitizeText(html)
+
+  // Truncate if maxLength is provided
+  if (maxLength && text.length > maxLength) {
+    text = text.substring(0, maxLength).trim()
+    // Don't cut off in the middle of a word if possible
+    const lastSpace = text.lastIndexOf(' ')
+    if (lastSpace > maxLength * 0.8) {
+      text = text.substring(0, lastSpace)
+    }
+    text += '...'
+  }
+
+  return text
+}

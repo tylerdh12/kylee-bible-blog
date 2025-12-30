@@ -3,6 +3,7 @@
 import {
 	BookOpen,
 	Calendar,
+	ExternalLink,
 	FileText,
 	Heart,
 	HeartHandshake,
@@ -18,6 +19,7 @@ import {
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import * as React from 'react';
+import { useCallback } from 'react';
 
 import {
 	Avatar,
@@ -124,7 +126,7 @@ const engagementItems = [
 const adminItems = [
 	{
 		title: 'Users',
-		url: '/admin/users',
+		url: '/admin/users-enhanced',
 		icon: Users,
 	},
 	{
@@ -145,14 +147,39 @@ export function AppSidebar({
 }: AppSidebarProps) {
 	const pathname = usePathname();
 
-	const handleLogout = async () => {
+	const handleLogout = useCallback(async () => {
 		try {
-			await fetch('/api/auth/logout', { method: 'POST' });
-			window.location.href = '/admin';
+			// Use better-auth sign-out endpoint
+			const response = await fetch('/api/auth/sign-out', {
+				method: 'POST',
+				credentials: 'include',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({}),
+			});
+
+			// Clear any local state immediately (don't wait for response)
+			window.dispatchEvent(
+				new CustomEvent('auth-changed', {
+					detail: { authenticated: false, user: null },
+				})
+			);
+
+			// Force redirect to login page - use replace to prevent back button
+			// Don't wait for response, redirect immediately for better UX
+			window.location.replace('/admin');
 		} catch (error) {
 			console.error('Logout error:', error);
+			// Fallback: clear state and redirect anyway
+			window.dispatchEvent(
+				new CustomEvent('auth-changed', {
+					detail: { authenticated: false, user: null },
+				})
+			);
+			window.location.replace('/admin');
 		}
-	};
+	}, []);
 
 	return (
 		<Sidebar
@@ -160,8 +187,8 @@ export function AppSidebar({
 			{...props}
 		>
 			{/* Integrated Header */}
-			<SidebarHeader className='border-b'>
-				<div className='flex items-center justify-between py-4 group-data-[variant=floating]:px-4 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-3'>
+			<SidebarHeader className='justify-center items-start h-16 border-b'>
+				<div className='flex items-center justify-between pl-2 group-data-[collapsible=icon]:pl-0 group-data-[collapsible=icon]:justify-center'>
 					<Link
 						href='/'
 						className='flex items-center space-x-3 min-w-0 group-data-[collapsible=icon]:space-x-0 group-data-[collapsible=icon]:justify-center transition-all duration-200 w-full group-data-[collapsible=icon]:w-auto'
@@ -192,7 +219,8 @@ export function AppSidebar({
 							<SidebarMenuItem>
 								<SidebarMenuButton
 									asChild
-									className='bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90'
+									isActive={pathname === '/admin/posts/new'}
+									className='bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90 hover:text-sidebar-primary-foreground hover:shadow-lg hover:scale-[1.02] dark:hover:bg-sidebar-primary/85 dark:hover:text-sidebar-primary-foreground dark:hover:shadow-xl transition-all duration-200'
 								>
 									<Link href='/admin/posts/new'>
 										<PlusCircle className='size-4' />
@@ -230,12 +258,13 @@ export function AppSidebar({
 								<SidebarMenuItem key={item.title}>
 									<SidebarMenuButton
 										asChild
-										tooltip={item.title}
+										tooltip={`${item.title} (Public Site)`}
 										isActive={pathname === item.url}
 									>
 										<Link href={item.url}>
 											<item.icon className='size-4' />
 											<span>{item.title}</span>
+											<ExternalLink className='ml-auto opacity-60 size-3' />
 										</Link>
 									</SidebarMenuButton>
 								</SidebarMenuItem>
@@ -279,7 +308,9 @@ export function AppSidebar({
 									<SidebarMenuButton
 										asChild
 										tooltip={item.title}
-										isActive={pathname === item.url}
+										isActive={pathname?.startsWith(
+											item.url
+										)}
 									>
 										<Link href={item.url}>
 											<item.icon className='size-4' />

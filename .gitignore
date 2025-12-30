@@ -48,3 +48,6 @@ logs
 .workflow/
 # Snyk Security Extension - AI Rules (auto-generated)
 .cursor/rules/snyk_rules.mdc
+
+# Archived files (one-time migrations, old docs)
+.archive/

@@ -247,7 +247,7 @@ This is a comprehensive Bible study blogging platform built with modern technolo
 
 1. **Feature Enhancements**
    - Payment integration (Stripe)
-   - Email service (SendGrid)
+   - Email service (Resend - configured)
    - Newsletter functionality
    - Advanced analytics
 
@@ -333,7 +333,7 @@ This review generated the following documentation:
 
 1. **Budget Planning**
    - Payment processor costs (Stripe: 2.9% + $0.30)
-   - Email service costs (SendGrid: ~$15/mo)
+   - Email service costs (Resend: Free tier 3,000 emails/month, then $20/mo)
    - CDN costs (Cloudflare: Free tier available)
    - Monitoring costs (Sentry: Free tier available)
 

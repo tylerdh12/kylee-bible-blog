@@ -2,10 +2,13 @@ import { notFound } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { DatabaseService } from '@/lib/services/database';
+import { getSiteSettings } from '@/lib/settings';
 import Link from 'next/link';
+import type { Metadata } from 'next';
+import { stripHtmlToText } from '@/lib/utils/sanitize';
 
-// Force dynamic rendering to avoid build-time database access
-export const dynamic = 'force-dynamic';
+// Use ISR for better performance - revalidate every 60 seconds
+export const revalidate = 60;
 
 async function getPost(slug: string) {
 	const db = DatabaseService.getInstance();
@@ -17,18 +20,107 @@ interface PageProps {
 	params: Promise<{ slug: string }>;
 }
 
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+	const { slug } = await params;
+	const [post, settings] = await Promise.all([
+		getPost(slug),
+		getSiteSettings(),
+	]);
+
+	if (!post) {
+		return {
+			title: 'Post Not Found',
+		};
+	}
+
+	const siteName = settings.siteName || "Kylee's Blog";
+	const siteUrl = settings.siteUrl || process.env.NEXT_PUBLIC_SITE_URL || '';
+	const postUrl = siteUrl ? `${siteUrl}/posts/${slug}` : `/posts/${slug}`;
+	const excerpt = post.excerpt 
+		? stripHtmlToText(post.excerpt, 160)
+		: stripHtmlToText(post.content, 160);
+	const description = excerpt || `${siteName} - ${post.title}`;
+
+	return {
+		title: `${post.title} - ${siteName}`,
+		description,
+		keywords: post.tags?.map(tag => tag.name) || [],
+		openGraph: {
+			title: post.title,
+			description,
+			type: 'article',
+			locale: 'en_US',
+			siteName: siteName,
+			...(siteUrl && { url: postUrl }),
+			...(post.publishedAt && {
+				publishedTime: new Date(post.publishedAt).toISOString(),
+			}),
+			...(post.author?.name && {
+				authors: [post.author.name],
+			}),
+		},
+		twitter: {
+			card: 'summary_large_image',
+			title: post.title,
+			description,
+		},
+		alternates: {
+			...(siteUrl && { canonical: postUrl }),
+		},
+	};
+}
+
 export default async function PostPage({
 	params,
 }: PageProps) {
 	const { slug } = await params;
-	const post = await getPost(slug);
+	const [post, settings] = await Promise.all([
+		getPost(slug),
+		getSiteSettings(),
+	]);
 
 	if (!post) {
 		notFound();
 	}
 
+	// Generate structured data for SEO
+	const siteName = settings.siteName || "Kylee's Blog";
+	const siteUrl = settings.siteUrl || process.env.NEXT_PUBLIC_SITE_URL || '';
+	const postUrl = siteUrl ? `${siteUrl}/posts/${slug}` : `/posts/${slug}`;
+	
+	const structuredData = {
+		'@context': 'https://schema.org',
+		'@type': 'BlogPosting',
+		headline: post.title,
+		description: post.excerpt 
+			? stripHtmlToText(post.excerpt, 160)
+			: stripHtmlToText(post.content, 160),
+		...(post.publishedAt && {
+			datePublished: new Date(post.publishedAt).toISOString(),
+		}),
+		...(post.updatedAt && {
+			dateModified: new Date(post.updatedAt).toISOString(),
+		}),
+		author: {
+			'@type': 'Person',
+			name: post.author?.name || siteName,
+		},
+		publisher: {
+			'@type': 'Organization',
+			name: siteName,
+		},
+		...(siteUrl && { url: postUrl }),
+		...(post.tags && post.tags.length > 0 && {
+			keywords: post.tags.map(tag => tag.name).join(', '),
+		}),
+	};
+
 	return (
 		<div className='min-h-screen bg-gradient-to-br from-background to-muted/10'>
+			<script
+				type='application/ld+json'
+				dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+			/>
 			<div className='container px-4 py-8 mx-auto max-w-4xl'>
 				<article>
 					{/* Breadcrumb Navigation */}
@@ -114,34 +206,50 @@ export default async function PostPage({
 				</article>
 
 				{/* Call-to-Action Section */}
-				<div className='pt-8 mt-16 border-t border-border/50'>
-					<div className='p-8 text-center bg-gradient-to-r rounded-xl from-primary/5 to-primary/10'>
-						<h3 className='mb-3 text-2xl font-semibold'>
-							💝 Was this post helpful?
-						</h3>
-						<p className='mx-auto mb-6 max-w-2xl text-muted-foreground'>
-							If this post blessed you or helped in your
-							spiritual journey, feel free to share your
-							prayer requests or connect with our community.
-						</p>
-						<div className='flex flex-col gap-4 justify-center sm:flex-row'>
-							<Link
-								href='/prayer-requests'
-								className='inline-flex justify-center items-center px-6 py-3 text-sm font-medium rounded-lg shadow-sm transition-all bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-md hover:scale-105'
-							>
-								<span className='mr-2'>🙏</span>
-								Share Prayer Request
-							</Link>
-							<Link
-								href='/about'
-								className='inline-flex justify-center items-center px-6 py-3 text-sm font-medium rounded-lg border shadow-sm transition-all border-input bg-background hover:bg-accent hover:text-accent-foreground hover:scale-105'
-							>
-								<span className='mr-2'>💖</span>
-								Learn About Kylee
-							</Link>
+				{(settings.allowPrayerRequests || settings.allowDonations) && (
+					<div className='pt-8 mt-16 border-t border-border/50'>
+						<div className='p-8 text-center bg-gradient-to-r rounded-xl from-primary/5 to-primary/10'>
+							<h3 className='mb-3 text-2xl font-semibold'>
+								💝 Was this post helpful?
+							</h3>
+							<p className='mx-auto mb-6 max-w-2xl text-muted-foreground'>
+								If this post blessed you or helped in your
+								spiritual journey, feel free to share your
+								prayer requests or connect with our community.
+							</p>
+							<div className='flex flex-col gap-4 justify-center sm:flex-row'>
+								{settings.allowPrayerRequests && (
+									<Link
+										href='/prayer-requests'
+										className='inline-flex justify-center items-center px-6 py-3 text-sm font-medium rounded-lg shadow-sm transition-all bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-md hover:scale-105'
+										prefetch={true}
+									>
+										<span className='mr-2'>🙏</span>
+										Share Prayer Request
+									</Link>
+								)}
+								{settings.allowDonations && (
+									<Link
+										href='/donate'
+										className='inline-flex justify-center items-center px-6 py-3 text-sm font-medium rounded-lg shadow-sm transition-all bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-md hover:scale-105'
+										prefetch={true}
+									>
+										<span className='mr-2'>💝</span>
+										Support the Ministry
+									</Link>
+								)}
+								<Link
+									href='/about'
+									className='inline-flex justify-center items-center px-6 py-3 text-sm font-medium rounded-lg border shadow-sm transition-all border-input bg-background hover:bg-accent hover:text-accent-foreground hover:scale-105'
+									prefetch={true}
+								>
+									<span className='mr-2'>💖</span>
+									Learn About Kylee
+								</Link>
+							</div>
 						</div>
 					</div>
-				</div>
+				)}
 
 				{/* Back to Posts */}
 				<div className='mt-8 text-center'>

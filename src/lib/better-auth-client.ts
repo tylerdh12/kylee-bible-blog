@@ -13,4 +13,4 @@ export const authClient = createAuthClient({
            (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'),
 });
 
-export const { useSession, signIn, signOut, useSignIn, useSignOut } = authClient;
+export const { useSession, signIn, signOut } = authClient;

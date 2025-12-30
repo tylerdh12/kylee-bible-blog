@@ -43,11 +43,11 @@ export function DashboardLayout({
 			<SidebarInset>
 				{/* Dashboard Header with breadcrumbs and controls */}
 				<header className='flex h-16 shrink-0 items-center gap-2 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
-					<div className='flex gap-2 items-center px-4 flex-1 min-w-0'>
-						<SidebarTrigger className='-ml-1 flex-shrink-0' />
+					<div className='flex flex-1 gap-2 items-center px-4 min-w-0'>
+						<SidebarTrigger className='flex-shrink-0 -ml-1' />
 						<Separator
 							orientation='vertical'
-							className='mr-2 h-4 flex-shrink-0'
+							className='flex-shrink-0 mr-2 h-4'
 						/>
 
 						{breadcrumbs.length > 0 && (
@@ -78,14 +78,14 @@ export function DashboardLayout({
 						)}
 
 						{title && !breadcrumbs.length && (
-							<h1 className='text-lg font-semibold truncate flex-1 min-w-0'>
+							<h1 className='flex-1 min-w-0 text-lg font-semibold truncate'>
 								{title}
 							</h1>
 						)}
 					</div>
 
 					{/* Right side controls */}
-					<div className='flex items-center gap-2 px-4 flex-shrink-0'>
+					<div className='flex flex-shrink-0 gap-2 items-center px-4'>
 						<ThemeToggle />
 					</div>
 				</header>

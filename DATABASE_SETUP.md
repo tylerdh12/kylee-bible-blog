@@ -1,8 +1,16 @@
 # Database Setup Guide
 
-## PostgreSQL Production Database
+## PostgreSQL Database (Neon)
 
-This application uses a PostgreSQL database hosted on Neon. All environments (development, staging, and production) should use the same production database for consistency.
+This application uses a PostgreSQL database hosted on Neon. All environments (development, staging, and production) use the same Neon database for consistency.
+
+### Database Details
+- **Provider**: Neon (Serverless PostgreSQL)
+- **Host**: `ep-gentle-river-afq83ggv-pooler.c-2.us-west-2.aws.neon.tech`
+- **Database**: `neondb`
+- **User**: `neondb_owner`
+- **Region**: US West 2 (AWS)
+- **Connection Pooling**: Enabled (pooler endpoint)
 
 ## Environment Configuration
 

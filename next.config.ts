@@ -28,8 +28,11 @@ const nextConfig: NextConfig = {
 			'@radix-ui/react-dialog',
 		],
 	},
+	// Webpack config is needed for production builds (npm run build)
+	// Turbopack (used in dev mode with --turbopack flag) automatically ignores this config
+	// The warning about webpack + Turbopack is expected and harmless - Turbopack will use its own bundler
 	webpack: (config, { isServer, dev }) => {
-		// Optimize for Vercel builds
+		// Optimize for production builds (webpack, not Turbopack)
 		if (!dev && !isServer) {
 			config.resolve.fallback = {
 				...config.resolve.fallback,

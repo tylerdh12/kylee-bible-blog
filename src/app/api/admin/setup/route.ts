@@ -113,23 +113,51 @@ export async function POST(request: Request) {
 		// Check if admin already exists
 		const existingAdmin = await prisma.user.findUnique({
 			where: { email },
+			include: {
+				accounts: {
+					where: { providerId: 'credential' },
+				},
+			},
 		});
 
 		if (existingAdmin) {
+			// Get the credential account
+			const account = existingAdmin.accounts[0];
+			
 			// Update password if different
-			if (!existingAdmin.password) {
+			if (!account || !account.password) {
 				// User exists but has no password (social login), set password
 				const hashedPassword = await bcryptjs.hash(
 					password,
 					12
 				);
+				
+				// Update or create account
+				if (account) {
+					await prisma.account.update({
+						where: { id: account.id },
+						data: { password: hashedPassword },
+					});
+				} else {
+					await prisma.account.create({
+						data: {
+							id: `acc_${existingAdmin.id}`,
+							accountId: existingAdmin.id,
+							providerId: 'credential',
+							userId: existingAdmin.id,
+							password: hashedPassword,
+						},
+					});
+				}
+				
+				// Ensure admin role is set
 				await prisma.user.update({
 					where: { email },
 					data: {
-						password: hashedPassword,
-						role: 'ADMIN', // Ensure admin role is set
+						role: 'ADMIN',
 					},
 				});
+				
 				return NextResponse.json({
 					success: true,
 					message: 'Admin password set successfully!',
@@ -138,25 +166,40 @@ export async function POST(request: Request) {
 
 			const passwordMatch = await bcryptjs.compare(
 				password,
-				existingAdmin.password
+				account.password
 			);
 			if (!passwordMatch) {
 				const hashedPassword = await bcryptjs.hash(
 					password,
 					12
 				);
+				await prisma.account.update({
+					where: { id: account.id },
+					data: { password: hashedPassword },
+				});
+				
+				// Ensure admin role is set
 				await prisma.user.update({
 					where: { email },
 					data: {
-						password: hashedPassword,
-						role: 'ADMIN', // Ensure admin role is set
+						role: 'ADMIN',
 					},
 				});
+				
 				return NextResponse.json({
 					success: true,
 					message: 'Admin password updated successfully!',
 				});
 			}
+			
+			// Ensure admin role is set even if password matches
+			await prisma.user.update({
+				where: { email },
+				data: {
+					role: 'ADMIN',
+				},
+			});
+			
 			return NextResponse.json({
 				success: true,
 				message:
@@ -170,12 +213,22 @@ export async function POST(request: Request) {
 			12
 		);
 
-		await prisma.user.create({
+		const newUser = await prisma.user.create({
 			data: {
 				email,
-				password: hashedPassword,
 				name,
 				role: 'ADMIN',
+			},
+		});
+
+		// Create account with password
+		await prisma.account.create({
+			data: {
+				id: `acc_${newUser.id}`,
+				accountId: newUser.id,
+				providerId: 'credential',
+				userId: newUser.id,
+				password: hashedPassword,
 			},
 		});
 

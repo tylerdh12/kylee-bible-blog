@@ -13,7 +13,9 @@ export function AsyncErrorBoundary({ children, fallback }: AsyncErrorBoundaryPro
 
   useEffect(() => {
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-      console.error('Unhandled promise rejection:', event.reason)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Unhandled promise rejection:', event.reason)
+      }
 
       if (event.reason instanceof Error) {
         setAsyncError(event.reason)
@@ -25,7 +27,9 @@ export function AsyncErrorBoundary({ children, fallback }: AsyncErrorBoundaryPro
     }
 
     const handleError = (event: ErrorEvent) => {
-      console.error('Global error event:', event.error)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Global error event:', event.error)
+      }
       setAsyncError(event.error)
     }
 

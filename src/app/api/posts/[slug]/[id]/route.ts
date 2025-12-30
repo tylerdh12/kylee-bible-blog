@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuthenticatedUser } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/auth-new';
 import { DatabaseService } from '@/lib/services/database';
 import { sanitizeHtml, sanitizeText } from '@/lib/utils/sanitize';
 
@@ -36,7 +36,9 @@ export async function GET(
 
 		return NextResponse.json({ post });
 	} catch (error) {
-		console.error('Error fetching post:', error);
+		if (process.env.NODE_ENV === 'development') {
+			console.error('Error fetching post:', error);
+		}
 		return NextResponse.json(
 			{ error: 'Internal server error' },
 			{ status: 500 }
@@ -88,6 +90,14 @@ export async function PUT(
 			}
 		}
 
+		// Get existing post to check if it was already published
+		const { prisma } = await import('@/lib/db');
+		const existingPost = await prisma.post.findUnique({
+			where: { id },
+			select: { published: true, publishedAt: true },
+		});
+		const wasAlreadyPublished = existingPost?.published && existingPost?.publishedAt;
+
 		const updateData: any = {
 			title: sanitizedTitle,
 			content: sanitizedContent,
@@ -98,7 +108,8 @@ export async function PUT(
 		};
 
 		// Only set publishedAt if we're publishing for the first time
-		if (published) {
+		const isBeingPublishedNow = published && !wasAlreadyPublished;
+		if (isBeingPublishedNow) {
 			updateData.publishedAt = new Date();
 		}
 
@@ -111,12 +122,44 @@ export async function PUT(
 			);
 		}
 
+		// Send email notifications if post is being published for the first time
+		if (isBeingPublishedNow && post.publishedAt) {
+			try {
+				const { getSiteSettings } = await import('@/lib/settings');
+				const settings = await getSiteSettings();
+				const siteUrl = settings.siteUrl || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+				const siteName = settings.siteName || "Kylee's Blog";
+				const postUrl = `${siteUrl}/posts/${post.slug}`;
+
+				// Send notifications asynchronously (don't wait for it)
+				const { sendNewPostNotifications } = await import('@/lib/utils/email');
+				sendNewPostNotifications(
+					post.title,
+					post.excerpt || null,
+					postUrl,
+					siteName
+				).catch((error) => {
+					// Log error but don't fail the request
+					if (process.env.NODE_ENV === 'development') {
+						console.error('Failed to send post notifications:', error);
+					}
+				});
+			} catch (error) {
+				// Don't fail the request if notification sending fails
+				if (process.env.NODE_ENV === 'development') {
+					console.error('Error setting up post notifications:', error);
+				}
+			}
+		}
+
 		return NextResponse.json({
 			message: 'Post updated successfully',
 			post,
 		});
 	} catch (error) {
-		console.error('Error updating post:', error);
+		if (process.env.NODE_ENV === 'development') {
+			console.error('Error updating post:', error);
+		}
 		return NextResponse.json(
 			{ error: 'Internal server error' },
 			{ status: 500 }
@@ -151,7 +194,9 @@ export async function DELETE(
 			message: 'Post deleted successfully',
 		});
 	} catch (error) {
-		console.error('Error deleting post:', error);
+		if (process.env.NODE_ENV === 'development') {
+			console.error('Error deleting post:', error);
+		}
 		return NextResponse.json(
 			{ error: 'Internal server error' },
 			{ status: 500 }

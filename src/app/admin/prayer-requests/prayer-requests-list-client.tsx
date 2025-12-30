@@ -151,7 +151,7 @@ export default function PrayerRequestsListClient({ initialPrayerRequests }: Pray
 										</p>
 									)}
 									<p className='text-sm'>
-										{request.message}
+										{request.request}
 									</p>
 									<div className='flex justify-between items-center'>
 										<span className='text-xs text-muted-foreground'>

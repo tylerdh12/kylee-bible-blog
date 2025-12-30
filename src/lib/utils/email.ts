@@ -35,10 +35,7 @@ export async function sendEmail(
 		try {
 			// Dynamic import - Resend is now installed, so this will work in production
 			const resendModule = await import('resend');
-			const Resend =
-				resendModule.Resend ||
-				resendModule.default?.Resend ||
-				resendModule.default;
+			const Resend = resendModule.Resend || (resendModule as any).default;
 			if (Resend) {
 				const resend = new Resend(
 					process.env.RESEND_API_KEY

@@ -11,7 +11,7 @@ A modern, production-ready blog platform built specifically for Bible study enth
 - **📱 Responsive Design**: Beautiful, mobile-first UI that works on all devices
 - **🌙 Dark Mode**: Built-in theme switching with system preference detection
 - **👨‍💼 Admin Dashboard**: Comprehensive admin interface for content management
-- **🔐 Authentication**: Secure JWT-based admin login system
+- **🔐 Authentication**: Better Auth with role-based access control
 - **🧪 Full Test Coverage**: Unit, integration, and E2E tests
 - **⚡ Performance**: Optimized with Next.js 15 and Turbopack
 - **🚀 Production Ready**: Complete CI/CD pipeline and deployment configurations
@@ -57,7 +57,7 @@ For detailed security documentation, see [SECURITY_ISSUES_AND_FIXES.md](./SECURI
 - **Database**: PostgreSQL with Prisma ORM
 - **Styling**: Tailwind CSS + ShadCN UI components
 - **Editor**: TipTap 3.x rich text editor
-- **Authentication**: Custom JWT auth with bcryptjs
+- **Authentication**: Better Auth with email/password and session management
 - **Security**: DOMPurify for XSS prevention, RBAC, rate limiting
 - **Error Monitoring**: Sentry for error tracking and performance monitoring
 - **Testing**: Jest + React Testing Library + Playwright
@@ -140,7 +140,12 @@ npm run test:all        # Run both unit and E2E tests
 # Database Configuration
 DATABASE_URL="postgresql://username:password@localhost:5432/kylee_blog"
 
-# Authentication Secrets (REQUIRED - generate secure random strings)
+# Authentication (Better Auth - REQUIRED)
+BETTER_AUTH_SECRET="your-super-secure-secret-key-minimum-32-characters"
+BETTER_AUTH_URL="http://localhost:3000"
+NEXT_PUBLIC_BETTER_AUTH_URL="http://localhost:3000"
+
+# Legacy support (optional - for backward compatibility)
 JWT_SECRET="your-super-secure-jwt-secret-key-minimum-32-characters"
 NEXTAUTH_SECRET="your-nextauth-secret-minimum-32-characters"
 NEXTAUTH_URL="http://localhost:3000"
@@ -155,20 +160,25 @@ MOCK_ADMIN_PASSWORD_HASH="$2b$12$vTCWqUKNTGANclWDOkqXe.yKfRI/J1mIbtn5JjbL57oD71K
 NODE_ENV="development"
 NEXT_PUBLIC_BASE_URL="http://localhost:3000"
 
-# Sentry Configuration (See SENTRY_SETUP.md for details)
+# Email Service (Optional - Resend)
+RESEND_API_KEY="re_your_api_key_here"
+EMAIL_FROM="noreply@yourdomain.com"
+
+# Sentry Configuration (Optional)
 NEXT_PUBLIC_SENTRY_DSN="your-sentry-dsn-here"
 SENTRY_AUTH_TOKEN="your-sentry-auth-token-here"
 ```
 
 **Important Security Notes**:
 
-- `ADMIN_DEFAULT_PASSWORD` is now **required** for all admin scripts
+- `BETTER_AUTH_SECRET` is **required** - generate a secure random string (minimum 32 characters)
 - Never commit `.env.local` to version control
 - Use strong, unique passwords for production
-- Generate secure random strings for JWT_SECRET and NEXTAUTH_SECRET
+- Generate secure random strings for all secrets (use `openssl rand -base64 32`)
 
-For Sentry setup instructions, see [SENTRY_SETUP.md](./SENTRY_SETUP.md).
-For production deployment, see [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed instructions.
+For production deployment, see [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) and [PRODUCTION_READY.md](./PRODUCTION_READY.md) for detailed instructions.
+For database setup, see [DATABASE_SETUP.md](./DATABASE_SETUP.md).
+For admin user creation, see [ADMIN_SETUP_GUIDE.md](./ADMIN_SETUP_GUIDE.md).
 
 ## 🚀 Deployment
 
@@ -201,8 +211,8 @@ For detailed deployment instructions, see [DEPLOYMENT.md](./DEPLOYMENT.md).
 ### Admin Access
 
 1. Visit `/admin` to access the admin dashboard
-2. Default login: `kylee@example.com` (set up your own admin user)
-3. Create and manage blog posts, goals, and view donations
+2. Create your first admin user using the setup script (see [ADMIN_SETUP_GUIDE.md](./ADMIN_SETUP_GUIDE.md))
+3. Create and manage blog posts, goals, users, and view donations
 
 ### Content Management
 
@@ -218,13 +228,19 @@ For detailed deployment instructions, see [DEPLOYMENT.md](./DEPLOYMENT.md).
 
 ## Database Schema
 
-The app includes the following main models:
+The app uses Prisma with PostgreSQL and includes the following main models:
 
-- **User**: Admin users with authentication
+- **User**: Users with Better Auth authentication (roles: ADMIN, DEVELOPER, SUBSCRIBER)
+- **Session**: Active user sessions (Better Auth)
+- **Account**: User accounts for authentication (Better Auth)
 - **Post**: Blog posts with rich content and metadata
+- **Comment**: User comments on posts
 - **Goal**: Fundraising goals with progress tracking
 - **Donation**: Individual donations linked to goals
 - **Tag**: Organizational tags for posts
+- **SiteContent**: Static site content management
+
+See `prisma/schema.prisma` for the complete schema definition.
 
 ## Contributing
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuthenticatedUser } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/auth-new';
 import { DatabaseService } from '@/lib/services/database';
 import { sanitizeHtml, sanitizeText } from '@/lib/utils/sanitize';
 import type { PostsResponse } from '@/types';
@@ -59,13 +59,44 @@ export async function POST(request: NextRequest) {
 			authorId: user.id,
 		});
 
+		// Send email notifications if post is published
+		if (published && post.publishedAt) {
+			try {
+				const { getSiteSettings } = await import('@/lib/settings');
+				const settings = await getSiteSettings();
+				const siteUrl = settings.siteUrl || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+				const siteName = settings.siteName || "Kylee's Blog";
+				const postUrl = `${siteUrl}/posts/${post.slug}`;
+
+				// Send notifications asynchronously (don't wait for it)
+				const { sendNewPostNotifications } = await import('@/lib/utils/email');
+				sendNewPostNotifications(
+					post.title,
+					post.excerpt || null,
+					postUrl,
+					siteName
+				).catch((error) => {
+					// Log error but don't fail the request
+					if (process.env.NODE_ENV === 'development') {
+						console.error('Failed to send post notifications:', error);
+					}
+				});
+			} catch (error) {
+				// Don't fail the request if notification sending fails
+				if (process.env.NODE_ENV === 'development') {
+					console.error('Error setting up post notifications:', error);
+				}
+			}
+		}
 
 		return NextResponse.json({
 			message: 'Post created successfully',
 			post,
 		});
 	} catch (error) {
-		console.error('Error creating post:', error);
+		if (process.env.NODE_ENV === 'development') {
+			console.error('Error creating post:', error);
+		}
 		return NextResponse.json(
 			{ error: 'Internal server error' },
 			{ status: 500 }
@@ -92,7 +123,9 @@ export async function GET() {
 		const response: PostsResponse = { posts };
 		return NextResponse.json(response);
 	} catch (error) {
-		console.error('Error fetching posts:', error);
+		if (process.env.NODE_ENV === 'development') {
+			console.error('Error fetching posts:', error);
+		}
 		return NextResponse.json(
 			{ error: 'Internal server error' },
 			{ status: 500 }

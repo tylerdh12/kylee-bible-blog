@@ -200,7 +200,7 @@
   - [ ] Add refund capability
 
 - [ ] **Email service integration**
-  - [ ] Choose email provider (SendGrid, Mailgun, etc.)
+  - [x] Choose email provider (Resend - configured)
   - [ ] Set up email templates
   - [ ] Implement transactional emails
   - [ ] Add email tracking

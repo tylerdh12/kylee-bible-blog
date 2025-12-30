@@ -11,6 +11,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { format } from 'date-fns';
+import { stripHtmlToText } from '@/lib/utils/sanitize';
 import type { Post } from '@/types';
 
 export function PostsContent() {
@@ -147,8 +148,9 @@ export function PostsContent() {
 					</CardHeader>
 					<CardContent>
 						<p className='text-muted-foreground mb-4 line-clamp-3'>
-							{post.excerpt ||
-								post.content.substring(0, 150) + '...'}
+							{post.excerpt
+								? stripHtmlToText(post.excerpt, 150)
+								: stripHtmlToText(post.content, 150)}
 						</p>
 						{post.tags && post.tags.length > 0 && (
 							<div className='flex flex-wrap gap-2 mb-4'>

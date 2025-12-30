@@ -72,6 +72,16 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
 	try {
+		// Check if donations are enabled
+		const { isFeatureEnabled } = await import('@/lib/settings');
+		const enabled = await isFeatureEnabled('donations');
+		if (!enabled) {
+			return NextResponse.json(
+				{ error: 'Donations are currently disabled' },
+				{ status: 403 }
+			);
+		}
+
 		// Apply rate limiting (stricter for POST)
 		const rateLimitResult = donationsRateLimit(request);
 		if (!rateLimitResult.success) {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { getAuthenticatedUser } from '@/lib/auth'
+import { getAuthenticatedUser } from '@/lib/auth-new'
 import { hasPermission } from '@/lib/rbac'
 import { sanitizeUserInput } from '@/lib/utils/sanitize'
 
@@ -11,6 +11,16 @@ interface RouteParams {
 // GET - Get comments for a post
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
+    // Check if comments are enabled
+    const { isFeatureEnabled } = await import('@/lib/settings');
+    const enabled = await isFeatureEnabled('comments');
+    if (!enabled) {
+      return NextResponse.json(
+        { comments: [], message: 'Comments are currently disabled' },
+        { status: 200 }
+      );
+    }
+
     const { slug } = await params
 
     // Find the post
@@ -76,6 +86,16 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 // POST - Create a new comment
 export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
+    // Check if comments are enabled
+    const { isFeatureEnabled } = await import('@/lib/settings');
+    const enabled = await isFeatureEnabled('comments');
+    if (!enabled) {
+      return NextResponse.json(
+        { error: 'Comments are currently disabled' },
+        { status: 403 }
+      );
+    }
+
     const user = await getAuthenticatedUser()
 
     if (!user) {

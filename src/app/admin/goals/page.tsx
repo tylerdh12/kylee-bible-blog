@@ -21,7 +21,7 @@ async function getGoals(): Promise<Goal[]> {
 		...goal,
 		createdAt: typeof goal.createdAt === 'string' ? goal.createdAt : goal.createdAt.toISOString(),
 		updatedAt: typeof goal.updatedAt === 'string' ? goal.updatedAt : goal.updatedAt.toISOString(),
-		deadline: goal.deadline ? (typeof goal.deadline === 'string' ? goal.deadline : goal.deadline.toISOString()) : undefined,
+		deadline: goal.deadline ? (typeof goal.deadline === 'string' ? goal.deadline : goal.deadline.toISOString()) : null,
 		donations: goal.donations || [],
 	}));
 }

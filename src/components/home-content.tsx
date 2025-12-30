@@ -11,6 +11,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { format } from 'date-fns';
+import { stripHtmlToText } from '@/lib/utils/sanitize';
 import type { Post, Goal } from '@/types';
 import { useCurrency } from '@/hooks/use-currency';
 
@@ -231,9 +232,9 @@ export function HomeContent() {
 								</CardHeader>
 								<CardContent>
 									<p className='text-muted-foreground mb-4 line-clamp-3'>
-										{post.excerpt ||
-											post.content.substring(0, 150) +
-												'...'}
+										{post.excerpt
+											? stripHtmlToText(post.excerpt, 150)
+											: stripHtmlToText(post.content, 150)}
 									</p>
 									<div className='flex flex-wrap gap-2 mb-4'>
 										{post.tags.map((tag) => (

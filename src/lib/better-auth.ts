@@ -68,24 +68,6 @@ export const auth = betterAuth({
       },
     },
   },
-  hooks: {
-    signIn: {
-      before: async ({ user }) => {
-        // Prevent subscribers from logging in
-        // Only ADMIN and DEVELOPER roles can authenticate
-        if (user.role === "SUBSCRIBER" || !user.role) {
-          throw new Error("Access denied. Subscribers cannot log in. Please contact an administrator.");
-        }
-
-        // Also check if user is active
-        if (user.isActive === false) {
-          throw new Error("Your account has been deactivated. Please contact an administrator.");
-        }
-
-        return { user };
-      },
-    },
-  },
   advanced: {
     useSecureCookies: process.env.NODE_ENV === "production",
   },

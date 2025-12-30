@@ -51,11 +51,27 @@ async function getComments() {
 		prisma.comment.count(),
 	]);
 
-	// Serialize dates
-	const serializedComments = comments.map((comment) => ({
-		...comment,
-		createdAt: comment.createdAt.toISOString(),
-	}));
+	// Serialize dates and normalize null to undefined for avatar
+	// Filter out comments without authors (shouldn't happen, but handle gracefully)
+	const serializedComments = comments
+		.filter((comment) => comment.author !== null)
+		.map((comment) => ({
+			...comment,
+			createdAt: comment.createdAt.toISOString(),
+			updatedAt: comment.updatedAt.toISOString(),
+			author: {
+				...comment.author!,
+				avatar: comment.author!.avatar ?? undefined,
+				role: comment.author!.role || 'SUBSCRIBER', // Default to SUBSCRIBER if null
+			},
+			parent: comment.parent && comment.parent.author ? {
+				id: comment.parent.id,
+				content: comment.parent.content,
+				author: {
+					name: comment.parent.author.name,
+				},
+			} : undefined,
+		}));
 
 	return {
 		comments: serializedComments,
