@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getAuthenticatedUser } from '@/lib/auth-new';
 import { hasPermission } from '@/lib/rbac';
-import { auth } from '@/lib/better-auth';
-import bcrypt from 'bcryptjs';
 import type { UserRole } from '@/types';
 
 // GET - List all users (admin only)
@@ -120,8 +118,10 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
-		// Create user using better-auth signUp
-		const hashedPassword = await bcrypt.hash(password, 12);
+		// Use better-auth's password hashing function
+		const { auth } = await import('@/lib/better-auth');
+		const ctx = await auth.$context;
+		const hashedPassword = await ctx.password.hash(password);
 		
 		// Create user
 		const newUser = await prisma.user.create({

@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getAuthenticatedUser } from '@/lib/auth-new';
 import { hasPermission } from '@/lib/rbac';
-import bcryptjs from 'bcryptjs';
 import type { UserRole } from '@/types';
 
 interface RouteParams {
@@ -199,9 +198,10 @@ export async function PATCH(
 		// Update password using bcryptjs (same as better-auth uses internally)
 		if (password) {
 			try {
-				// Use bcryptjs directly to avoid spawn EBADF errors with auth.$context
-				// better-auth uses bcrypt internally, so this is compatible
-				const hashedPassword = await bcryptjs.hash(password, 12);
+				// Use better-auth's password hashing function
+				const { auth } = await import('@/lib/better-auth');
+				const ctx = await auth.$context;
+				const hashedPassword = await ctx.password.hash(password);
 				
 				const account = await prisma.account.findFirst({
 					where: { userId: id, providerId: 'credential' },

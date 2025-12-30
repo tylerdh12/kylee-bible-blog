@@ -6,7 +6,8 @@
  */
 
 const { PrismaClient } = require('@prisma/client')
-const bcryptjs = require('bcryptjs')
+const { betterAuth } = require('better-auth')
+const { prismaAdapter } = require('better-auth/adapters/prisma')
 
 async function createProductionAdmin() {
   const prisma = new PrismaClient()
@@ -41,45 +42,88 @@ async function createProductionAdmin() {
       where: { email }
     })
 
+    // Use better-auth's password hashing function
+    const baseURL = process.env.BETTER_AUTH_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000'
+    const authSecret = process.env.BETTER_AUTH_SECRET || process.env.JWT_SECRET || ''
+    
+    const tempAuth = betterAuth({
+      database: prismaAdapter(prisma, { provider: 'postgresql' }),
+      secret: authSecret,
+      baseURL: baseURL,
+      emailAndPassword: {
+        enabled: true,
+        password: {
+          hash: async (password) => {
+            const bcryptjs = require('bcryptjs')
+            return await bcryptjs.hash(password, 12)
+          },
+          verify: async ({ hash, password }) => {
+            const bcryptjs = require('bcryptjs')
+            return await bcryptjs.compare(password, hash)
+          },
+        },
+      },
+    })
+
+    const ctx = await tempAuth.$context
+    const hashedPassword = await ctx.password.hash(password)
+
     if (existingUser) {
       console.log(`⚠️  User ${email} already exists`)
       
-      if (!existingUser.password) {
-        // Set password for existing user
-        const hashedPassword = await bcryptjs.hash(password, 12)
-        await prisma.user.update({
-          where: { email },
-          data: { 
+      // Update user role
+      await prisma.user.update({
+        where: { email },
+        data: { 
+          role: 'ADMIN',
+          isActive: true
+        }
+      })
+
+      // Check if account exists
+      const account = await prisma.account.findFirst({
+        where: { userId: existingUser.id, providerId: 'credential' }
+      })
+
+      if (account) {
+        // Update existing account password
+        await prisma.account.update({
+          where: { id: account.id },
+          data: { password: hashedPassword }
+        })
+        console.log('✅ Password updated and admin role confirmed')
+      } else {
+        // Create account with password
+        await prisma.account.create({
+          data: {
+            id: `acc_${existingUser.id}`,
+            accountId: existingUser.id,
+            providerId: 'credential',
+            userId: existingUser.id,
             password: hashedPassword,
-            role: 'ADMIN',
-            isActive: true
           }
         })
         console.log('✅ Password set for existing user and promoted to admin')
-      } else {
-        // Update password and ensure admin role
-        const hashedPassword = await bcryptjs.hash(password, 12)
-        await prisma.user.update({
-          where: { email },
-          data: { 
-            password: hashedPassword,
-            role: 'ADMIN',
-            isActive: true
-          }
-        })
-        console.log('✅ Password updated and admin role confirmed')
       }
     } else {
       // Create new admin user
-      const hashedPassword = await bcryptjs.hash(password, 12)
-      
-      await prisma.user.create({
+      const user = await prisma.user.create({
         data: {
           email,
-          password: hashedPassword,
           name,
           role: 'ADMIN',
           isActive: true
+        }
+      })
+
+      // Create account with password (better-auth stores passwords in Account model)
+      await prisma.account.create({
+        data: {
+          id: `acc_${user.id}`,
+          accountId: user.id,
+          providerId: 'credential',
+          userId: user.id,
+          password: hashedPassword,
         }
       })
       console.log('✅ New admin user created successfully')

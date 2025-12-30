@@ -32,6 +32,13 @@ try {
 // Wrap handlers to catch and log errors
 export async function GET(request: NextRequest) {
 	try {
+		const url = new URL(request.url);
+		
+		// Debug logging for passkey routes
+		if (process.env.NODE_ENV === 'development' && url.pathname.includes('passkey')) {
+			console.log('[Better Auth] GET Passkey route:', url.pathname);
+		}
+		
 		return await handler.GET(request);
 	} catch (error) {
 		// Log error details only in development
@@ -50,6 +57,11 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
 	try {
 		const url = new URL(request.url);
+		
+		// Debug logging for passkey routes
+		if (process.env.NODE_ENV === 'development' && url.pathname.includes('passkey')) {
+			console.log('[Better Auth] Passkey route detected:', url.pathname);
+		}
 
 		// Ensure handler is initialized
 		if (!handler) {
@@ -162,7 +174,30 @@ export async function POST(request: NextRequest) {
 			}
 		}
 
+		// Debug logging before calling handler
+		if (process.env.NODE_ENV === 'development' && url.pathname.includes('passkey')) {
+			console.log('[Better Auth] Calling handler.POST for:', url.pathname);
+			console.log('[Better Auth] Request method:', requestToPass.method);
+			console.log('[Better Auth] Request URL:', requestToPass.url);
+		}
+		
 		const result = await handler.POST(requestToPass);
+		
+		// Debug logging after handler call
+		if (process.env.NODE_ENV === 'development' && url.pathname.includes('passkey')) {
+			console.log('[Better Auth] Handler response status:', result instanceof Response ? result.status : 'not a Response');
+			if (result instanceof Response && result.status === 404) {
+				console.error('[Better Auth] 404 for passkey route - handler may not recognize this route');
+				// Try to read the response body for more info
+				try {
+					const cloned = result.clone();
+					const text = await cloned.text();
+					console.error('[Better Auth] 404 response body:', text);
+				} catch (e) {
+					console.error('[Better Auth] Could not read 404 response body');
+				}
+			}
+		}
 
 		// Handle signout - ensure cookies are properly cleared
 		// Better-auth uses /api/auth/signout (no hyphen)
@@ -402,14 +437,23 @@ export async function POST(request: NextRequest) {
 			// CRITICAL: Copy all headers from the original response
 			// This includes Set-Cookie headers that set the session token
 			if (result instanceof Response) {
+				let setCookieCount = 0;
 				result.headers.forEach((value, key) => {
 					// Append Set-Cookie headers (there can be multiple)
 					if (key.toLowerCase() === 'set-cookie') {
 						nextResponse.headers.append(key, value);
+						setCookieCount++;
+						if (process.env.NODE_ENV === 'development') {
+							console.log(`[Better Auth] Setting cookie ${setCookieCount}:`, value.substring(0, 100) + '...');
+						}
 					} else {
 						nextResponse.headers.set(key, value);
 					}
 				});
+				
+				if (process.env.NODE_ENV === 'development') {
+					console.log(`[Better Auth] Sign-in response: ${setCookieCount} Set-Cookie header(s) copied`);
+				}
 			}
 
 			return nextResponse;
@@ -429,6 +473,17 @@ export async function POST(request: NextRequest) {
 				},
 				{ status: 500 }
 			);
+		}
+
+		// If 404, log more details for debugging (especially for passkey routes)
+		if (result.status === 404) {
+			if (process.env.NODE_ENV === 'development') {
+				console.error('[Better Auth] 404 error for path:', url.pathname);
+				console.error('[Better Auth] Handler returned 404 - route may not be registered');
+				if (url.pathname.includes('passkey')) {
+					console.error('[Better Auth] Passkey route not found - check if passkey plugin is properly configured');
+				}
+			}
 		}
 
 		// If error status, ensure we have a proper error response
@@ -481,11 +536,22 @@ export async function POST(request: NextRequest) {
 		}
 
 		// Return the successful response as-is
+		// For passkey routes, ensure we preserve all headers
+		if (url.pathname.includes('passkey') && result instanceof Response) {
+			if (process.env.NODE_ENV === 'development') {
+				console.log('[Better Auth] Passkey route response status:', result.status);
+				console.log('[Better Auth] Passkey route response headers:', Object.fromEntries(result.headers.entries()));
+			}
+		}
+		
 		return result;
 	} catch (error) {
 		// Log error details only in development
 		if (process.env.NODE_ENV === 'development') {
 			console.error('Better Auth POST Error:', error);
+			if (error instanceof Error) {
+				console.error('Error stack:', error.stack);
+			}
 		}
 
 		return NextResponse.json(

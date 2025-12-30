@@ -5,11 +5,25 @@ import { headers } from 'next/headers';
 export async function GET() {
   try {
     const headersList = await headers();
+    
+    // Check for session cookie in headers for debugging
+    if (process.env.NODE_ENV === 'development') {
+      const cookieHeader = headersList.get('cookie');
+      const hasSessionCookie = cookieHeader?.includes('better-auth.session_token') || 
+                               cookieHeader?.includes('__Secure-better-auth.session_token');
+      if (!hasSessionCookie) {
+        console.log('[Auth Status] No session cookie found in request');
+      }
+    }
+    
     const session = await auth.api.getSession({
       headers: headersList,
     });
 
     if (!session?.user) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Auth Status] No session found - returning 401');
+      }
       return NextResponse.json({ authenticated: false }, { status: 401 });
     }
 

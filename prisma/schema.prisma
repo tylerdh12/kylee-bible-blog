@@ -26,6 +26,7 @@ model User {
   comments      Comment[]
   posts         Post[]
   sessions      Session[]
+  passkeys      passkey[] @relation("UserPasskeys")
 }
 
 model Session {
@@ -70,6 +71,24 @@ model Verification {
   updatedAt  DateTime @updatedAt
 
   @@unique([identifier, value])
+}
+
+model passkey {
+  id           String    @id @default(cuid())
+  name         String?
+  publicKey    String    @db.Text
+  userId       String
+  credentialID String    @db.Text
+  counter      Int
+  deviceType   String
+  backedUp     Boolean
+  transports   String?
+  createdAt    DateTime?
+  aaguid       String?
+  user         User      @relation("UserPasskeys", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([credentialID])
 }
 
 model Post {

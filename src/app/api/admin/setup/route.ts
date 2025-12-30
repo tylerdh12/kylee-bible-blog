@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import bcryptjs from 'bcryptjs';
 import { validatePasswordStrength } from '@/lib/validation/password';
 
 export async function POST(request: Request) {
@@ -127,10 +126,10 @@ export async function POST(request: Request) {
 			// Update password if different
 			if (!account || !account.password) {
 				// User exists but has no password (social login), set password
-				const hashedPassword = await bcryptjs.hash(
-					password,
-					12
-				);
+				// Use better-auth's password hashing function
+				const { auth } = await import('@/lib/better-auth');
+				const ctx = await auth.$context;
+				const hashedPassword = await ctx.password.hash(password);
 				
 				// Update or create account
 				if (account) {
@@ -164,15 +163,15 @@ export async function POST(request: Request) {
 				});
 			}
 
-			const passwordMatch = await bcryptjs.compare(
-				password,
-				account.password
-			);
+			// Use better-auth's password verification
+			const { auth } = await import('@/lib/better-auth');
+			const ctx = await auth.$context;
+			const passwordMatch = await ctx.password.verify({
+				hash: account.password,
+				password: password,
+			});
 			if (!passwordMatch) {
-				const hashedPassword = await bcryptjs.hash(
-					password,
-					12
-				);
+				const hashedPassword = await ctx.password.hash(password);
 				await prisma.account.update({
 					where: { id: account.id },
 					data: { password: hashedPassword },
@@ -208,10 +207,10 @@ export async function POST(request: Request) {
 		}
 
 		// Create new admin user
-		const hashedPassword = await bcryptjs.hash(
-			password,
-			12
-		);
+		// Use better-auth's password hashing function
+		const { auth } = await import('@/lib/better-auth');
+		const ctx = await auth.$context;
+		const hashedPassword = await ctx.password.hash(password);
 
 		const newUser = await prisma.user.create({
 			data: {

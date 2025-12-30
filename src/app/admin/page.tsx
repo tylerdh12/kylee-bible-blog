@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 import { User } from '@/types';
 import {
 	Eye,
@@ -20,7 +21,9 @@ import {
 	Plus,
 	Target,
 	Users,
+	Key,
 } from 'lucide-react';
+import { authClient } from '@/lib/better-auth-client';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { DashboardStatsSkeleton } from '@/components/skeletons/admin-skeletons';
@@ -45,6 +48,8 @@ export default function AdminPage() {
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 	const [loading, setLoading] = useState(false);
+	const [passkeyLoading, setPasskeyLoading] = useState(false);
+	const [passkeySupported, setPasskeySupported] = useState<boolean | null>(null);
 	const [stats, setStats] = useState<DashboardStats | null>(
 		null
 	);
@@ -52,6 +57,10 @@ export default function AdminPage() {
 
 	useEffect(() => {
 		checkAuthStatus();
+		// Check passkey support after component mounts (client-side only)
+		if (typeof window !== 'undefined') {
+			setPasskeySupported(typeof window.PublicKeyCredential !== 'undefined');
+		}
 	}, []);
 
 	useEffect(() => {
@@ -261,6 +270,230 @@ export default function AdminPage() {
 		} finally {
 			setLoading(false);
 		}
+	};
+
+	// Handle passkey sign-in
+	const handlePasskeySignIn = async () => {
+		setPasskeyLoading(true);
+		
+		try {
+			// Check if passkeys are supported
+			if (typeof window === 'undefined' || typeof window.PublicKeyCredential === 'undefined') {
+				alert('Passkeys are not supported in this browser. Please use a modern browser that supports WebAuthn.');
+				setPasskeyLoading(false);
+				return;
+			}
+
+			// Check if passkey methods are available
+			// The correct method is authClient.signIn.passkey (not authClient.passkey.signIn)
+			const passkeySignIn = (authClient.signIn as any)?.passkey;
+			if (!passkeySignIn || typeof passkeySignIn !== 'function') {
+				alert('Passkey sign-in is not available. Please ensure the passkey plugin is properly configured.');
+				setPasskeyLoading(false);
+				return;
+			}
+
+			// Sign in with passkey
+			console.log('[Passkey] Starting passkey sign-in...');
+			console.log('[Passkey] authClient.signIn.passkey available:', typeof passkeySignIn);
+			
+			console.log('[Passkey] Calling authClient.signIn.passkey...');
+			console.log('[Passkey] Browser WebAuthn support:', {
+				PublicKeyCredential: typeof window.PublicKeyCredential !== 'undefined',
+				credentials: typeof navigator.credentials !== 'undefined',
+			});
+			
+			// Track if authentication completed
+			let authCompleted = false;
+			let authResolve: ((value: any) => void) | null = null;
+			let authReject: ((error: any) => void) | null = null;
+			
+			// Create a promise that will be resolved/rejected by the callbacks
+			const authCompletionPromise = new Promise((resolve, reject) => {
+				authResolve = resolve;
+				authReject = reject;
+			});
+			
+			// Add a timeout to prevent hanging indefinitely
+			const timeoutPromise = new Promise((_, reject) => {
+				setTimeout(() => {
+					if (!authCompleted) {
+						console.error('[Passkey] Sign-in timed out after 60 seconds');
+						reject(new Error('Passkey sign-in timed out. The browser prompt may not have appeared, or you may need to interact with it. Please try again or use email/password login.'));
+					}
+				}, 60000); // Increased to 60 seconds to allow time for user interaction
+			});
+			
+			console.log('[Passkey] About to call passkeySignIn...');
+			const passkeyPromise = passkeySignIn({
+				autoFill: false, // Disable autofill - let browser show prompt explicitly
+				fetchOptions: {
+					onSuccess: async (context: any) => {
+						authCompleted = true;
+						console.log('[Passkey] Sign-in successful:', context);
+						
+						// Wait a moment for the session cookie to be set
+						await new Promise(resolve => setTimeout(resolve, 500));
+						
+						// Check auth status to get user data with role
+						const statusResponse = await fetch('/api/auth/status', {
+							method: 'GET',
+							credentials: 'include',
+							cache: 'no-store',
+							headers: {
+								'Content-Type': 'application/json',
+							},
+						});
+
+						if (statusResponse.ok) {
+							const statusData = await statusResponse.json();
+							if (statusData.authenticated && statusData.user) {
+								// Verify user is ADMIN before allowing access
+								if (statusData.user.role !== 'ADMIN') {
+									alert('Access denied. Admin privileges required.');
+									setIsLoggedIn(false);
+									setUser(null);
+									window.location.href = '/';
+									if (authReject) authReject(new Error('Access denied'));
+									return;
+								}
+								
+								setIsLoggedIn(true);
+								setUser(statusData.user);
+								
+								// Dispatch custom event to notify layout of authentication change
+								window.dispatchEvent(new CustomEvent('auth-changed', {
+									detail: { authenticated: true, user: statusData.user }
+								}));
+								
+								// Resolve the promise
+								if (authResolve) authResolve(context);
+								
+								// Reload to show the dashboard
+								window.location.reload();
+							} else {
+								if (authReject) authReject(new Error('Authentication failed'));
+							}
+						} else {
+							if (authReject) authReject(new Error('Failed to verify authentication status'));
+						}
+					},
+					onError: (context: any) => {
+						authCompleted = true;
+						console.error('[Passkey] Sign-in error:', context);
+						const error = context.error;
+						
+						let errorMessage = 'Passkey sign-in failed. Please try again.';
+						let isUserCancellation = false;
+						
+						if (error) {
+							const errorCode = ('code' in error ? error.code : '') || ('name' in error ? error.name : '') || '';
+							const errorMsg = ((error.message || '') as string).toLowerCase();
+							
+							if (
+								errorCode === 'NotAllowedError' || 
+								errorCode === 'AbortError' ||
+								errorMsg.includes('cancel') || 
+								errorMsg.includes('notallowed') ||
+								errorMsg.includes('abort')
+							) {
+								errorMessage = 'Passkey authentication was cancelled.';
+								isUserCancellation = true;
+							} else if (errorCode === 'NotSupportedError' || errorMsg.includes('not supported')) {
+								errorMessage = 'Passkey authentication is not supported on this device. Please use email/password login.';
+							} else if (errorCode === 'InvalidStateError' || errorMsg.includes('invalidstate') || errorMsg.includes('no passkey')) {
+								errorMessage = 'No passkey found for this account. Please register a passkey first from your profile page (/admin/profile).';
+							} else if (error.message) {
+								errorMessage = error.message;
+							}
+						}
+						
+						if (!isUserCancellation) {
+							alert(errorMessage);
+						}
+						
+						// Reject the promise
+						const finalError = error || new Error(errorMessage);
+						if (authReject) authReject(finalError);
+					},
+				},
+			});
+
+			// Also listen to the passkeyPromise directly to catch any immediate errors
+			if (passkeyPromise && typeof passkeyPromise.catch === 'function') {
+				passkeyPromise.catch((error: any) => {
+					console.error('[Passkey] passkeyPromise rejected:', error);
+					if (!authCompleted && authReject) {
+						authCompleted = true;
+						authReject(error);
+					}
+				});
+			}
+
+			// Race between passkey sign-in completion and timeout
+			console.log('[Passkey] Waiting for passkey sign-in response...');
+			try {
+				// Wait for either the auth completion promise or the timeout
+				// Don't include passkeyPromise in the race - it might not resolve when using fetchOptions
+				const result = await Promise.race([authCompletionPromise, timeoutPromise]) as any;
+				console.log('[Passkey] Sign-in promise resolved:', result);
+
+				// Handle result if it's returned synchronously
+				if (result?.error) {
+					const error = result.error;
+					let errorMessage = 'Passkey sign-in failed. Please try again.';
+					let isUserCancellation = false;
+					
+					// Handle specific error types
+					const errorCode = ('code' in error ? error.code : '') || '';
+					const errorMsg = (error.message || '').toLowerCase();
+					
+					if (errorCode === 'NotAllowedError' || errorCode === 'AbortError' || errorMsg.includes('cancel') || errorMsg.includes('abort')) {
+						errorMessage = 'Passkey authentication was cancelled.';
+						isUserCancellation = true;
+					} else if (error.message) {
+						errorMessage = error.message;
+					}
+					
+					// Only alert if not cancelled (user knows they cancelled)
+					if (!isUserCancellation) {
+						alert(errorMessage);
+					} else {
+						console.log('[Passkey] User cancelled authentication');
+					}
+				}
+			} catch (timeoutError: any) {
+				// Handle timeout or other errors
+				console.error('[Passkey] Sign-in error:', timeoutError);
+				if (timeoutError?.message?.includes('timed out')) {
+					alert('Passkey sign-in timed out. The browser prompt may not have appeared. Please try again or use email/password login.');
+				} else {
+					alert(timeoutError?.message || 'Passkey sign-in failed. Please try again.');
+				}
+			}
+		} catch (error: any) {
+			console.error('Passkey sign-in error:', error);
+			
+			// Handle specific error types
+			let errorMessage = 'Passkey sign-in failed. Please try again.';
+			if (error?.name === 'NotAllowedError' || error?.message?.includes('cancel')) {
+				errorMessage = 'Passkey authentication was cancelled.';
+			} else if (error?.message) {
+				errorMessage = error.message;
+			}
+			
+			// Only alert if not cancelled
+			if (!errorMessage.includes('cancelled')) {
+				alert(errorMessage);
+			}
+		} finally {
+			setPasskeyLoading(false);
+		}
+	};
+
+	// Check if passkeys are supported (use state to avoid SSR issues)
+	const isPasskeySupported = () => {
+		return passkeySupported === true;
 	};
 
 	// Show loading while checking auth status
@@ -737,6 +970,47 @@ export default function AdminPage() {
 								)}
 							</Button>
 						</form>
+
+						{/* Passkey Sign-In Option */}
+						{isPasskeySupported() && (
+							<>
+								<div className='relative my-6'>
+									<div className='absolute inset-0 flex items-center'>
+										<Separator />
+									</div>
+									<div className='relative flex justify-center text-xs uppercase'>
+										<span className='bg-card px-2 text-muted-foreground'>
+											Or continue with
+										</span>
+									</div>
+								</div>
+
+								<Button
+									type='button'
+									variant='outline'
+									className='w-full'
+									onClick={handlePasskeySignIn}
+									disabled={passkeyLoading || loading}
+									aria-label='Sign in with passkey'
+								>
+									{passkeyLoading ? (
+										<>
+											<div
+												className='mr-2 w-4 h-4 rounded-full border-b-2 border-current animate-spin'
+												role='status'
+												aria-hidden='true'
+											/>
+											Signing in with passkey...
+										</>
+									) : (
+										<>
+											<Key className='mr-2 h-4 w-4' />
+											Sign in with Passkey
+										</>
+									)}
+								</Button>
+							</>
+						)}
 					</CardContent>
 				</Card>
 			</div>

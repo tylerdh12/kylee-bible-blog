@@ -60,19 +60,30 @@ async function resetPassword(email, password) {
 				throw new Error('BETTER_AUTH_SECRET or JWT_SECRET environment variable is required');
 			}
 
+			// Create better-auth instance with the same configuration as the app
+			// This ensures we use the exact same password hashing function
 			const tempAuth = betterAuth({
 				database: prismaAdapter(prisma, { provider: 'postgresql' }),
 				secret: authSecret,
 				baseURL: baseURL,
 				emailAndPassword: {
 					enabled: true,
+					password: {
+						// Use bcrypt with 12 rounds to match app configuration
+						hash: async (password) => {
+							const bcryptjs = require('bcryptjs');
+							return await bcryptjs.hash(password, 12);
+						},
+						verify: async ({ hash, password }) => {
+							const bcryptjs = require('bcryptjs');
+							return await bcryptjs.compare(password, hash);
+						},
+					},
 				},
 			});
 
-			// Get better-auth's password context
+			// Get better-auth's password context and use its hash function
 			const ctx = await tempAuth.$context;
-			
-			// Hash password using better-auth's hash function
 			const hashedPassword = await ctx.password.hash(password);
 
 			// Update or create account for the actual user
@@ -83,7 +94,7 @@ async function resetPassword(email, password) {
 					where: { id: account.id },
 					data: { password: hashedPassword },
 				});
-				console.log('✅ Password updated successfully using better-auth hash');
+				console.log('✅ Password updated successfully using better-auth password hashing');
 			} else {
 				await prisma.account.create({
 					data: {
@@ -94,7 +105,7 @@ async function resetPassword(email, password) {
 						password: hashedPassword,
 					},
 				});
-				console.log('✅ Account created with better-auth password hash');
+				console.log('✅ Account created with better-auth password hashing');
 			}
 		} catch (error) {
 			console.error('❌ Error resetting password:', error.message);

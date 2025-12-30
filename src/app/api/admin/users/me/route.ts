@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getAuthenticatedUser } from '@/lib/auth-new';
-import bcryptjs from 'bcryptjs';
 
 // GET - Get current user profile
 export async function GET(request: NextRequest) {
@@ -98,11 +97,13 @@ export async function PATCH(request: NextRequest) {
 					);
 				}
 
-				// Verify current password using bcryptjs (same as better-auth uses internally)
-				const isPasswordValid = await bcryptjs.compare(
-					currentPassword,
-					account.password
-				);
+				// Verify current password using better-auth's password verification
+				const { auth } = await import('@/lib/better-auth');
+				const ctx = await auth.$context;
+				const isPasswordValid = await ctx.password.verify({
+					hash: account.password,
+					password: currentPassword,
+				});
 
 				if (!isPasswordValid) {
 					return NextResponse.json(
@@ -111,8 +112,8 @@ export async function PATCH(request: NextRequest) {
 					);
 				}
 
-				// Hash new password using bcryptjs (same as better-auth uses internally)
-				const hashedPassword = await bcryptjs.hash(newPassword, 12);
+				// Hash new password using better-auth's password hashing
+				const hashedPassword = await ctx.password.hash(newPassword);
 
 				// Update the account password
 				await prisma.account.update({

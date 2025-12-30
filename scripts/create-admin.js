@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
-import bcryptjs from 'bcryptjs';
+import { betterAuth } from 'better-auth';
+import { prismaAdapter } from 'better-auth/adapters/prisma';
 
 const prisma = new PrismaClient();
 
@@ -24,17 +25,49 @@ async function createDefaultAdmin() {
 			);
 			process.exit(1);
 		}
-		const hashedPassword = await bcryptjs.hash(
-			defaultPassword,
-			12
-		);
+		// Use better-auth's password hashing function
+		const baseURL = process.env.BETTER_AUTH_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000';
+		const authSecret = process.env.BETTER_AUTH_SECRET || process.env.JWT_SECRET || '';
+		
+		const tempAuth = betterAuth({
+			database: prismaAdapter(prisma, { provider: 'postgresql' }),
+			secret: authSecret,
+			baseURL: baseURL,
+			emailAndPassword: {
+				enabled: true,
+				password: {
+					hash: async (password) => {
+						const bcryptjs = require('bcryptjs');
+						return await bcryptjs.hash(password, 12);
+					},
+					verify: async ({ hash, password }) => {
+						const bcryptjs = require('bcryptjs');
+						return await bcryptjs.compare(password, hash);
+					},
+				},
+			},
+		});
 
-		await prisma.user.create({
+		const ctx = await tempAuth.$context;
+		const hashedPassword = await ctx.password.hash(defaultPassword);
+
+		// Create user
+		const user = await prisma.user.create({
 			data: {
 				email: 'kylee@blog.com',
-				password: hashedPassword,
 				name: 'Kylee',
 				role: 'ADMIN',
+			},
+		});
+
+		// Create account with password (better-auth stores passwords in Account model)
+		await prisma.account.create({
+			data: {
+				id: `acc_${user.id}`,
+				accountId: user.id,
+				providerId: 'credential',
+				userId: user.id,
+				password: hashedPassword,
 			},
 		});
 

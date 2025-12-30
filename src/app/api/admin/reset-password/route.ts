@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireAdmin } from '@/lib/rbac';
-import bcryptjs from 'bcryptjs';
+import { auth } from '@/lib/better-auth';
 
 /**
  * POST /api/admin/reset-password
@@ -57,9 +57,10 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
-		// Use bcryptjs directly to avoid spawn EBADF errors with auth.$context
-		// better-auth uses bcrypt internally, so this is compatible
-		const hashedPassword = await bcryptjs.hash(newPassword, 12);
+		// Use better-auth's password hashing function
+		// This ensures we use the exact same hashing as the authentication system
+		const ctx = await auth.$context;
+		const hashedPassword = await ctx.password.hash(newPassword);
 
 		// Update or create account
 		const account = user.accounts[0];

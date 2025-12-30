@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { authClient } from '@/lib/better-auth-client';
 import {
 	Card,
 	CardContent,
@@ -19,7 +20,10 @@ import {
 } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+	Alert,
+	AlertDescription,
+} from '@/components/ui/alert';
 import {
 	Dialog,
 	DialogContent,
@@ -45,6 +49,9 @@ import {
 	Globe,
 	Clock,
 	UserCheck,
+	Key,
+	Trash2,
+	Plus,
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -66,10 +73,13 @@ interface ProfileClientProps {
 	initialProfile: UserProfile;
 }
 
-export default function ProfileClient({ initialProfile }: ProfileClientProps) {
+export default function ProfileClient({
+	initialProfile,
+}: ProfileClientProps) {
 	const [saving, setSaving] = useState(false);
 	const [editing, setEditing] = useState(false);
-	const [profile, setProfile] = useState<UserProfile>(initialProfile);
+	const [profile, setProfile] =
+		useState<UserProfile>(initialProfile);
 	const [formData, setFormData] = useState({
 		name: initialProfile.name || '',
 		email: initialProfile.email || '',
@@ -82,9 +92,31 @@ export default function ProfileClient({ initialProfile }: ProfileClientProps) {
 		confirmPassword: '',
 	});
 	const [error, setError] = useState<string | null>(null);
-	const [success, setSuccess] = useState<string | null>(null);
-	const [showPasswordDialog, setShowPasswordDialog] = useState(false);
-	const [changingPassword, setChangingPassword] = useState(false);
+	const [success, setSuccess] = useState<string | null>(
+		null
+	);
+	const [showPasswordDialog, setShowPasswordDialog] =
+		useState(false);
+	const [changingPassword, setChangingPassword] =
+		useState(false);
+
+	// Passkey management state
+	const [passkeys, setPasskeys] = useState<
+		Array<{ id: string; name: string; createdAt: string }>
+	>([]);
+	const [loadingPasskeys, setLoadingPasskeys] =
+		useState(false);
+	const [addingPasskey, setAddingPasskey] = useState(false);
+	const [passkeyName, setPasskeyName] = useState('');
+	const [showAddPasskeyDialog, setShowAddPasskeyDialog] =
+		useState(false);
+	const [passkeyError, setPasskeyError] = useState<
+		string | null
+	>(null);
+	const [passkeySuccess, setPasskeySuccess] = useState<
+		string | null
+	>(null);
+	const [passkeySupported, setPasskeySupported] = useState<boolean | null>(null);
 
 	const handleSave = async () => {
 		setSaving(true);
@@ -105,7 +137,9 @@ export default function ProfileClient({ initialProfile }: ProfileClientProps) {
 				return;
 			}
 
-			if (!formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+			if (
+				!formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)
+			) {
 				setError('Please enter a valid email address');
 				setSaving(false);
 				return;
@@ -153,20 +187,30 @@ export default function ProfileClient({ initialProfile }: ProfileClientProps) {
 
 		try {
 			// Validation
-			if (!passwordData.currentPassword || !passwordData.newPassword) {
-				setError('Both current and new passwords are required');
+			if (
+				!passwordData.currentPassword ||
+				!passwordData.newPassword
+			) {
+				setError(
+					'Both current and new passwords are required'
+				);
 				setChangingPassword(false);
 				return;
 			}
 
-			if (passwordData.newPassword !== passwordData.confirmPassword) {
+			if (
+				passwordData.newPassword !==
+				passwordData.confirmPassword
+			) {
 				setError('New passwords do not match');
 				setChangingPassword(false);
 				return;
 			}
 
 			if (passwordData.newPassword.length < 6) {
-				setError('New password must be at least 6 characters long');
+				setError(
+					'New password must be at least 6 characters long'
+				);
 				setChangingPassword(false);
 				return;
 			}
@@ -202,15 +246,186 @@ export default function ProfileClient({ initialProfile }: ProfileClientProps) {
 		}
 	};
 
+	// Load passkeys
+	const loadPasskeys = async () => {
+		setLoadingPasskeys(true);
+		setPasskeyError(null);
+		try {
+			// Check if passkey methods are available
+			if (
+				!authClient.passkey ||
+				typeof authClient.passkey.listUserPasskeys !==
+					'function'
+			) {
+				setPasskeyError(
+					'Passkey functionality is not available. Please ensure the passkey plugin is properly configured.'
+				);
+				console.error(
+					'Passkey methods not available on authClient'
+				);
+				return;
+			}
+
+			const result =
+				await authClient.passkey.listUserPasskeys();
+
+			// Handle the response - listUserPasskeys returns { data: Passkey[], error }
+			if (result.error) {
+				setPasskeyError(
+					result.error.message || 'Failed to load passkeys'
+				);
+				console.error(
+					'Error loading passkeys:',
+					result.error
+				);
+			} else {
+				// The data is an array of Passkey objects - map to our expected format
+				const passkeysData = result.data || [];
+				setPasskeys(
+					passkeysData.map((pk: any) => ({
+						id: pk.id,
+						name: pk.name || 'Unnamed Passkey',
+						createdAt:
+							pk.createdAt || new Date().toISOString(),
+					}))
+				);
+			}
+		} catch (err: any) {
+			setPasskeyError(
+				err?.message ||
+					'Failed to load passkeys. Please try again.'
+			);
+			console.error('Error loading passkeys:', err);
+		} finally {
+			setLoadingPasskeys(false);
+		}
+	};
+
+	// Add passkey
+	const handleAddPasskey = async () => {
+		if (!passkeyName.trim()) {
+			setPasskeyError(
+				'Please enter a name for your passkey'
+			);
+			return;
+		}
+
+		// Check if passkey methods are available
+		if (
+			!authClient.passkey ||
+			typeof authClient.passkey.addPasskey !== 'function'
+		) {
+			setPasskeyError(
+				'Passkey functionality is not available. Please ensure the passkey plugin is properly configured.'
+			);
+			return;
+		}
+
+		setAddingPasskey(true);
+		setPasskeyError(null);
+		setPasskeySuccess(null);
+
+		try {
+			const result = await authClient.passkey.addPasskey({
+				name: passkeyName.trim(),
+			});
+
+			if (result.error) {
+				setPasskeyError(
+					result.error.message || 'Failed to add passkey'
+				);
+			} else {
+				setPasskeySuccess('Passkey added successfully!');
+				setPasskeyName('');
+				setShowAddPasskeyDialog(false);
+				await loadPasskeys();
+				setTimeout(() => setPasskeySuccess(null), 3000);
+			}
+		} catch (err: any) {
+			setPasskeyError(
+				err?.message ||
+					'Failed to add passkey. Please try again.'
+			);
+			console.error('Error adding passkey:', err);
+		} finally {
+			setAddingPasskey(false);
+		}
+	};
+
+	// Delete passkey
+	const handleDeletePasskey = async (passkeyId: string) => {
+		if (
+			!confirm(
+				'Are you sure you want to delete this passkey? You will need to register it again to use it.'
+			)
+		) {
+			return;
+		}
+
+		// Check if passkey methods are available
+		if (
+			!authClient.passkey ||
+			typeof authClient.passkey.deletePasskey !== 'function'
+		) {
+			setPasskeyError(
+				'Passkey functionality is not available. Please ensure the passkey plugin is properly configured.'
+			);
+			return;
+		}
+
+		setPasskeyError(null);
+		try {
+			const result = await authClient.passkey.deletePasskey(
+				{
+					id: passkeyId,
+				}
+			);
+
+			if (result.error) {
+				setPasskeyError(
+					result.error.message || 'Failed to delete passkey'
+				);
+			} else {
+				setPasskeySuccess('Passkey deleted successfully');
+				await loadPasskeys();
+				setTimeout(() => setPasskeySuccess(null), 3000);
+			}
+		} catch (err: any) {
+			setPasskeyError(
+				err?.message || 'Failed to delete passkey'
+			);
+			console.error('Error deleting passkey:', err);
+		}
+	};
+
+	// Check if passkeys are supported (use state to avoid SSR issues)
+	const isPasskeySupported = () => {
+		return passkeySupported === true;
+	};
+
+	// Load passkeys on mount
+	useEffect(() => {
+		// Check passkey support after component mounts (client-side only)
+		if (typeof window !== 'undefined') {
+			const supported = typeof window.PublicKeyCredential !== 'undefined';
+			setPasskeySupported(supported);
+			
+			if (supported) {
+				loadPasskeys();
+			}
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
 	return (
 		<div className='space-y-6'>
 			{/* Header */}
-			<div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4'>
+			<div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
 				<div>
 					<h1 className='text-3xl font-bold tracking-tight'>
 						Profile
 					</h1>
-					<p className='text-muted-foreground mt-1'>
+					<p className='mt-1 text-muted-foreground'>
 						Manage your admin profile and preferences
 					</p>
 				</div>
@@ -222,45 +437,53 @@ export default function ProfileClient({ initialProfile }: ProfileClientProps) {
 								onClick={handleCancel}
 								disabled={saving}
 							>
-								<X className='h-4 w-4 mr-2' />
+								<X className='mr-2 w-4 h-4' />
 								Cancel
 							</Button>
 							<Button
 								onClick={handleSave}
 								disabled={saving}
 							>
-								<Save className='h-4 w-4 mr-2' />
+								<Save className='mr-2 w-4 h-4' />
 								{saving ? 'Saving...' : 'Save Changes'}
 							</Button>
 						</>
 					) : (
 						<>
-							<Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
+							<Dialog
+								open={showPasswordDialog}
+								onOpenChange={setShowPasswordDialog}
+							>
 								<DialogTrigger asChild>
 									<Button variant='outline'>
-										<Lock className='h-4 w-4 mr-2' />
+										<Lock className='mr-2 w-4 h-4' />
 										Change Password
 									</Button>
 								</DialogTrigger>
 								<DialogContent className='sm:max-w-md'>
 									<DialogHeader>
-										<DialogTitle className='flex items-center gap-2'>
-											<Lock className='h-5 w-5' />
+										<DialogTitle className='flex gap-2 items-center'>
+											<Lock className='w-5 h-5' />
 											Change Password
 										</DialogTitle>
 										<DialogDescription>
-											Enter your current password and a new password to update your account.
+											Enter your current password and a new
+											password to update your account.
 										</DialogDescription>
 									</DialogHeader>
-									<div className='space-y-4 pt-4'>
+									<div className='pt-4 space-y-4'>
 										{error && (
 											<Alert variant='destructive'>
-												<AlertCircle className='h-4 w-4' />
-												<AlertDescription>{error}</AlertDescription>
+												<AlertCircle className='w-4 h-4' />
+												<AlertDescription>
+													{error}
+												</AlertDescription>
 											</Alert>
 										)}
 										<div className='space-y-2'>
-											<Label htmlFor='currentPassword'>Current Password</Label>
+											<Label htmlFor='currentPassword'>
+												Current Password
+											</Label>
 											<Input
 												id='currentPassword'
 												type='password'
@@ -268,7 +491,7 @@ export default function ProfileClient({ initialProfile }: ProfileClientProps) {
 												onChange={(e) => {
 													setPasswordData({
 														...passwordData,
-														currentPassword: e.target.value
+														currentPassword: e.target.value,
 													});
 													setError(null);
 												}}
@@ -276,7 +499,9 @@ export default function ProfileClient({ initialProfile }: ProfileClientProps) {
 											/>
 										</div>
 										<div className='space-y-2'>
-											<Label htmlFor='newPassword'>New Password</Label>
+											<Label htmlFor='newPassword'>
+												New Password
+											</Label>
 											<Input
 												id='newPassword'
 												type='password'
@@ -284,18 +509,21 @@ export default function ProfileClient({ initialProfile }: ProfileClientProps) {
 												onChange={(e) => {
 													setPasswordData({
 														...passwordData,
-														newPassword: e.target.value
+														newPassword: e.target.value,
 													});
 													setError(null);
 												}}
 												placeholder='Enter new password (min. 6 characters)'
 											/>
 											<p className='text-xs text-muted-foreground'>
-												Password must be at least 6 characters long
+												Password must be at least 6
+												characters long
 											</p>
 										</div>
 										<div className='space-y-2'>
-											<Label htmlFor='confirmPassword'>Confirm New Password</Label>
+											<Label htmlFor='confirmPassword'>
+												Confirm New Password
+											</Label>
 											<Input
 												id='confirmPassword'
 												type='password'
@@ -303,26 +531,28 @@ export default function ProfileClient({ initialProfile }: ProfileClientProps) {
 												onChange={(e) => {
 													setPasswordData({
 														...passwordData,
-														confirmPassword: e.target.value
+														confirmPassword: e.target.value,
 													});
 													setError(null);
 												}}
 												placeholder='Confirm new password'
 												className={
 													passwordData.confirmPassword &&
-													passwordData.newPassword !== passwordData.confirmPassword
+													passwordData.newPassword !==
+														passwordData.confirmPassword
 														? 'border-red-500'
 														: ''
 												}
 											/>
 											{passwordData.confirmPassword &&
-												passwordData.newPassword !== passwordData.confirmPassword && (
+												passwordData.newPassword !==
+													passwordData.confirmPassword && (
 													<p className='text-xs text-red-500'>
 														Passwords do not match
 													</p>
 												)}
 										</div>
-										<div className='flex justify-end gap-2 pt-2'>
+										<div className='flex gap-2 justify-end pt-2'>
 											<Button
 												variant='outline'
 												onClick={() => {
@@ -341,14 +571,16 @@ export default function ProfileClient({ initialProfile }: ProfileClientProps) {
 												onClick={handlePasswordChange}
 												disabled={changingPassword}
 											>
-												{changingPassword ? 'Changing...' : 'Change Password'}
+												{changingPassword
+													? 'Changing...'
+													: 'Change Password'}
 											</Button>
 										</div>
 									</div>
 								</DialogContent>
 							</Dialog>
 							<Button onClick={() => setEditing(true)}>
-								<Edit className='h-4 w-4 mr-2' />
+								<Edit className='mr-2 w-4 h-4' />
 								Edit Profile
 							</Button>
 						</>
@@ -359,48 +591,50 @@ export default function ProfileClient({ initialProfile }: ProfileClientProps) {
 			{/* Error/Success Alerts */}
 			{error && (
 				<Alert variant='destructive'>
-					<AlertCircle className='h-4 w-4' />
+					<AlertCircle className='w-4 h-4' />
 					<AlertDescription>{error}</AlertDescription>
 				</Alert>
 			)}
 			{success && (
-				<Alert className='border-green-500 bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300'>
-					<CheckCircle className='h-4 w-4' />
+				<Alert className='text-green-700 bg-green-50 border-green-500 dark:bg-green-950 dark:text-green-300'>
+					<CheckCircle className='w-4 h-4' />
 					<AlertDescription>{success}</AlertDescription>
 				</Alert>
 			)}
 
-			<div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
+			<div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
 				{/* Profile Overview Card */}
 				<div className='lg:col-span-1'>
 					<Card className='h-full'>
-						<CardHeader className='text-center pb-4'>
-							<div className='relative inline-block mb-4'>
-								<Avatar className='h-28 w-28 mx-auto border-4 border-background shadow-lg'>
+						<CardHeader className='pb-4 text-center'>
+							<div className='inline-block relative mb-4'>
+								<Avatar className='mx-auto w-28 h-28 border-4 shadow-lg border-background'>
 									<AvatarImage
 										src={profile?.avatar}
 										alt={profile?.name}
 										className='object-cover'
 									/>
 									<AvatarFallback className='text-2xl font-semibold bg-primary text-primary-foreground'>
-										{profile?.name?.charAt(0)?.toUpperCase() || 'A'}
+										{profile?.name
+											?.charAt(0)
+											?.toUpperCase() || 'A'}
 									</AvatarFallback>
 								</Avatar>
 								{editing && (
 									<Button
 										size='sm'
 										variant='secondary'
-										className='absolute bottom-0 right-0 rounded-full h-9 w-9 p-0 shadow-md hover:shadow-lg transition-shadow'
+										className='absolute right-0 bottom-0 p-0 w-9 h-9 rounded-full shadow-md transition-shadow hover:shadow-lg'
 										title='Change avatar'
 									>
-										<Camera className='h-4 w-4' />
+										<Camera className='w-4 h-4' />
 									</Button>
 								)}
 							</div>
 							<CardTitle className='text-xl'>
 								{profile?.name || 'Admin User'}
 							</CardTitle>
-							<CardDescription className='text-base mt-1'>
+							<CardDescription className='mt-1 text-base'>
 								{profile?.email}
 							</CardDescription>
 							<div className='mt-3'>
@@ -416,10 +650,10 @@ export default function ProfileClient({ initialProfile }: ProfileClientProps) {
 						<CardContent className='pt-6'>
 							<div className='space-y-4'>
 								{/* Posts Stat */}
-								<div className='flex items-center justify-between p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors'>
-									<div className='flex items-center gap-3'>
+								<div className='flex justify-between items-center p-4 rounded-lg transition-colors bg-muted/50 hover:bg-muted'>
+									<div className='flex gap-3 items-center'>
 										<div className='p-2 rounded-md bg-primary/10'>
-											<FileText className='h-5 w-5 text-primary' />
+											<FileText className='w-5 h-5 text-primary' />
 										</div>
 										<div>
 											<p className='text-sm font-medium text-muted-foreground'>
@@ -433,10 +667,10 @@ export default function ProfileClient({ initialProfile }: ProfileClientProps) {
 								</div>
 								<Separator />
 								{/* Comments Stat */}
-								<div className='flex items-center justify-between p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors'>
-									<div className='flex items-center gap-3'>
+								<div className='flex justify-between items-center p-4 rounded-lg transition-colors bg-muted/50 hover:bg-muted'>
+									<div className='flex gap-3 items-center'>
 										<div className='p-2 rounded-md bg-primary/10'>
-											<MessageSquare className='h-5 w-5 text-primary' />
+											<MessageSquare className='w-5 h-5 text-primary' />
 										</div>
 										<div>
 											<p className='text-sm font-medium text-muted-foreground'>
@@ -454,25 +688,30 @@ export default function ProfileClient({ initialProfile }: ProfileClientProps) {
 				</div>
 
 				{/* Profile Details */}
-				<div className='lg:col-span-2 space-y-6'>
+				<div className='space-y-6 lg:col-span-2'>
 					{/* Profile Information Card */}
 					<Card>
 						<CardHeader>
-							<CardTitle className='flex items-center gap-2'>
-								<User className='h-5 w-5' />
+							<CardTitle className='flex gap-2 items-center'>
+								<User className='w-5 h-5' />
 								Profile Information
 							</CardTitle>
 							<CardDescription>
-								Update your personal information and preferences
+								Update your personal information and
+								preferences
 							</CardDescription>
 						</CardHeader>
 						<CardContent className='space-y-6'>
 							{/* Name and Email Row */}
-							<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+							<div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
 								<div className='space-y-2'>
-									<Label htmlFor='name' className='flex items-center gap-2'>
-										<User className='h-4 w-4 text-muted-foreground' />
-										Full Name <span className='text-red-500'>*</span>
+									<Label
+										htmlFor='name'
+										className='flex gap-2 items-center'
+									>
+										<User className='w-4 h-4 text-muted-foreground' />
+										Full Name{' '}
+										<span className='text-red-500'>*</span>
 									</Label>
 									{editing ? (
 										<>
@@ -487,15 +726,21 @@ export default function ProfileClient({ initialProfile }: ProfileClientProps) {
 												}
 												placeholder='Your full name'
 												required
-												className={!formData.name.trim() ? 'border-red-500' : ''}
+												className={
+													!formData.name.trim()
+														? 'border-red-500'
+														: ''
+												}
 											/>
 											{!formData.name.trim() && (
-												<p className='text-xs text-red-500'>Name is required</p>
+												<p className='text-xs text-red-500'>
+													Name is required
+												</p>
 											)}
 										</>
 									) : (
-										<div className='flex items-center gap-3 p-3 border rounded-lg bg-muted/30'>
-											<User className='h-4 w-4 text-muted-foreground flex-shrink-0' />
+										<div className='flex gap-3 items-center p-3 rounded-lg border bg-muted/30'>
+											<User className='flex-shrink-0 w-4 h-4 text-muted-foreground' />
 											<span className='font-medium'>
 												{profile?.name || 'Not set'}
 											</span>
@@ -503,9 +748,13 @@ export default function ProfileClient({ initialProfile }: ProfileClientProps) {
 									)}
 								</div>
 								<div className='space-y-2'>
-									<Label htmlFor='email' className='flex items-center gap-2'>
-										<Mail className='h-4 w-4 text-muted-foreground' />
-										Email Address <span className='text-red-500'>*</span>
+									<Label
+										htmlFor='email'
+										className='flex gap-2 items-center'
+									>
+										<Mail className='w-4 h-4 text-muted-foreground' />
+										Email Address{' '}
+										<span className='text-red-500'>*</span>
 									</Label>
 									{editing ? (
 										<>
@@ -523,13 +772,17 @@ export default function ProfileClient({ initialProfile }: ProfileClientProps) {
 												required
 												className={
 													!formData.email.trim() ||
-													!formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)
+													!formData.email.match(
+														/^[^\s@]+@[^\s@]+\.[^\s@]+$/
+													)
 														? 'border-red-500'
 														: ''
 												}
 											/>
 											{(!formData.email.trim() ||
-												!formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) && (
+												!formData.email.match(
+													/^[^\s@]+@[^\s@]+\.[^\s@]+$/
+												)) && (
 												<p className='text-xs text-red-500'>
 													{!formData.email.trim()
 														? 'Email is required'
@@ -538,9 +791,11 @@ export default function ProfileClient({ initialProfile }: ProfileClientProps) {
 											)}
 										</>
 									) : (
-										<div className='flex items-center gap-3 p-3 border rounded-lg bg-muted/30'>
-											<Mail className='h-4 w-4 text-muted-foreground flex-shrink-0' />
-											<span className='font-medium'>{profile?.email}</span>
+										<div className='flex gap-3 items-center p-3 rounded-lg border bg-muted/30'>
+											<Mail className='flex-shrink-0 w-4 h-4 text-muted-foreground' />
+											<span className='font-medium'>
+												{profile?.email}
+											</span>
 										</div>
 									)}
 								</div>
@@ -550,8 +805,11 @@ export default function ProfileClient({ initialProfile }: ProfileClientProps) {
 
 							{/* Bio Section */}
 							<div className='space-y-2'>
-								<Label htmlFor='bio' className='flex items-center gap-2'>
-									<FileText className='h-4 w-4 text-muted-foreground' />
+								<Label
+									htmlFor='bio'
+									className='flex gap-2 items-center'
+								>
+									<FileText className='w-4 h-4 text-muted-foreground' />
 									Bio
 								</Label>
 								{editing ? (
@@ -575,7 +833,7 @@ export default function ProfileClient({ initialProfile }: ProfileClientProps) {
 												{profile.bio}
 											</p>
 										) : (
-											<p className='text-sm text-muted-foreground italic'>
+											<p className='text-sm italic text-muted-foreground'>
 												No bio provided
 											</p>
 										)}
@@ -587,8 +845,11 @@ export default function ProfileClient({ initialProfile }: ProfileClientProps) {
 
 							{/* Website Section */}
 							<div className='space-y-2'>
-								<Label htmlFor='website' className='flex items-center gap-2'>
-									<Globe className='h-4 w-4 text-muted-foreground' />
+								<Label
+									htmlFor='website'
+									className='flex gap-2 items-center'
+								>
+									<Globe className='w-4 h-4 text-muted-foreground' />
 									Website
 								</Label>
 								{editing ? (
@@ -605,19 +866,21 @@ export default function ProfileClient({ initialProfile }: ProfileClientProps) {
 										type='url'
 									/>
 								) : (
-									<div className='flex items-center gap-3 p-3 border rounded-lg bg-muted/30'>
-										<Globe className='h-4 w-4 text-muted-foreground flex-shrink-0' />
+									<div className='flex gap-3 items-center p-3 rounded-lg border bg-muted/30'>
+										<Globe className='flex-shrink-0 w-4 h-4 text-muted-foreground' />
 										{profile?.website ? (
 											<a
 												href={profile.website}
 												target='_blank'
 												rel='noopener noreferrer'
-												className='text-primary hover:underline font-medium'
+												className='font-medium text-primary hover:underline'
 											>
 												{profile.website}
 											</a>
 										) : (
-											<span className='text-muted-foreground italic'>Not set</span>
+											<span className='italic text-muted-foreground'>
+												Not set
+											</span>
 										)}
 									</div>
 								)}
@@ -628,8 +891,8 @@ export default function ProfileClient({ initialProfile }: ProfileClientProps) {
 					{/* Account Information Card */}
 					<Card>
 						<CardHeader>
-							<CardTitle className='flex items-center gap-2'>
-								<UserCheck className='h-5 w-5' />
+							<CardTitle className='flex gap-2 items-center'>
+								<UserCheck className='w-5 h-5' />
 								Account Information
 							</CardTitle>
 							<CardDescription>
@@ -637,14 +900,14 @@ export default function ProfileClient({ initialProfile }: ProfileClientProps) {
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
-							<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+							<div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
 								<div className='space-y-2'>
-									<Label className='flex items-center gap-2 text-muted-foreground'>
-										<Calendar className='h-4 w-4' />
+									<Label className='flex gap-2 items-center text-muted-foreground'>
+										<Calendar className='w-4 h-4' />
 										Member Since
 									</Label>
-									<div className='flex items-center gap-2 p-3 border rounded-lg bg-muted/30'>
-										<Clock className='h-4 w-4 text-muted-foreground' />
+									<div className='flex gap-2 items-center p-3 rounded-lg border bg-muted/30'>
+										<Clock className='w-4 h-4 text-muted-foreground' />
 										<p className='font-medium'>
 											{profile?.createdAt
 												? format(
@@ -656,12 +919,12 @@ export default function ProfileClient({ initialProfile }: ProfileClientProps) {
 									</div>
 								</div>
 								<div className='space-y-2'>
-									<Label className='flex items-center gap-2 text-muted-foreground'>
-										<Clock className='h-4 w-4' />
+									<Label className='flex gap-2 items-center text-muted-foreground'>
+										<Clock className='w-4 h-4' />
 										Last Updated
 									</Label>
-									<div className='flex items-center gap-2 p-3 border rounded-lg bg-muted/30'>
-										<Clock className='h-4 w-4 text-muted-foreground' />
+									<div className='flex gap-2 items-center p-3 rounded-lg border bg-muted/30'>
+										<Clock className='w-4 h-4 text-muted-foreground' />
 										<p className='font-medium'>
 											{profile?.updatedAt
 												? format(
@@ -673,6 +936,202 @@ export default function ProfileClient({ initialProfile }: ProfileClientProps) {
 									</div>
 								</div>
 							</div>
+						</CardContent>
+					</Card>
+
+					{/* Passkey Management Card */}
+					<Card>
+						<CardHeader>
+							<CardTitle className='flex gap-2 items-center'>
+								<Key className='w-5 h-5' />
+								Passkeys
+							</CardTitle>
+							<CardDescription>
+								Manage your passkeys for passwordless
+								authentication
+							</CardDescription>
+						</CardHeader>
+						<CardContent className='space-y-4'>
+							{passkeyError && (
+								<Alert variant='destructive'>
+									<AlertCircle className='w-4 h-4' />
+									<AlertDescription>
+										{passkeyError}
+									</AlertDescription>
+								</Alert>
+							)}
+							{passkeySuccess && (
+								<Alert>
+									<CheckCircle className='w-4 h-4' />
+									<AlertDescription>
+										{passkeySuccess}
+									</AlertDescription>
+								</Alert>
+							)}
+
+							{passkeySupported === null ? (
+								<div className='py-8 text-center text-muted-foreground'>
+									Checking passkey support...
+								</div>
+							) : !isPasskeySupported() ? (
+								<Alert>
+									<AlertCircle className='w-4 h-4' />
+									<AlertDescription>
+										Passkeys are not supported in this
+										browser. Please use a modern browser
+										that supports WebAuthn.
+									</AlertDescription>
+								</Alert>
+							) : (
+								<>
+									<div className='flex justify-between items-center'>
+										<p className='text-sm text-muted-foreground'>
+											{passkeys.length === 0
+												? 'No passkeys registered'
+												: `${passkeys.length} passkey${
+														passkeys.length === 1 ? '' : 's'
+												  } registered`}
+										</p>
+										<Dialog
+											open={showAddPasskeyDialog}
+											onOpenChange={setShowAddPasskeyDialog}
+										>
+											<DialogTrigger asChild>
+												<Button
+													variant='outline'
+													size='sm'
+												>
+													<Plus className='mr-2 w-4 h-4' />
+													Add Passkey
+												</Button>
+											</DialogTrigger>
+											<DialogContent className='sm:max-w-md'>
+												<DialogHeader>
+													<DialogTitle className='flex gap-2 items-center'>
+														<Key className='w-5 h-5' />
+														Add New Passkey
+													</DialogTitle>
+													<DialogDescription>
+														Register a new passkey for
+														passwordless authentication.
+														You'll be prompted to use your
+														device's biometric
+														authentication or security key.
+													</DialogDescription>
+												</DialogHeader>
+												<div className='pt-4 space-y-4'>
+													<div className='space-y-2'>
+														<Label htmlFor='passkeyName'>
+															Passkey Name
+														</Label>
+														<Input
+															id='passkeyName'
+															value={passkeyName}
+															onChange={(e) => {
+																setPasskeyName(
+																	e.target.value
+																);
+																setPasskeyError(null);
+															}}
+															placeholder='e.g., MacBook Pro Touch ID'
+															disabled={addingPasskey}
+														/>
+														<p className='text-xs text-muted-foreground'>
+															Give your passkey a
+															descriptive name to identify
+															it later
+														</p>
+													</div>
+													<div className='flex gap-2 justify-end'>
+														<Button
+															variant='outline'
+															onClick={() => {
+																setShowAddPasskeyDialog(
+																	false
+																);
+																setPasskeyName('');
+																setPasskeyError(null);
+															}}
+															disabled={addingPasskey}
+														>
+															Cancel
+														</Button>
+														<Button
+															onClick={handleAddPasskey}
+															disabled={
+																addingPasskey ||
+																!passkeyName.trim()
+															}
+														>
+															{addingPasskey
+																? 'Registering...'
+																: 'Register Passkey'}
+														</Button>
+													</div>
+												</div>
+											</DialogContent>
+										</Dialog>
+									</div>
+
+									{loadingPasskeys ? (
+										<div className='py-8 text-center text-muted-foreground'>
+											Loading passkeys...
+										</div>
+									) : passkeys.length === 0 ? (
+										<div className='py-8 text-center rounded-lg border bg-muted/30'>
+											<Key className='mx-auto mb-4 w-12 h-12 opacity-50 text-muted-foreground' />
+											<p className='mb-2 text-sm text-muted-foreground'>
+												No passkeys registered yet
+											</p>
+											<p className='text-xs text-muted-foreground'>
+												Add a passkey to enable passwordless
+												login
+											</p>
+										</div>
+									) : (
+										<div className='space-y-2'>
+											{passkeys.map((passkey) => (
+												<div
+													key={passkey.id}
+													className='flex justify-between items-center p-4 rounded-lg border transition-colors bg-muted/30 hover:bg-muted'
+												>
+													<div className='flex gap-3 items-center'>
+														<div className='p-2 rounded-md bg-primary/10'>
+															<Key className='w-4 h-4 text-primary' />
+														</div>
+														<div>
+															<p className='font-medium'>
+																{passkey.name}
+															</p>
+															<p className='text-xs text-muted-foreground'>
+																Added{' '}
+																{format(
+																	new Date(
+																		passkey.createdAt
+																	),
+																	'MMM dd, yyyy'
+																)}
+															</p>
+														</div>
+													</div>
+													<Button
+														variant='ghost'
+														size='sm'
+														onClick={() =>
+															handleDeletePasskey(
+																passkey.id
+															)
+														}
+														className='text-destructive hover:text-destructive hover:bg-destructive/10'
+													>
+														<Trash2 className='w-4 h-4' />
+													</Button>
+												</div>
+											))}
+										</div>
+									)}
+								</>
+							)}
 						</CardContent>
 					</Card>
 				</div>
