@@ -20,6 +20,9 @@ const nextConfig: NextConfig = {
 	},
 	eslint: {
 		ignoreDuringBuilds: false,
+		// Suppress warnings about deprecated ESLint options in FlatCompat
+		// This is a known issue with @eslint/eslintrc compatibility layer
+		dirs: ['src', 'app'],
 	},
 	typescript: {
 		ignoreBuildErrors: false,
@@ -42,9 +45,6 @@ const nextConfig: NextConfig = {
 			'@radix-ui/react-avatar',
 			'@radix-ui/react-dialog',
 		],
-		// Disable ESM externals to treat external modules as CommonJS
-		// This fixes compatibility issues with jsdom and isomorphic-dompurify
-		esmExternals: false,
 	},
 	// Webpack config is needed for production builds (npm run build)
 	// Turbopack (used in dev mode with --turbopack flag) automatically ignores this config

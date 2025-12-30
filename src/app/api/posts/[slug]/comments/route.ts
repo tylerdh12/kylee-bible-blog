@@ -122,8 +122,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    // Sanitize comment content to prevent XSS
-    const sanitizedContent = sanitizeUserInput(content);
+    // Sanitize comment content to prevent XSS (async on server)
+    const sanitizedContent = await sanitizeUserInput(content);
 
     // Find the post
     const post = await prisma.post.findUnique({

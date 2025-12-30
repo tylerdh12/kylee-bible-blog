@@ -157,6 +157,16 @@ function formatCurrency(amount: number): string {
 
 export default async function Home() {
 	const { posts, goals, siteContent } = await getHomeData();
+	
+	// Process posts to sanitize excerpts/content (async on server)
+	const processedPosts = await Promise.all(
+		posts.map(async (post) => ({
+			...post,
+			sanitizedExcerpt: post.excerpt 
+				? await stripHtmlToText(post.excerpt, 150)
+				: await stripHtmlToText(post.content, 150),
+		}))
+	);
 
 	// Debug logging in development
 	if (process.env.NODE_ENV === 'development') {
@@ -221,7 +231,7 @@ export default async function Home() {
 						</Card>
 					) : (
 						<div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-							{posts.map((post) => (
+							{processedPosts.map((post) => (
 								<Card
 									key={post.id}
 									className='transition-shadow hover:shadow-lg'
@@ -240,9 +250,7 @@ export default async function Home() {
 									</CardHeader>
 									<CardContent>
 										<p className='mb-4 text-muted-foreground line-clamp-3'>
-											{post.excerpt
-												? stripHtmlToText(post.excerpt, 150)
-												: stripHtmlToText(post.content, 150)}
+											{post.sanitizedExcerpt}
 										</p>
 										{post.tags && post.tags.length > 0 && (
 											<div className='flex flex-wrap gap-2 mb-4'>

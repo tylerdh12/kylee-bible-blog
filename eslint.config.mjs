@@ -5,6 +5,9 @@ import { FlatCompat } from '@eslint/eslintrc';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+// Note: FlatCompat may show warnings about deprecated options (useEslintrc, extensions)
+// when converting Next.js ESLint configs. These warnings are harmless and don't affect
+// the build. This is a known issue with the compatibility layer.
 const compat = new FlatCompat({
 	baseDirectory: __dirname,
 });

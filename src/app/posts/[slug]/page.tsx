@@ -37,8 +37,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 	const siteUrl = settings.siteUrl || process.env.NEXT_PUBLIC_SITE_URL || '';
 	const postUrl = siteUrl ? `${siteUrl}/posts/${slug}` : `/posts/${slug}`;
 	const excerpt = post.excerpt 
-		? stripHtmlToText(post.excerpt, 160)
-		: stripHtmlToText(post.content, 160);
+		? await stripHtmlToText(post.excerpt, 160)
+		: await stripHtmlToText(post.content, 160);
 	const description = excerpt || `${siteName} - ${post.title}`;
 
 	return {
@@ -88,13 +88,15 @@ export default async function PostPage({
 	const siteUrl = settings.siteUrl || process.env.NEXT_PUBLIC_SITE_URL || '';
 	const postUrl = siteUrl ? `${siteUrl}/posts/${slug}` : `/posts/${slug}`;
 	
+	const postDescription = post.excerpt 
+		? await stripHtmlToText(post.excerpt, 160)
+		: await stripHtmlToText(post.content, 160);
+	
 	const structuredData = {
 		'@context': 'https://schema.org',
 		'@type': 'BlogPosting',
 		headline: post.title,
-		description: post.excerpt 
-			? stripHtmlToText(post.excerpt, 160)
-			: stripHtmlToText(post.content, 160),
+		description: postDescription,
 		...(post.publishedAt && {
 			datePublished: new Date(post.publishedAt).toISOString(),
 		}),

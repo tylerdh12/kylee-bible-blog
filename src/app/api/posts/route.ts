@@ -26,10 +26,10 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
-		// Sanitize inputs to prevent XSS
-		const sanitizedTitle = sanitizeText(title);
-		const sanitizedContent = sanitizeHtml(content);
-		const sanitizedExcerpt = excerpt ? sanitizeText(excerpt) : null;
+		// Sanitize inputs to prevent XSS (async on server)
+		const sanitizedTitle = await sanitizeText(title);
+		const sanitizedContent = await sanitizeHtml(content);
+		const sanitizedExcerpt = excerpt ? await sanitizeText(excerpt) : null;
 
 		const slug = title
 			.toLowerCase()
