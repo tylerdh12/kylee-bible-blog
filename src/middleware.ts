@@ -6,7 +6,7 @@ export async function middleware(request: NextRequest) {
 
 	// Create response with pathname header for maintenance check
 	const response = NextResponse.next();
-	
+
 	// Set header so MaintenanceCheck component can detect admin routes
 	// This allows /admin routes to bypass maintenance mode
 	response.headers.set('x-pathname', pathname);
@@ -21,31 +21,11 @@ export async function middleware(request: NextRequest) {
 		return response;
 	}
 
-	// Only protect admin routes (except the login page and password reset pages)
+	// Admin routes are protected by the AdminLayout component which handles authentication
+	// We skip middleware checks for admin routes to avoid redirect loops
+	// The AdminLayout component will handle redirecting unauthenticated users
 	if (pathname.startsWith('/admin')) {
-		// Allow access to the main admin page (login)
-		if (pathname === '/admin') {
-			return response;
-		}
-
-		// Allow access to password reset pages (users aren't logged in when resetting)
-		if (pathname.startsWith('/admin/reset-password')) {
-			return response;
-		}
-
-		// Middleware runs in the Edge runtime; avoid importing server-only utilities.
-		// Perform a lightweight check for the presence of the better-auth session cookie.
-		// Better-auth uses 'better-auth.session_token' cookie (check both possible names)
-		const sessionToken =
-			request.cookies.get('better-auth.session_token')?.value ||
-			request.cookies.get('better-auth.sessionToken')?.value;
-
-		if (!sessionToken) {
-			const url = new URL('/admin', request.url);
-			// Add a query param to prevent caching
-			url.searchParams.set('redirected', 'true');
-			return NextResponse.redirect(url);
-		}
+		return response;
 	}
 
 	return response;
