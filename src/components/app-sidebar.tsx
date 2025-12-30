@@ -152,15 +152,20 @@ export function AppSidebar({
 		try {
 			// Use better-auth's signOut method to properly handle logout
 			// This will call the /api/auth/signout endpoint and handle cookie clearing
-			const { data, error } = await signOut();
+			console.log('[Logout] Starting logout process...');
+			
+			// Call signOut - it returns a promise
+			const result = await signOut();
 
 			// Check if signout was successful
-			if (error) {
-				console.error('Logout failed:', error);
+			if (result?.error) {
+				console.error('[Logout] Logout failed:', result.error);
 				// Even if there's an error, try to clear local state and redirect
+			} else {
+				console.log('[Logout] Logout successful');
 			}
 		} catch (error) {
-			console.error('Logout error:', error);
+			console.error('[Logout] Logout error:', error);
 			// Continue with logout even if API call fails
 		}
 
@@ -174,9 +179,12 @@ export function AppSidebar({
 		// Force redirect to login page - use replace to prevent back button
 		// This bypasses Next.js router and ensures immediate redirect
 		// Wait a brief moment to ensure cookies are cleared server-side
+		// Increased timeout in production to account for network latency
+		const timeout = process.env.NODE_ENV === 'production' ? 300 : 100;
 		setTimeout(() => {
+			console.log('[Logout] Redirecting to login page...');
 			window.location.replace('/admin');
-		}, 100);
+		}, timeout);
 	}, []);
 
 	return (

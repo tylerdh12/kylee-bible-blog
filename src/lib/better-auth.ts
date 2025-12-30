@@ -22,6 +22,7 @@ const baseURL =
 	'http://localhost:3000';
 let origin: string;
 let rpID: string;
+let allowedOrigins: string[] = [];
 
 try {
 	const url = new URL(baseURL);
@@ -32,6 +33,26 @@ try {
 		process.env.NODE_ENV === 'production'
 			? url.hostname
 			: 'localhost';
+	
+	// In production, allow both www and non-www origins
+	if (process.env.NODE_ENV === 'production') {
+		const hostname = url.hostname;
+		if (hostname.startsWith('www.')) {
+			// If baseURL has www, also allow without www
+			allowedOrigins = [
+				origin,
+				`${url.protocol}//${hostname.replace(/^www\./, '')}`,
+			];
+		} else {
+			// If baseURL doesn't have www, also allow with www
+			allowedOrigins = [
+				origin,
+				`${url.protocol}//www.${hostname}`,
+			];
+		}
+	} else {
+		allowedOrigins = [origin];
+	}
 } catch {
 	// Fallback if URL parsing fails
 	origin =
@@ -42,6 +63,15 @@ try {
 		process.env.NODE_ENV === 'production'
 			? 'www.kyspreadslove.org'
 			: 'localhost';
+	
+	if (process.env.NODE_ENV === 'production') {
+		allowedOrigins = [
+			'https://www.kyspreadslove.org',
+			'https://kyspreadslove.org',
+		];
+	} else {
+		allowedOrigins = [origin];
+	}
 }
 
 if (process.env.NODE_ENV === 'development') {
@@ -49,6 +79,7 @@ if (process.env.NODE_ENV === 'development') {
 		rpID,
 		origin,
 		baseURL,
+		allowedOrigins,
 	});
 }
 

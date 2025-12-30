@@ -175,10 +175,15 @@ export async function POST(request: NextRequest) {
 		}
 
 		// Debug logging before calling handler
-		if (process.env.NODE_ENV === 'development' && url.pathname.includes('passkey')) {
-			console.log('[Better Auth] Calling handler.POST for:', url.pathname);
-			console.log('[Better Auth] Request method:', requestToPass.method);
-			console.log('[Better Auth] Request URL:', requestToPass.url);
+		if (url.pathname.includes('passkey')) {
+			const requestOrigin = request.headers.get('origin') || request.headers.get('referer')?.split('/').slice(0, 3).join('/');
+			console.log('[Better Auth] Passkey request:', {
+				pathname: url.pathname,
+				method: requestToPass.method,
+				url: requestToPass.url,
+				requestOrigin,
+				host: url.host,
+			});
 		}
 		
 		const result = await handler.POST(requestToPass);
@@ -206,6 +211,7 @@ export async function POST(request: NextRequest) {
 			// Convert the result to a NextResponse so we can modify cookies
 			const isProduction =
 				process.env.NODE_ENV === 'production';
+			const isHTTPS = url.protocol === 'https:' || isProduction;
 
 			// Get response body if it exists
 			let responseBody = null;
@@ -239,7 +245,7 @@ export async function POST(request: NextRequest) {
 						status: responseStatus,
 				  });
 
-			// Copy headers from original response
+			// Copy headers from original response (but we'll override Set-Cookie)
 			if (result instanceof Response) {
 				result.headers.forEach((value, key) => {
 					if (key.toLowerCase() !== 'set-cookie') {
@@ -247,6 +253,12 @@ export async function POST(request: NextRequest) {
 					}
 				});
 			}
+
+			// Get the domain from the request URL
+			const hostname = url.hostname;
+			const domain = isProduction && hostname !== 'localhost' 
+				? hostname.startsWith('www.') ? hostname : `.${hostname}`
+				: undefined;
 
 			// Explicitly clear all possible session cookie names
 			// HttpOnly cookies can only be cleared by the server
@@ -258,29 +270,43 @@ export async function POST(request: NextRequest) {
 			];
 
 			cookieNames.forEach((cookieName) => {
-				// Clear with Secure flag (for HTTPS/production with __Secure- prefix)
-				if (
-					cookieName.startsWith('__Secure-') ||
-					isProduction
-				) {
-					response.cookies.set(cookieName, '', {
-						expires: new Date(0),
-						path: '/',
-						sameSite: 'lax',
-						secure: true,
-						httpOnly: true,
-					});
-				}
-
-				// Clear without Secure flag (for HTTP/development)
-				response.cookies.set(cookieName, '', {
+				const isSecureCookie = cookieName.startsWith('__Secure-') || isHTTPS;
+				
+				// Clear cookie with matching attributes
+				// In production, we need to match domain, secure, and other flags
+				const cookieOptions: any = {
 					expires: new Date(0),
 					path: '/',
-					sameSite: 'lax',
-					secure: false,
+					sameSite: 'lax' as const,
+					secure: isSecureCookie,
 					httpOnly: true,
-				});
+				};
+
+				// Only set domain in production and if it's not localhost
+				if (domain && isProduction) {
+					cookieOptions.domain = domain;
+				}
+
+				response.cookies.set(cookieName, '', cookieOptions);
+				
+				// Also try clearing without domain (in case it was set without domain)
+				if (domain && isProduction) {
+					response.cookies.set(cookieName, '', {
+						...cookieOptions,
+						domain: undefined,
+					});
+				}
 			});
+
+			// Log in development for debugging
+			if (process.env.NODE_ENV === 'development') {
+				console.log('[Better Auth] Signout - clearing cookies:', {
+					cookieNames,
+					domain,
+					isProduction,
+					isHTTPS,
+				});
+			}
 
 			return response;
 		}
@@ -492,6 +518,18 @@ export async function POST(request: NextRequest) {
 			const cloned = result.clone();
 			try {
 				const text = await cloned.text();
+
+				// Log origin-related errors for debugging
+				if (text && (text.includes('invalid origin') || text.includes('Invalid origin') || text.includes('INVALID_ORIGIN'))) {
+					const requestOrigin = request.headers.get('origin') || request.headers.get('referer')?.split('/').slice(0, 3).join('/');
+					console.error('[Better Auth] Invalid origin error:', {
+						requestOrigin,
+						configuredOrigin: process.env.BETTER_AUTH_URL || process.env.NEXTAUTH_URL,
+						url: url.toString(),
+						host: url.host,
+						errorText: text,
+					});
+				}
 
 				// If the response body is empty, create a proper error response
 				if (!text || text.trim() === '') {
