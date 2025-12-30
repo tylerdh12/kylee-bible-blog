@@ -1,7 +1,13 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-	serverExternalPackages: ['prisma', '@prisma/client'],
+	serverExternalPackages: [
+		'prisma',
+		'@prisma/client',
+		'jsdom',
+		'@exodus/bytes',
+		'html-encoding-sniffer',
+	],
 	images: {
 		domains: ['localhost'],
 		remotePatterns: [
@@ -27,6 +33,9 @@ const nextConfig: NextConfig = {
 			'@radix-ui/react-avatar',
 			'@radix-ui/react-dialog',
 		],
+		// Disable ESM externals to treat external modules as CommonJS
+		// This fixes compatibility issues with jsdom and isomorphic-dompurify
+		esmExternals: false,
 	},
 	// Webpack config is needed for production builds (npm run build)
 	// Turbopack (used in dev mode with --turbopack flag) automatically ignores this config
@@ -42,6 +51,42 @@ const nextConfig: NextConfig = {
 				stream: false,
 				util: false,
 			};
+		}
+
+		// Externalize jsdom and related packages for server-side builds
+		// This prevents ESM/CommonJS compatibility issues in production
+		// Note: serverExternalPackages above also handles this, but this adds extra safety
+		if (isServer) {
+			const externals = config.externals || [];
+			if (Array.isArray(externals)) {
+				config.externals = [
+					...externals,
+					/^jsdom$/,
+					/^@exodus\/bytes/,
+					/^html-encoding-sniffer/,
+				];
+			} else if (typeof externals === 'function') {
+				const originalExternals = externals;
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				config.externals = (
+					context: any,
+					request: any,
+					callback: any
+				) => {
+					if (
+						/^jsdom$/.test(request) ||
+						/^@exodus\/bytes/.test(request) ||
+						/^html-encoding-sniffer/.test(request)
+					) {
+						return callback(null, `commonjs ${request}`);
+					}
+					return originalExternals(
+						context,
+						request,
+						callback
+					);
+				};
+			}
 		}
 
 		// Reduce memory usage during build
