@@ -19,7 +19,6 @@
 	},
 	"functions": {
 		"src/app/api/**/*.ts": {
-			"memory": 1024,
 			"maxDuration": 30
 		}
 	},

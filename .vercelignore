@@ -67,7 +67,7 @@ dist
 
 # Gatsby files
 .cache/
-public
+# Note: public folder should be included for favicons and static assets
 
 # Storybook build outputs
 .out
