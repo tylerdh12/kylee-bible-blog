@@ -17,10 +17,10 @@ import {
 	Globe,
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import * as React from 'react';
 import { useCallback } from 'react';
-import { signOut } from '@/lib/better-auth-client';
+import { authClient } from '@/lib/better-auth-client';
 
 import {
 	Avatar,
@@ -147,45 +147,37 @@ export function AppSidebar({
 	...props
 }: AppSidebarProps) {
 	const pathname = usePathname();
+	const router = useRouter();
 
 	const handleLogout = useCallback(async () => {
-		try {
-			// Use better-auth's signOut method to properly handle logout
-			// This will call the /api/auth/signout endpoint and handle cookie clearing
-			console.log('[Logout] Starting logout process...');
-			
-			// Call signOut - it returns a promise
-			const result = await signOut();
-
-			// Check if signout was successful
-			if (result?.error) {
-				console.error('[Logout] Logout failed:', result.error);
-				// Even if there's an error, try to clear local state and redirect
-			} else {
-				console.log('[Logout] Logout successful');
-			}
-		} catch (error) {
-			console.error('[Logout] Logout error:', error);
-			// Continue with logout even if API call fails
-		}
-
-		// Clear any local state
-		window.dispatchEvent(
-			new CustomEvent('auth-changed', {
-				detail: { authenticated: false, user: null },
-			})
-		);
-
-		// Force redirect to login page - use replace to prevent back button
-		// This bypasses Next.js router and ensures immediate redirect
-		// Wait a brief moment to ensure cookies are cleared server-side
-		// Increased timeout in production to account for network latency
-		const timeout = process.env.NODE_ENV === 'production' ? 300 : 100;
-		setTimeout(() => {
-			console.log('[Logout] Redirecting to login page...');
-			window.location.replace('/admin');
-		}, timeout);
-	}, []);
+		// Use better-auth's signOut method with fetchOptions for redirect
+		// This is the recommended way according to better-auth documentation
+		await authClient.signOut({
+			fetchOptions: {
+				onSuccess: () => {
+					// Clear any local state
+					window.dispatchEvent(
+						new CustomEvent('auth-changed', {
+							detail: { authenticated: false, user: null },
+						})
+					);
+					// Redirect to login page after successful logout
+					router.push('/admin');
+				},
+				onError: (error: any) => {
+					// Even if there's an error, clear local state and redirect
+					console.error('[Logout] Logout error:', error);
+					window.dispatchEvent(
+						new CustomEvent('auth-changed', {
+							detail: { authenticated: false, user: null },
+						})
+					);
+					// Use window.location as fallback if router fails
+					window.location.replace('/admin');
+				},
+			},
+		});
+	}, [router]);
 
 	return (
 		<Sidebar
@@ -401,7 +393,9 @@ export function AppSidebar({
 										Settings
 									</Link>
 								</DropdownMenuItem>
-								<DropdownMenuItem onClick={handleLogout}>
+								<DropdownMenuItem
+									onClick={() => handleLogout()}
+								>
 									<LogOut className='size-4' />
 									Log out
 								</DropdownMenuItem>

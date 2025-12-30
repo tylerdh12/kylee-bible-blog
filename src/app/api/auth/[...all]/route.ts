@@ -204,111 +204,33 @@ export async function POST(request: NextRequest) {
 			}
 		}
 
-		// Handle signout - ensure cookies are properly cleared
+		// Handle signout - better-auth handles cookie clearing automatically
+		// We only need to ensure the response is properly formatted for Next.js
 		// Better-auth uses /api/auth/signout (no hyphen)
 		if (url.pathname.includes('/signout')) {
-			// Better-auth should handle cookie clearing, but we ensure it happens
-			// Convert the result to a NextResponse so we can modify cookies
-			const isProduction =
-				process.env.NODE_ENV === 'production';
-			const isHTTPS = url.protocol === 'https:' || isProduction;
-
-			// Get response body if it exists
-			let responseBody = null;
-			let responseStatus = 200;
+			// Better-auth automatically clears cookies via Set-Cookie headers
+			// We just need to ensure the response is a proper NextResponse
 			if (result instanceof Response) {
-				responseStatus = result.status;
-				try {
-					responseBody = await result
-						.clone()
-						.json()
-						.catch(() => null);
-				} catch {
-					// If JSON parsing fails, try text
-					try {
-						responseBody = await result
-							.clone()
-							.text()
-							.catch(() => null);
-					} catch {
-						responseBody = null;
-					}
-				}
-			}
-
-			// Create a new NextResponse
-			const response = responseBody
-				? NextResponse.json(responseBody, {
-						status: responseStatus,
-				  })
-				: new NextResponse(null, {
-						status: responseStatus,
-				  });
-
-			// Copy headers from original response (but we'll override Set-Cookie)
-			if (result instanceof Response) {
-				result.headers.forEach((value, key) => {
-					if (key.toLowerCase() !== 'set-cookie') {
-						response.headers.set(key, value);
-					}
+				// Convert to NextResponse to preserve all headers (including Set-Cookie)
+				const nextResponse = new NextResponse(result.body, {
+					status: result.status,
+					statusText: result.statusText,
+					headers: result.headers,
 				});
-			}
-
-			// Get the domain from the request URL
-			const hostname = url.hostname;
-			const domain = isProduction && hostname !== 'localhost' 
-				? hostname.startsWith('www.') ? hostname : `.${hostname}`
-				: undefined;
-
-			// Explicitly clear all possible session cookie names
-			// HttpOnly cookies can only be cleared by the server
-			// Must match the exact attributes the cookie was set with
-			const cookieNames = [
-				'__Secure-better-auth.session_token',
-				'better-auth.session_token',
-				'better-auth.sessionToken',
-			];
-
-			cookieNames.forEach((cookieName) => {
-				const isSecureCookie = cookieName.startsWith('__Secure-') || isHTTPS;
 				
-				// Clear cookie with matching attributes
-				// In production, we need to match domain, secure, and other flags
-				const cookieOptions: any = {
-					expires: new Date(0),
-					path: '/',
-					sameSite: 'lax' as const,
-					secure: isSecureCookie,
-					httpOnly: true,
-				};
-
-				// Only set domain in production and if it's not localhost
-				if (domain && isProduction) {
-					cookieOptions.domain = domain;
-				}
-
-				response.cookies.set(cookieName, '', cookieOptions);
-				
-				// Also try clearing without domain (in case it was set without domain)
-				if (domain && isProduction) {
-					response.cookies.set(cookieName, '', {
-						...cookieOptions,
-						domain: undefined,
+				// Log in development for debugging
+				if (process.env.NODE_ENV === 'development') {
+					console.log('[Better Auth] Signout response:', {
+						status: result.status,
+						hasSetCookie: result.headers.has('set-cookie'),
 					});
 				}
-			});
-
-			// Log in development for debugging
-			if (process.env.NODE_ENV === 'development') {
-				console.log('[Better Auth] Signout - clearing cookies:', {
-					cookieNames,
-					domain,
-					isProduction,
-					isHTTPS,
-				});
+				
+				return nextResponse;
 			}
-
-			return response;
+			
+			// If result is not a Response, return it as-is (shouldn't happen)
+			return result;
 		}
 
 		// After sign-in attempt, verify the user is not a subscriber (if successful)
