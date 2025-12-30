@@ -9,26 +9,67 @@ datasource db {
   directUrl = env("DATABASE_URL")
 }
 
-enum UserRole {
-  ADMIN
-  DEVELOPER
-  SUBSCRIBER
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  avatar        String?
+  bio           String?
+  isActive      Boolean   @default(true)
+  website       String?
+  emailVerified Boolean   @default(false)
+  image         String?
+  role          String?   @default("SUBSCRIBER")
+  accounts      Account[]
+  comments      Comment[]
+  posts         Post[]
+  sessions      Session[]
 }
 
-model User {
-  id        String    @id @default(cuid())
-  email     String    @unique
-  password  String?
-  name      String?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  avatar    String?
-  bio       String?
-  isActive  Boolean   @default(true)
-  website   String?
-  role      UserRole  @default(SUBSCRIBER)
-  comments  Comment[]
-  posts     Post[]
+model Session {
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  userId                String
+  accessToken           String?
+  refreshToken          String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  idToken               String?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([identifier, value])
 }
 
 model Post {
@@ -129,12 +170,18 @@ model Setting {
 model SiteContent {
   id          String   @id @default(cuid())
   key         String   @unique
-  page        String   // 'home' or 'about'
-  section     String   // 'hero', 'recent-posts', 'goals', 'journey', 'mission', etc.
+  page        String
+  section     String
   title       String?
   content     String   @default("")
-  contentType String   @default("text") // 'text', 'html', 'list'
+  contentType String   @default("text")
   order       Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+enum UserRole {
+  ADMIN
+  DEVELOPER
+  SUBSCRIBER
 }
