@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
 		'jsdom',
 		'@exodus/bytes',
 		'html-encoding-sniffer',
+		'isomorphic-dompurify',
 	],
 	images: {
 		domains: ['localhost'],
@@ -25,6 +26,14 @@ const nextConfig: NextConfig = {
 	},
 	outputFileTracingIncludes: {
 		'/api/**/*': ['./prisma/**/*'],
+	},
+	outputFileTracingExcludes: {
+		'*': [
+			'**/node_modules/jsdom/**',
+			'**/node_modules/@exodus/bytes/**',
+			'**/node_modules/html-encoding-sniffer/**',
+			'**/node_modules/jest-environment-jsdom/**',
+		],
 	},
 	experimental: {
 		// Optimize build performance
@@ -64,6 +73,7 @@ const nextConfig: NextConfig = {
 					/^jsdom$/,
 					/^@exodus\/bytes/,
 					/^html-encoding-sniffer/,
+					/^isomorphic-dompurify/,
 				];
 			} else if (typeof externals === 'function') {
 				const originalExternals = externals;
@@ -76,7 +86,8 @@ const nextConfig: NextConfig = {
 					if (
 						/^jsdom$/.test(request) ||
 						/^@exodus\/bytes/.test(request) ||
-						/^html-encoding-sniffer/.test(request)
+						/^html-encoding-sniffer/.test(request) ||
+						/^isomorphic-dompurify/.test(request)
 					) {
 						return callback(null, `commonjs ${request}`);
 					}
