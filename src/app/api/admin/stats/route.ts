@@ -1,28 +1,22 @@
 import { NextResponse } from 'next/server'
-import { getAuthenticatedUser } from '@/lib/auth'
-import { hasPermission } from '@/lib/rbac'
+import { requireAdmin } from '@/lib/rbac'
 import { DatabaseService } from '@/lib/services/database'
 import { prisma } from '@/lib/db'
 import type { StatsResponse, ApiResponse } from '@/types'
 
 export async function GET() {
   try {
-    const user = await getAuthenticatedUser()
+    // Require ADMIN role for admin stats
+    const { error, user } = await requireAdmin()
+    if (error) {
+      return error
+    }
     if (!user) {
       const errorResponse: ApiResponse = {
         success: false,
         error: 'Unauthorized'
       }
       return NextResponse.json(errorResponse, { status: 401 })
-    }
-
-    // Check for analytics permission
-    if (!hasPermission(user.role, 'read:analytics')) {
-      const errorResponse: ApiResponse = {
-        success: false,
-        error: 'Insufficient permissions'
-      }
-      return NextResponse.json(errorResponse, { status: 403 })
     }
 
     const db = DatabaseService.getInstance()

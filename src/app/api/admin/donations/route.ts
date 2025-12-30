@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getAuthenticatedUser } from '@/lib/auth'
+import { getAuthenticatedUser } from '@/lib/auth-new'
 import { hasPermission } from '@/lib/rbac'
 import { mockDb } from '@/lib/mock-db'
 

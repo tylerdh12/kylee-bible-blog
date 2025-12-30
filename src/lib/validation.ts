@@ -153,7 +153,9 @@ export function handleApiError(error: unknown): {
   status: number
   errors?: string[]
 } {
-  console.error('API Error:', error)
+  if (process.env.NODE_ENV === 'development') {
+    console.error('API Error:', error)
+  }
 
   if (error instanceof ValidationError) {
     return {

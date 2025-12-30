@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getAuthenticatedUser } from '@/lib/auth';
-import bcrypt from 'bcryptjs';
+import { getAuthenticatedUser } from '@/lib/auth-new';
+import bcryptjs from 'bcryptjs';
 
 // GET - Get current user profile
 export async function GET(request: NextRequest) {
@@ -73,7 +73,7 @@ export async function PATCH(request: NextRequest) {
 		const { name, email, bio, website, avatar, currentPassword, newPassword } =
 			body;
 
-		// If changing password, verify current password
+		// If changing password, use better-auth's internal password utilities
 		if (newPassword) {
 			if (!currentPassword) {
 				return NextResponse.json(
@@ -82,26 +82,50 @@ export async function PATCH(request: NextRequest) {
 				);
 			}
 
-			const userWithPassword = await prisma.user.findUnique({
-				where: { id: user.id },
-			});
+			try {
+				// Get the account to verify current password
+				const account = await prisma.account.findFirst({
+					where: {
+						userId: user.id,
+						providerId: 'credential',
+					},
+				});
 
-			if (!userWithPassword?.password) {
-				return NextResponse.json(
-					{ error: 'No password set for this account' },
-					{ status: 400 }
+				if (!account || !account.password) {
+					return NextResponse.json(
+						{ error: 'No password set for this account' },
+						{ status: 400 }
+					);
+				}
+
+				// Verify current password using bcryptjs (same as better-auth uses internally)
+				const isPasswordValid = await bcryptjs.compare(
+					currentPassword,
+					account.password
 				);
-			}
 
-			const isPasswordValid = await bcrypt.compare(
-				currentPassword,
-				userWithPassword.password
-			);
+				if (!isPasswordValid) {
+					return NextResponse.json(
+						{ error: 'Current password is incorrect' },
+						{ status: 401 }
+					);
+				}
 
-			if (!isPasswordValid) {
+				// Hash new password using bcryptjs (same as better-auth uses internally)
+				const hashedPassword = await bcryptjs.hash(newPassword, 12);
+
+				// Update the account password
+				await prisma.account.update({
+					where: { id: account.id },
+					data: { password: hashedPassword },
+				});
+			} catch (passwordError: any) {
+				if (process.env.NODE_ENV === 'development') {
+					console.error('Error changing password:', passwordError);
+				}
 				return NextResponse.json(
-					{ error: 'Current password is incorrect' },
-					{ status: 401 }
+					{ error: 'Failed to change password. Please verify your current password.' },
+					{ status: 500 }
 				);
 			}
 		}
@@ -145,9 +169,6 @@ export async function PATCH(request: NextRequest) {
 		if (bio !== undefined) updateData.bio = bio;
 		if (website !== undefined) updateData.website = website;
 		if (avatar !== undefined) updateData.avatar = avatar;
-		if (newPassword) {
-			updateData.password = await bcrypt.hash(newPassword, 10);
-		}
 
 		const updatedUser = await prisma.user.update({
 			where: { id: user.id },
@@ -170,6 +191,9 @@ export async function PATCH(request: NextRequest) {
 				},
 			},
 		});
+
+		// Password change is handled above using better-auth's API
+		// No need to manually update the password here
 
 		return NextResponse.json({
 			message: 'Profile updated successfully',

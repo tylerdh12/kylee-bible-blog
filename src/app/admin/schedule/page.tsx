@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths } from 'date-fns';
 import Link from 'next/link';
+import { ScheduleSkeleton } from '@/components/skeletons/schedule-skeleton';
 
 interface ScheduledPost {
 	id: string;
@@ -79,12 +80,7 @@ export default function SchedulePage() {
 	const draftPosts = posts.filter((post) => !post.published);
 
 	if (loading) {
-		return (
-			<div className='text-center py-8'>
-				<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4'></div>
-				<p className='text-muted-foreground'>Loading schedule...</p>
-			</div>
-		);
+		return <ScheduleSkeleton />;
 	}
 
 	return (

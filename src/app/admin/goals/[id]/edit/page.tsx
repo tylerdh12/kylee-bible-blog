@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { DashboardLayout } from '@/components/dashboard-layout';
 import { useCurrency } from '@/hooks/use-currency';
+import { PageSkeleton } from '@/components/skeletons/admin-skeletons';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface Goal {
@@ -152,12 +153,7 @@ export default function EditGoalPage() {
 				title='Edit Goal'
 				description='Update your fundraising goal'
 			>
-				<div className='text-center py-8'>
-					<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4'></div>
-					<p className='text-muted-foreground'>
-						Loading goal...
-					</p>
-				</div>
+				<PageSkeleton />
 			</DashboardLayout>
 		);
 	}

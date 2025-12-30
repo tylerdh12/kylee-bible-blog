@@ -1,4 +1,5 @@
-import { getAuthenticatedUser } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/auth-new';
+import { requireAdmin } from '@/lib/rbac';
 import { DatabaseService } from '@/lib/services/database';
 import { redirect } from 'next/navigation';
 import PostsListClient from './posts-list-client';
@@ -7,9 +8,9 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export default async function PostsIndexPage() {
-	// Verify authentication server-side
-	const user = await getAuthenticatedUser();
-	if (!user) {
+	// Verify authentication and ADMIN role server-side
+	const { error, user } = await requireAdmin();
+	if (error || !user) {
 		redirect('/admin');
 	}
 

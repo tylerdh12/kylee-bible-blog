@@ -1,6 +1,6 @@
-import { getAuthenticatedUser } from '@/lib/auth';
+import { requireAdmin } from '@/lib/rbac';
 import { redirect, notFound } from 'next/navigation';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/db';
 import EditPostClient from './edit-post-client';
 
 export const dynamic = 'force-dynamic';
@@ -11,9 +11,9 @@ interface EditPostPageProps {
 }
 
 export default async function EditPostPage({ params }: EditPostPageProps) {
-	// Verify authentication server-side
-	const user = await getAuthenticatedUser();
-	if (!user) {
+	// Verify authentication and ADMIN role server-side
+	const { error, user } = await requireAdmin();
+	if (error || !user) {
 		redirect('/admin');
 	}
 

@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { DashboardStatsSkeleton } from '@/components/skeletons/admin-skeletons';
 
 interface DashboardStats {
 	totalPosts: number;
@@ -70,14 +71,24 @@ export default function AdminPage() {
 			});
 			const data = await response.json();
 
-			if (data.authenticated) {
+			if (data.authenticated && data.user) {
+				// Only allow ADMIN users to access admin pages
+				if (data.user.role !== 'ADMIN') {
+					setIsLoggedIn(false);
+					setUser(null);
+					// Redirect non-admin users away
+					window.location.href = '/';
+					return;
+				}
 				setIsLoggedIn(true);
 				setUser(data.user);
 			} else {
 				setIsLoggedIn(false);
+				setUser(null);
 			}
 		} catch {
 			setIsLoggedIn(false);
+			setUser(null);
 		}
 	};
 
@@ -100,29 +111,126 @@ export default function AdminPage() {
 		setLoading(true);
 
 		try {
-			const response = await fetch('/api/auth/login', {
+			// Use better-auth signIn endpoint
+			const response = await fetch('/api/auth/sign-in/email', {
 				method: 'POST',
 				credentials: 'include',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ email, password }),
 			});
 
-			if (response.ok) {
-				const data = await response.json();
-				setIsLoggedIn(true);
-				setUser(data.user);
-				setEmail('');
-				setPassword('');
-
-				// Dispatch custom event to notify layout of authentication change
-				window.dispatchEvent(new CustomEvent('auth-changed', {
-					detail: { authenticated: true, user: data.user }
-				}));
-			} else {
-				alert('Invalid credentials');
+			let responseData: any = {};
+			let responseText = '';
+			try {
+				responseText = await response.text();
+				console.log('Raw response text:', responseText);
+				console.log('Response status:', response.status);
+				console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+				
+				if (responseText) {
+					try {
+						responseData = JSON.parse(responseText);
+					} catch (parseError) {
+						console.error('Failed to parse JSON:', parseError);
+						console.error('Response text was:', responseText);
+						responseData = { error: 'Invalid server response', raw: responseText };
+					}
+				} else {
+					console.warn('Empty response body');
+					responseData = { error: 'Empty server response' };
+				}
+			} catch (readError) {
+				console.error('Failed to read response:', readError);
+				responseData = { error: 'Failed to read server response' };
 			}
-		} catch {
-			alert('Login failed');
+
+			if (response.ok && !responseData.error) {
+				// Sign-in successful - better-auth should have set the session cookie
+				// Wait a moment for the cookie to be set, then check auth status
+				await new Promise(resolve => setTimeout(resolve, 300));
+				
+				// Check auth status to get user data with role
+				let statusCheckAttempts = 0;
+				const maxAttempts = 3;
+				let userData = null;
+				
+				while (statusCheckAttempts < maxAttempts && !userData) {
+					const statusResponse = await fetch('/api/auth/status', {
+						method: 'GET',
+						credentials: 'include',
+						cache: 'no-store',
+					});
+
+					if (statusResponse.ok) {
+						const data = await statusResponse.json();
+						if (data.authenticated && data.user) {
+							userData = data.user;
+							break;
+						}
+					}
+					
+					statusCheckAttempts++;
+					if (statusCheckAttempts < maxAttempts) {
+						// Wait longer between retries
+						await new Promise(resolve => setTimeout(resolve, 300));
+					}
+				}
+
+				if (userData) {
+					// Verify user is ADMIN before allowing access
+					if (userData.role !== 'ADMIN') {
+						alert('Access denied. Admin privileges required.');
+						setIsLoggedIn(false);
+						setUser(null);
+						window.location.href = '/';
+						return;
+					}
+					
+					setIsLoggedIn(true);
+					setUser(userData);
+					setEmail('');
+					setPassword('');
+
+					// Dispatch custom event to notify layout of authentication change
+					window.dispatchEvent(new CustomEvent('auth-changed', {
+						detail: { authenticated: true, user: userData }
+					}));
+				} else {
+					// If status check still fails after retries, the session might not be set
+					// Try a page reload to let the browser properly set cookies and let layout handle auth
+					console.warn('Status check failed after retries. Reloading page to let layout handle auth...');
+					window.location.reload();
+				}
+			} else {
+				// Better error handling
+				console.error('Login failed - Response status:', response.status);
+				console.error('Login failed - Response data:', responseData);
+				
+				// Handle specific error cases
+				let errorMessage = 'Invalid credentials. Please check your email and password.';
+				
+				if (response.status === 403) {
+					// Access denied - likely a subscriber trying to log in
+					errorMessage = responseData.error?.message || 
+						responseData.message || 
+						'Access denied. Subscribers cannot log in. Please contact an administrator.';
+				} else if (response.status === 401) {
+					errorMessage = responseData.error?.message || 
+						responseData.message || 
+						responseData.error ||
+						'Invalid credentials. Please check your email and password.';
+				} else {
+					errorMessage = responseData.error?.message || 
+						responseData.message || 
+						responseData.error ||
+						'Login failed. Please try again.';
+				}
+				
+				alert(errorMessage);
+			}
+		} catch (error) {
+			console.error('Login error:', error);
+			alert('Login failed. Please try again.');
 		} finally {
 			setLoading(false);
 		}
@@ -130,31 +238,11 @@ export default function AdminPage() {
 
 	// Show loading while checking auth status
 	if (isLoggedIn === null) {
-		return (
-			<div
-				className='flex justify-center items-center min-h-screen'
-				role='main'
-				aria-label='Loading admin dashboard'
-			>
-				<div className='text-center'>
-					<div
-						className='mx-auto mb-4 w-12 h-12 rounded-full border-b-2 animate-spin border-primary'
-						role='status'
-						aria-label='Loading'
-					></div>
-					<p
-						className='text-muted-foreground'
-						aria-live='polite'
-					>
-						Loading...
-					</p>
-				</div>
-			</div>
-		);
+		return <DashboardStatsSkeleton />;
 	}
 
 	// If logged in, show dashboard content (layout will handle the wrapper)
-	if (isLoggedIn) {
+	if (isLoggedIn && user) {
 		return (
 			<div className='space-y-6'>
 				{/* Welcome Section */}
@@ -188,18 +276,7 @@ export default function AdminPage() {
 
 				{/* Stats Overview */}
 				{statsLoading ? (
-					<div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
-						{Array.from({ length: 8 }).map((_, i) => (
-							<Card key={`loading-stat-${i}`}>
-								<CardContent className='p-6'>
-									<div className='animate-pulse'>
-										<div className='mb-2 w-3/4 h-4 rounded bg-muted'></div>
-										<div className='w-1/2 h-8 rounded bg-muted'></div>
-									</div>
-								</CardContent>
-							</Card>
-						))}
-					</div>
+					<DashboardStatsSkeleton />
 				) : (
 					<div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
 						<Card>
@@ -595,6 +672,14 @@ export default function AdminPage() {
 									Enter your password to access the admin
 									dashboard
 								</div>
+							</div>
+							<div className='flex items-center justify-between'>
+								<Link
+									href='/admin/reset-password'
+									className='text-sm text-primary hover:underline'
+								>
+									Forgot password?
+								</Link>
 							</div>
 							<Button
 								type='submit'

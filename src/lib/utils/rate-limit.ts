@@ -115,4 +115,5 @@ export const rateLimitConfigs = {
   posts: { windowMs: 60 * 1000, maxRequests: 30 }, // 30 requests per minute
   goals: { windowMs: 60 * 1000, maxRequests: 20 }, // 20 requests per minute
   strict: { windowMs: 60 * 1000, maxRequests: 5 }, // 5 requests per minute for sensitive endpoints
+  passwordReset: { windowMs: 60 * 60 * 1000, maxRequests: 3 }, // 3 requests per hour per IP
 }

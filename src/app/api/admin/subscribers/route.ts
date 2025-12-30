@@ -1,40 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import jwt from 'jsonwebtoken';
+import { prisma } from '@/lib/db';
+import { getAuthenticatedUser } from '@/lib/auth-new';
+import { hasPermission } from '@/lib/rbac';
 
-const prisma = new PrismaClient();
-
-async function verifyAuth(req: NextRequest) {
-	try {
-		const token = req.cookies.get('auth_token')?.value;
-		if (!token) {
-			return null;
-		}
-
-		const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
-			userId: string;
-		};
-		const user = await prisma.user.findUnique({
-			where: { id: decoded.userId },
-		});
-
-		if (!user || user.role !== 'ADMIN') {
-			return null;
-		}
-
-		return user;
-	} catch {
-		return null;
-	}
-}
-
+// GET - List all subscribers (admin only)
 export async function GET(req: NextRequest) {
 	try {
-		const user = await verifyAuth(req);
+		const user = await getAuthenticatedUser();
 		if (!user) {
 			return NextResponse.json(
 				{ error: 'Unauthorized' },
 				{ status: 401 }
+			);
+		}
+
+		// Permission check
+		if (!hasPermission(user.role, 'read:users')) {
+			return NextResponse.json(
+				{ error: 'Insufficient permissions' },
+				{ status: 403 }
 			);
 		}
 
@@ -54,7 +38,9 @@ export async function GET(req: NextRequest) {
 			})),
 		});
 	} catch (error) {
-		console.error('Failed to fetch subscribers:', error);
+		if (process.env.NODE_ENV === 'development') {
+			console.error('Failed to fetch subscribers:', error);
+		}
 		return NextResponse.json(
 			{ error: 'Internal server error' },
 			{ status: 500 }
@@ -62,13 +48,22 @@ export async function GET(req: NextRequest) {
 	}
 }
 
+// POST - Create new subscriber (admin only)
 export async function POST(req: NextRequest) {
 	try {
-		const user = await verifyAuth(req);
+		const user = await getAuthenticatedUser();
 		if (!user) {
 			return NextResponse.json(
 				{ error: 'Unauthorized' },
 				{ status: 401 }
+			);
+		}
+
+		// Permission check
+		if (!hasPermission(user.role, 'write:users')) {
+			return NextResponse.json(
+				{ error: 'Insufficient permissions' },
+				{ status: 403 }
 			);
 		}
 
@@ -114,7 +109,9 @@ export async function POST(req: NextRequest) {
 			},
 		});
 	} catch (error) {
-		console.error('Failed to create subscriber:', error);
+		if (process.env.NODE_ENV === 'development') {
+			console.error('Failed to create subscriber:', error);
+		}
 		return NextResponse.json(
 			{ error: 'Internal server error' },
 			{ status: 500 }

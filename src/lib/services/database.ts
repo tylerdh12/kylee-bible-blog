@@ -154,8 +154,23 @@ class PrismaAdapter implements DatabaseAdapter {
 			where:
 				published !== undefined ? { published } : undefined,
 			include: {
-				author: includeAuthor,
-				tags: includeTags,
+				author: includeAuthor
+					? {
+							select: {
+								id: true,
+								name: true,
+								avatar: true,
+							},
+					  }
+					: false,
+				tags: includeTags
+					? {
+							select: {
+								id: true,
+								name: true,
+							},
+					  }
+					: false,
 			},
 			orderBy: { [sort.field]: sort.order },
 			take,

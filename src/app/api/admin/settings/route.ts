@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requirePermissions } from '@/lib/rbac';
+import { requirePermissionsRouteHandler } from '@/lib/rbac';
 import { prisma } from '@/lib/db';
+import { clearSettingsCache } from '@/lib/settings';
 
 const defaultSettings = {
 	siteName: "Kylee's Blog",
@@ -30,7 +31,9 @@ async function getSettingValue(key: string, defaultValue: any, type: string = 's
 				return setting.value || defaultValue;
 		}
 	} catch (error) {
-		console.error(`Error getting setting ${key}:`, error);
+		if (process.env.NODE_ENV === 'development') {
+			console.error(`Error getting setting ${key}:`, error);
+		}
 		return defaultValue;
 	}
 }
@@ -58,7 +61,9 @@ async function setSettingValue(key: string, value: any, type: string = 'string',
 			create: { key, value: stringValue, type, description },
 		});
 	} catch (error) {
-		console.error(`Error setting ${key}:`, error);
+		if (process.env.NODE_ENV === 'development') {
+			console.error(`Error setting ${key}:`, error);
+		}
 		throw error;
 	}
 }
@@ -66,8 +71,8 @@ async function setSettingValue(key: string, value: any, type: string = 'string',
 // GET - Fetch current settings
 export async function GET(request: NextRequest) {
 	try {
-		const authCheck = await requirePermissions('admin:settings')();
-		if (authCheck instanceof NextResponse) return authCheck;
+		const authCheck = await requirePermissionsRouteHandler('admin:settings');
+		if (authCheck) return authCheck;
 
 		const settings = {
 			siteName: await getSettingValue('siteName', defaultSettings.siteName),
@@ -82,7 +87,9 @@ export async function GET(request: NextRequest) {
 
 		return NextResponse.json({ settings });
 	} catch (error) {
-		console.error('Error fetching settings:', error);
+		if (process.env.NODE_ENV === 'development') {
+			console.error('Error fetching settings:', error);
+		}
 		return NextResponse.json(
 			{ error: 'Failed to fetch settings' },
 			{ status: 500 }
@@ -93,8 +100,8 @@ export async function GET(request: NextRequest) {
 // POST/PATCH - Update settings
 export async function POST(request: NextRequest) {
 	try {
-		const authCheck = await requirePermissions('admin:settings')();
-		if (authCheck instanceof NextResponse) return authCheck;
+		const authCheck = await requirePermissionsRouteHandler('admin:settings');
+		if (authCheck) return authCheck;
 
 		const body = await request.json();
 		const {
@@ -109,14 +116,21 @@ export async function POST(request: NextRequest) {
 		} = body;
 
 		// Basic validation
-		if (siteName && siteName.trim().length === 0) {
+		if (!siteName || siteName.trim().length === 0) {
 			return NextResponse.json(
 				{ error: 'Site name is required' },
 				{ status: 400 }
 			);
 		}
 
-		if (adminEmail && !adminEmail.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+		if (siteUrl && siteUrl.trim() && !siteUrl.match(/^https?:\/\/.+/)) {
+			return NextResponse.json(
+				{ error: 'Site URL must start with http:// or https://' },
+				{ status: 400 }
+			);
+		}
+
+		if (adminEmail && adminEmail.trim() && !adminEmail.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
 			return NextResponse.json(
 				{ error: 'Invalid email address' },
 				{ status: 400 }
@@ -140,6 +154,9 @@ export async function POST(request: NextRequest) {
 				await setSettingValue(setting.key, setting.value, setting.type, setting.description);
 			}
 		}
+
+		// Clear settings cache so changes take effect immediately
+		clearSettingsCache();
 
 		// Return updated settings
 		const updatedSettings = {

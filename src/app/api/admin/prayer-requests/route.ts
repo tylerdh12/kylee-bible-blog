@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { prayerRequestQuerySchema } from '@/lib/validation/schemas';
 import { createValidationErrorResponse } from '@/lib/validation/schemas';
-import { getAuthenticatedUser } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/auth-new';
 import { hasPermission } from '@/lib/rbac';
 
 export async function GET(request: NextRequest) {

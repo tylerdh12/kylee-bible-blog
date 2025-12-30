@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuthenticatedUser } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/auth-new';
 import { hasPermission } from '@/lib/rbac';
 import { DatabaseService } from '@/lib/services/database';
 

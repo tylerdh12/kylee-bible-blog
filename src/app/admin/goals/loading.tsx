@@ -1,5 +1,5 @@
-import { LoadingPage } from '@/components/loading'
+import { GoalsListSkeleton } from '@/components/skeletons/admin-skeletons';
 
 export default function AdminGoalsLoading() {
-  return <LoadingPage />
+	return <GoalsListSkeleton />;
 }

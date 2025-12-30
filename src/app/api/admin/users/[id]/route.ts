@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { requirePermissions } from '@/lib/rbac';
+import { getAuthenticatedUser } from '@/lib/auth-new';
+import { hasPermission } from '@/lib/rbac';
 import bcryptjs from 'bcryptjs';
 import type { UserRole } from '@/types';
 
@@ -14,14 +15,26 @@ export async function GET(
 	{ params }: RouteParams
 ) {
 	try {
-		const authCheck = await requirePermissions(
-			'read:users'
-		)();
-		if (authCheck instanceof NextResponse) return authCheck;
+		// Authentication check
+		const currentUser = await getAuthenticatedUser();
+		if (!currentUser) {
+			return NextResponse.json(
+				{ error: 'Authentication required' },
+				{ status: 401 }
+			);
+		}
+
+		// Permission check
+		if (!hasPermission(currentUser.role, 'read:users')) {
+			return NextResponse.json(
+				{ error: 'Insufficient permissions' },
+				{ status: 403 }
+			);
+		}
 
 		const { id } = await params;
 
-		const user = await prisma.user.findUnique({
+		const targetUser = await prisma.user.findUnique({
 			where: { id },
 			select: {
 				id: true,
@@ -63,14 +76,14 @@ export async function GET(
 			},
 		});
 
-		if (!user) {
+		if (!targetUser) {
 			return NextResponse.json(
 				{ error: 'User not found' },
 				{ status: 404 }
 			);
 		}
 
-		return NextResponse.json({ user });
+		return NextResponse.json({ user: targetUser });
 	} catch (error) {
 		console.error('Error fetching user:', error);
 		return NextResponse.json(
@@ -86,10 +99,22 @@ export async function PATCH(
 	{ params }: RouteParams
 ) {
 	try {
-		const authCheck = await requirePermissions(
-			'write:users'
-		)();
-		if (authCheck instanceof NextResponse) return authCheck;
+		// Authentication check
+		const user = await getAuthenticatedUser();
+		if (!user) {
+			return NextResponse.json(
+				{ error: 'Authentication required' },
+				{ status: 401 }
+			);
+		}
+
+		// Permission check
+		if (!hasPermission(user.role, 'write:users')) {
+			return NextResponse.json(
+				{ error: 'Insufficient permissions' },
+				{ status: 403 }
+			);
+		}
 
 		const { id } = await params;
 		const {
@@ -144,24 +169,20 @@ export async function PATCH(
 			}
 		}
 
-		// Hash password if provided
-		let hashedPassword;
-		if (password) {
-			hashedPassword = await bcryptjs.hash(password, 12);
-		}
+		// Update user (password goes to Account table, not User)
+		const updateData: any = {
+			...(email && { email }),
+			...(name !== undefined && { name }),
+			...(role && { role }),
+			...(isActive !== undefined && { isActive }),
+			...(avatar !== undefined && { avatar }),
+			...(bio !== undefined && { bio }),
+			...(website !== undefined && { website }),
+		};
 
 		const updatedUser = await prisma.user.update({
 			where: { id },
-			data: {
-				...(email && { email }),
-				...(hashedPassword && { password: hashedPassword }),
-				...(name !== undefined && { name }),
-				...(role && { role }),
-				...(isActive !== undefined && { isActive }),
-				...(avatar !== undefined && { avatar }),
-				...(bio !== undefined && { bio }),
-				...(website !== undefined && { website }),
-			},
+			data: updateData,
 			select: {
 				id: true,
 				email: true,
@@ -175,12 +196,53 @@ export async function PATCH(
 			},
 		});
 
+		// Update password using bcryptjs (same as better-auth uses internally)
+		if (password) {
+			try {
+				// Use bcryptjs directly to avoid spawn EBADF errors with auth.$context
+				// better-auth uses bcrypt internally, so this is compatible
+				const hashedPassword = await bcryptjs.hash(password, 12);
+				
+				const account = await prisma.account.findFirst({
+					where: { userId: id, providerId: 'credential' },
+				});
+
+				if (account) {
+					await prisma.account.update({
+						where: { id: account.id },
+						data: { password: hashedPassword },
+					});
+				} else {
+					// Create account if it doesn't exist
+					await prisma.account.create({
+						data: {
+							id: `acc_${id}`,
+							accountId: id,
+							providerId: 'credential',
+							userId: id,
+							password: hashedPassword,
+						},
+					});
+				}
+			} catch (passwordError) {
+				if (process.env.NODE_ENV === 'development') {
+					console.error('Error updating password:', passwordError);
+				}
+				return NextResponse.json(
+					{ error: 'Failed to update password' },
+					{ status: 500 }
+				);
+			}
+		}
+
 		return NextResponse.json({
 			message: 'User updated successfully',
 			user: updatedUser,
 		});
 	} catch (error) {
-		console.error('Error updating user:', error);
+		if (process.env.NODE_ENV === 'development') {
+			console.error('Error updating user:', error);
+		}
 		return NextResponse.json(
 			{ error: 'Failed to update user' },
 			{ status: 500 }
@@ -194,10 +256,22 @@ export async function DELETE(
 	{ params }: RouteParams
 ) {
 	try {
-		const authCheck = await requirePermissions(
-			'delete:users'
-		)();
-		if (authCheck instanceof NextResponse) return authCheck;
+		// Authentication check
+		const user = await getAuthenticatedUser();
+		if (!user) {
+			return NextResponse.json(
+				{ error: 'Authentication required' },
+				{ status: 401 }
+			);
+		}
+
+		// Permission check
+		if (!hasPermission(user.role, 'delete:users')) {
+			return NextResponse.json(
+				{ error: 'Insufficient permissions' },
+				{ status: 403 }
+			);
+		}
 
 		const { id } = await params;
 

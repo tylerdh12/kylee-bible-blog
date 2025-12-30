@@ -1,43 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import jwt from 'jsonwebtoken';
-
-const prisma = new PrismaClient();
-
-async function verifyAuth(req: NextRequest) {
-	try {
-		const token = req.cookies.get('auth_token')?.value;
-		if (!token) {
-			return null;
-		}
-
-		const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
-			userId: string;
-		};
-		const user = await prisma.user.findUnique({
-			where: { id: decoded.userId },
-		});
-
-		if (!user || user.role !== 'ADMIN') {
-			return null;
-		}
-
-		return user;
-	} catch {
-		return null;
-	}
-}
+import { prisma } from '@/lib/db';
+import { getAuthenticatedUser } from '@/lib/auth-new';
+import { hasPermission } from '@/lib/rbac';
 
 export async function DELETE(
 	req: NextRequest,
 	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
-		const user = await verifyAuth(req);
+		// Authentication check
+		const user = await getAuthenticatedUser();
 		if (!user) {
 			return NextResponse.json(
-				{ error: 'Unauthorized' },
+				{ error: 'Authentication required' },
 				{ status: 401 }
+			);
+		}
+
+		// Permission check
+		if (!hasPermission(user.role, 'write:users')) {
+			return NextResponse.json(
+				{ error: 'Insufficient permissions' },
+				{ status: 403 }
 			);
 		}
 
@@ -55,6 +39,38 @@ export async function DELETE(
 			);
 		}
 
+		// Send deletion confirmation email before deleting
+		try {
+			const { getSiteSettings } = await import('@/lib/settings');
+			const settings = await getSiteSettings();
+			const siteName = settings.siteName || "Kylee's Blog";
+
+			const { sendEmail, generateUnsubscribeEmail } = await import('@/lib/utils/email');
+			const { html, text } = generateUnsubscribeEmail(
+				siteName,
+				true, // Deleted by admin
+				subscriber.name || undefined
+			);
+
+			// Send email asynchronously (don't wait for it)
+			sendEmail({
+				to: subscriber.email,
+				subject: `Subscription Removed from ${siteName}`,
+				html,
+				text,
+			}).catch((error) => {
+				// Log error but don't fail the deletion
+				if (process.env.NODE_ENV === 'development') {
+					console.error('Failed to send deletion email:', error);
+				}
+			});
+		} catch (error) {
+			// Don't fail the deletion if email sending fails
+			if (process.env.NODE_ENV === 'development') {
+				console.error('Error setting up deletion email:', error);
+			}
+		}
+
 		await prisma.subscriber.delete({
 			where: { id },
 		});
@@ -63,7 +79,9 @@ export async function DELETE(
 			message: 'Subscriber deleted successfully',
 		});
 	} catch (error) {
-		console.error('Failed to delete subscriber:', error);
+		if (process.env.NODE_ENV === 'development') {
+			console.error('Failed to delete subscriber:', error);
+		}
 		return NextResponse.json(
 			{ error: 'Internal server error' },
 			{ status: 500 }
@@ -76,11 +94,20 @@ export async function PUT(
 	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
-		const user = await verifyAuth(req);
+		// Authentication check
+		const user = await getAuthenticatedUser();
 		if (!user) {
 			return NextResponse.json(
-				{ error: 'Unauthorized' },
+				{ error: 'Authentication required' },
 				{ status: 401 }
+			);
+		}
+
+		// Permission check
+		if (!hasPermission(user.role, 'write:users')) {
+			return NextResponse.json(
+				{ error: 'Insufficient permissions' },
+				{ status: 403 }
 			);
 		}
 
@@ -119,7 +146,9 @@ export async function PUT(
 			},
 		});
 	} catch (error) {
-		console.error('Failed to update subscriber:', error);
+		if (process.env.NODE_ENV === 'development') {
+			console.error('Failed to update subscriber:', error);
+		}
 		return NextResponse.json(
 			{ error: 'Internal server error' },
 			{ status: 500 }

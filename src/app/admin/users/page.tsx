@@ -34,6 +34,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { UsersTableSkeleton } from '@/components/skeletons/admin-skeletons';
 
 interface User {
 	id: string;
@@ -96,14 +97,7 @@ export default function UsersPage() {
 	};
 
 	if (loading) {
-		return (
-			<div className='text-center py-8'>
-				<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4'></div>
-				<p className='text-muted-foreground'>
-					Loading users...
-				</p>
-			</div>
-		);
+		return <UsersTableSkeleton />;
 	}
 
 	return (

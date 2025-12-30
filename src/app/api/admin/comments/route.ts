@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { requirePermissions } from '@/lib/rbac';
+import { requirePermissionsRouteHandler } from '@/lib/rbac';
 
 // GET - List all comments for moderation
 export async function GET(request: NextRequest) {
 	try {
-		const authCheck = await requirePermissions(
-			'read:comments'
-		)();
-		if (authCheck instanceof NextResponse) return authCheck;
+		const authCheck = await requirePermissionsRouteHandler('read:comments');
+		if (authCheck) return authCheck;
 
 		const { searchParams } = new URL(request.url);
 		const approved = searchParams.get('approved');

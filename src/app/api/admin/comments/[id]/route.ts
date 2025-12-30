@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { requirePermissions } from '@/lib/rbac';
+import { requirePermissionsRouteHandler } from '@/lib/rbac';
 
 interface RouteParams {
 	params: Promise<{ id: string }>;
@@ -12,10 +12,8 @@ export async function PATCH(
 	{ params }: RouteParams
 ) {
 	try {
-		const authCheck = await requirePermissions(
-			'moderate:comments'
-		)();
-		if (authCheck instanceof NextResponse) return authCheck;
+		const authCheck = await requirePermissionsRouteHandler('moderate:comments');
+		if (authCheck) return authCheck;
 
 		const { id } = await params;
 		const { isApproved, content } = await request.json();
@@ -75,10 +73,8 @@ export async function DELETE(
 	{ params }: RouteParams
 ) {
 	try {
-		const authCheck = await requirePermissions(
-			'delete:comments'
-		)();
-		if (authCheck instanceof NextResponse) return authCheck;
+		const authCheck = await requirePermissionsRouteHandler('delete:comments');
+		if (authCheck) return authCheck;
 
 		const { id } = await params;
 

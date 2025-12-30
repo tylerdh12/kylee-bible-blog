@@ -1,16 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { requirePermissions } from '@/lib/rbac';
-import { createUser } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/auth-new';
+import { hasPermission } from '@/lib/rbac';
+import { auth } from '@/lib/better-auth';
+import bcrypt from 'bcryptjs';
 import type { UserRole } from '@/types';
 
 // GET - List all users (admin only)
 export async function GET(request: NextRequest) {
 	try {
-		const authCheck = await requirePermissions(
-			'read:users'
-		)();
-		if (authCheck instanceof NextResponse) return authCheck;
+		// Authentication check
+		const user = await getAuthenticatedUser();
+		if (!user) {
+			return NextResponse.json(
+				{ error: 'Authentication required' },
+				{ status: 401 }
+			);
+		}
+
+		// Permission check
+		if (!hasPermission(user.role, 'read:users')) {
+			return NextResponse.json(
+				{ error: 'Insufficient permissions' },
+				{ status: 403 }
+			);
+		}
 
 		const users = await prisma.user.findMany({
 			select: {
@@ -22,6 +36,8 @@ export async function GET(request: NextRequest) {
 				avatar: true,
 				bio: true,
 				website: true,
+				image: true,
+				emailVerified: true,
 				createdAt: true,
 				updatedAt: true,
 				_count: {
@@ -47,10 +63,22 @@ export async function GET(request: NextRequest) {
 // POST - Create new user (admin only)
 export async function POST(request: NextRequest) {
 	try {
-		const authCheck = await requirePermissions(
-			'write:users'
-		)();
-		if (authCheck instanceof NextResponse) return authCheck;
+		// Authentication check
+		const user = await getAuthenticatedUser();
+		if (!user) {
+			return NextResponse.json(
+				{ error: 'Authentication required' },
+				{ status: 401 }
+			);
+		}
+
+		// Permission check
+		if (!hasPermission(user.role, 'write:users')) {
+			return NextResponse.json(
+				{ error: 'Insufficient permissions' },
+				{ status: 403 }
+			);
+		}
 
 		const {
 			email,
@@ -92,29 +120,39 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
-		const user = await createUser(
-			email,
-			password,
-			name,
-			role || 'SUBSCRIBER'
-		);
+		// Create user using better-auth signUp
+		const hashedPassword = await bcrypt.hash(password, 12);
+		
+		// Create user
+		const newUser = await prisma.user.create({
+			data: {
+				name: name || email.split('@')[0],
+				email,
+				emailVerified: false,
+				role: role || 'SUBSCRIBER',
+				isActive: isActive !== false,
+			},
+		});
 
-		// Update isActive if specified
-		if (isActive !== true) {
-			await prisma.user.update({
-				where: { id: user.id },
-				data: { isActive },
-			});
-		}
+        // Create account with password
+        await prisma.account.create({
+          data: {
+            id: `acc_${newUser.id}`,
+            accountId: newUser.id,
+            providerId: 'credential', // better-auth uses 'credential' for email/password auth
+            userId: newUser.id,
+            password: hashedPassword,
+          },
+        });
 
 		return NextResponse.json({
 			message: 'User created successfully',
 			user: {
-				id: user.id,
-				email: user.email,
-				name: user.name,
-				role: user.role,
-				isActive: user.isActive,
+				id: newUser.id,
+				email: newUser.email,
+				name: newUser.name,
+				role: (newUser.role as UserRole) || 'SUBSCRIBER',
+				isActive: newUser.isActive,
 			},
 		});
 	} catch (error) {
