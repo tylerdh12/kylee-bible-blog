@@ -11,6 +11,10 @@ const customJestConfig = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
+  // Transform ESM modules from these packages
+  transformIgnorePatterns: [
+    '/node_modules/(?!(better-auth|@better-auth)/)',
+  ],
   testMatch: [
     '**/__tests__/**/*.(js|jsx|ts|tsx)',
     '**/*.(test|spec).(js|jsx|ts|tsx)'
