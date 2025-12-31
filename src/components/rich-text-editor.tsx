@@ -26,10 +26,8 @@ import { HorizontalRule } from '@tiptap/extension-horizontal-rule';
 
 import { Button } from './ui/button';
 import { Separator } from './ui/separator';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Toggle } from './ui/toggle';
-import { Slider } from './ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import {
 	Tooltip,
@@ -49,20 +47,10 @@ import {
 	DropdownMenuSubTrigger,
 } from './ui/dropdown-menu';
 import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from './ui/popover';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { Textarea } from './ui/textarea';
-import {
 	Bold,
 	Italic,
 	Underline as UnderlineIcon,
 	Strikethrough,
-	Superscript as SuperscriptIcon,
-	Subscript as SubscriptIcon,
 	Heading1,
 	Heading2,
 	Heading3,
@@ -76,64 +64,30 @@ import {
 	AlignCenter,
 	AlignRight,
 	AlignJustify,
-	Palette,
-	Highlighter,
-	Link as LinkIcon,
-	Image as ImageIcon,
 	Table as TableIcon,
 	Plus,
 	Heart,
-	Cross,
 	Undo,
 	Redo,
-	Code,
-	Terminal,
 	Maximize,
 	Minimize,
 	Copy,
-	Save,
-	HelpCircle,
 	FileText,
 	Type,
-	Indent,
-	Outdent,
 	Minus,
-	Columns,
-	RowsIcon,
-	PlusCircle,
-	MinusCircle,
-	SeparatorHorizontal,
-	Eraser,
 	Printer,
 	Download,
-	Upload,
 	FileImage,
-	FileVideo,
-	Music,
-	Paperclip,
 	Search,
-	Replace,
 	ZoomIn,
 	ZoomOut,
-	RotateCcw,
-	RotateCw,
 	Settings,
 	Eye,
-	EyeOff,
 	Monitor,
 	Smartphone,
 	Tablet,
 	Ruler,
-	Grid,
-	MousePointer,
-	Hand,
-	Move,
-	Square,
-	Circle,
-	Triangle,
 	Star,
-	Crown,
-	Award,
 	BookOpen,
 	ScrollText,
 	Feather
@@ -170,11 +124,8 @@ export function RichTextEditor({
 	const [fontFamily, setFontFamily] = useState('Inter');
 
 	// Content Tools State
-	const [linkUrl, setLinkUrl] = useState('');
-	const [imageUrl, setImageUrl] = useState('');
-	const [imageAlt, setImageAlt] = useState('');
-	const [tableRows, setTableRows] = useState(3);
-	const [tableCols, setTableCols] = useState(3);
+	const [tableRows] = useState(3);
+	const [tableCols] = useState(3);
 
 	// Editor State
 	const [isDragging, setIsDragging] = useState(false);
@@ -386,35 +337,13 @@ export function RichTextEditor({
 		);
 	}
 
-	// Enhanced Content Functions
-	const addLink = () => {
-		if (linkUrl) {
-			editor.chain().focus().setLink({ href: linkUrl }).run();
-			setLinkUrl('');
-		}
-	};
-
-	const addImage = () => {
-		if (imageUrl) {
-			editor.chain().focus().setImage({
-				src: imageUrl,
-				alt: imageAlt || 'Image'
-			}).run();
-			setImageUrl('');
-			setImageAlt('');
-		}
-	};
-
+	// Content Functions
 	const addTable = () => {
 		editor.chain().focus().insertTable({
 			rows: tableRows,
 			cols: tableCols,
 			withHeaderRow: true
 		}).run();
-	};
-
-	const insertBiblicalSymbol = (symbol: string) => {
-		editor.chain().focus().insertContent(symbol).run();
 	};
 
 	const insertScriptureReference = () => {
@@ -928,62 +857,7 @@ export function RichTextEditor({
 									transformOrigin: 'top center'
 								}}
 							>
-								{/* Bubble Menu (disabled due to import issues) */}
-								{/*{editor && (
-									<div
-										className="bg-background border border-border rounded-lg shadow-lg p-1 flex items-center gap-1"
-									>
-										<ToolbarButton
-											onClick={() => editor.chain().focus().toggleBold().run()}
-											isActive={editor.isActive('bold')}
-											tooltip="Bold"
-										>
-											<Bold className="h-3 w-3" />
-										</ToolbarButton>
-										<ToolbarButton
-											onClick={() => editor.chain().focus().toggleItalic().run()}
-											isActive={editor.isActive('italic')}
-											tooltip="Italic"
-										>
-											<Italic className="h-3 w-3" />
-										</ToolbarButton>
-										<ToolbarButton
-											onClick={() => editor.chain().focus().toggleUnderline().run()}
-											isActive={editor.isActive('underline')}
-											tooltip="Underline"
-										>
-											<UnderlineIcon className="h-3 w-3" />
-										</ToolbarButton>
-									</div>
-								)}*/}
-
-								{/* Floating Menu (disabled due to import issues) */}
-								{/*{editor && (
-									<div
-										className="bg-background border border-border rounded-lg shadow-lg p-1 flex items-center gap-1"
-									>
-										<ToolbarButton
-											onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-											tooltip="Heading 1"
-										>
-											<Heading1 className="h-3 w-3" />
-										</ToolbarButton>
-										<ToolbarButton
-											onClick={() => editor.chain().focus().toggleBulletList().run()}
-											tooltip="Bullet List"
-										>
-											<List className="h-3 w-3" />
-										</ToolbarButton>
-										<ToolbarButton
-											onClick={() => editor.chain().focus().toggleBlockquote().run()}
-											tooltip="Quote"
-										>
-											<Quote className="h-3 w-3" />
-										</ToolbarButton>
-									</div>
-								)}*/}
-
-								{/* Editor Content */}
+									{/* Editor Content */}
 								<EditorContent
 									editor={editor}
 									className="min-h-full"

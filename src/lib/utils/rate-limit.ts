@@ -10,7 +10,19 @@ interface RateLimitEntry {
   resetTime: number
 }
 
-// In-memory store for rate limiting (in production, use Redis)
+/**
+ * In-memory store for rate limiting.
+ *
+ * IMPORTANT: This in-memory approach has limitations in serverless environments (Vercel):
+ * - Each function invocation may have fresh memory, so rate limits may not persist
+ * - For production apps with high traffic, consider using:
+ *   - Vercel KV (Redis-compatible)
+ *   - Upstash Redis
+ *   - External rate limiting service
+ *
+ * The current implementation still provides some protection against rapid-fire requests
+ * within the same function instance, which handles most casual abuse cases.
+ */
 const rateLimitStore = new Map<string, RateLimitEntry>()
 
 export function rateLimit(config: RateLimitConfig) {
