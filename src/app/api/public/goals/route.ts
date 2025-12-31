@@ -19,7 +19,12 @@ export async function GET() {
     ])
 
     const response: GoalsResponse = { goals: goals as any }
-    return NextResponse.json(response)
+    return NextResponse.json(response, {
+      headers: {
+        // Cache for 60 seconds, allow stale content for 5 minutes while revalidating
+        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+      }
+    })
   } catch (error) {
     console.error('Error fetching public goals:', error)
     // Return empty array instead of error to allow graceful fallback

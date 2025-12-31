@@ -21,7 +21,12 @@ export async function GET() {
     ])
 
     const response: PostsResponse = { posts: posts as any }
-    return NextResponse.json(response)
+    return NextResponse.json(response, {
+      headers: {
+        // Cache for 2 minutes, allow stale content for 10 minutes while revalidating
+        'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=600',
+      }
+    })
   } catch (error) {
     console.error('Error fetching public posts:', error)
     // Return empty array instead of error to allow graceful fallback

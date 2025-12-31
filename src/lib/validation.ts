@@ -80,31 +80,11 @@ export function sanitizeHtml(input: string): string {
     .replace(/on\w+\s*=/gi, '')
 }
 
-// Rate limiting helpers
-const rateLimitMap = new Map<string, { count: number; resetTime: number }>()
-
-export function checkRateLimit(
-  identifier: string,
-  maxRequests: number = 10,
-  windowMs: number = 60000
-): { allowed: boolean; remaining: number; resetTime: number } {
-  const now = Date.now()
-  const current = rateLimitMap.get(identifier)
-
-  if (!current || now > current.resetTime) {
-    const resetTime = now + windowMs
-    rateLimitMap.set(identifier, { count: 1, resetTime })
-    return { allowed: true, remaining: maxRequests - 1, resetTime }
-  }
-
-  if (current.count >= maxRequests) {
-    return { allowed: false, remaining: 0, resetTime: current.resetTime }
-  }
-
-  current.count++
-  rateLimitMap.set(identifier, current)
-  return { allowed: true, remaining: maxRequests - current.count, resetTime: current.resetTime }
-}
+// Rate limiting - use the dedicated rate-limit.ts module instead
+// Note: In-memory rate limiting has limitations in serverless environments (Vercel)
+// as each function invocation may have fresh memory. Consider using Redis or
+// Vercel KV for production rate limiting across function instances.
+export { rateLimit, rateLimitConfigs } from './utils/rate-limit'
 
 // Error handling
 export class AppError extends Error {

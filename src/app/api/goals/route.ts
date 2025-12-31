@@ -40,7 +40,9 @@ export async function GET(request: NextRequest) {
 			headers: {
 				'X-RateLimit-Limit': rateLimitResult.limit.toString(),
 				'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
-				'X-RateLimit-Reset': rateLimitResult.resetTime.toString()
+				'X-RateLimit-Reset': rateLimitResult.resetTime.toString(),
+				// Cache for 60 seconds, allow stale content for 5 minutes while revalidating
+				'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
 			}
 		});
 	} catch (error) {

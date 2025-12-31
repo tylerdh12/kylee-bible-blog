@@ -1,6 +1,7 @@
 import type { NextConfig } from 'next';
 
 // Security headers for production
+// Note: X-XSS-Protection is deprecated and removed - modern browsers use CSP instead
 const securityHeaders = [
 	{
 		key: 'X-DNS-Prefetch-Control',
@@ -9,10 +10,6 @@ const securityHeaders = [
 	{
 		key: 'Strict-Transport-Security',
 		value: 'max-age=63072000; includeSubDomains; preload',
-	},
-	{
-		key: 'X-XSS-Protection',
-		value: '1; mode=block',
 	},
 	{
 		key: 'X-Frame-Options',
@@ -28,7 +25,7 @@ const securityHeaders = [
 	},
 	{
 		key: 'Permissions-Policy',
-		value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
+		value: 'camera=(), microphone=(), geolocation=()',
 	},
 	{
 		key: 'Content-Security-Policy',
@@ -42,6 +39,7 @@ const securityHeaders = [
 			"frame-ancestors 'self'",
 			"base-uri 'self'",
 			"form-action 'self'",
+			"upgrade-insecure-requests",
 		].join('; '),
 	},
 ];
@@ -56,11 +54,14 @@ const nextConfig: NextConfig = {
 		'isomorphic-dompurify',
 	],
 	images: {
-		domains: ['localhost'],
 		remotePatterns: [
 			{
 				protocol: 'https',
 				hostname: '**',
+			},
+			{
+				protocol: 'http',
+				hostname: 'localhost',
 			},
 		],
 	},
@@ -87,11 +88,24 @@ const nextConfig: NextConfig = {
 		],
 	},
 	experimental: {
-		// Optimize build performance
+		// Optimize build performance with tree-shaking for common packages
 		optimizePackageImports: [
 			'lucide-react',
+			'@radix-ui/react-accordion',
+			'@radix-ui/react-alert-dialog',
 			'@radix-ui/react-avatar',
+			'@radix-ui/react-checkbox',
 			'@radix-ui/react-dialog',
+			'@radix-ui/react-dropdown-menu',
+			'@radix-ui/react-label',
+			'@radix-ui/react-popover',
+			'@radix-ui/react-select',
+			'@radix-ui/react-tabs',
+			'@radix-ui/react-tooltip',
+			'date-fns',
+			'recharts',
+			'@tiptap/react',
+			'@tiptap/starter-kit',
 		],
 	},
 	// Webpack config is needed for production builds (npm run build)
