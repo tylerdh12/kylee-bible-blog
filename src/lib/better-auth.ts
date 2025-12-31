@@ -15,14 +15,24 @@ if (!authSecret && process.env.NODE_ENV === 'development') {
 	);
 }
 
+// Production domains - the primary domain and any alternatives
+const PRODUCTION_DOMAINS = [
+	'https://www.kyspreadslove.org',
+	'https://kyspreadslove.org',
+	'https://kylee-bible-blog.vercel.app',
+];
+
 // Get the origin for passkey configuration
+// In production, default to the primary production domain
 const baseURL =
 	process.env.BETTER_AUTH_URL ||
-	process.env.NEXTAUTH_URL ||
-	'http://localhost:3000';
+	(process.env.NODE_ENV === 'production'
+		? PRODUCTION_DOMAINS[0]
+		: 'http://localhost:3000');
+
 let origin: string;
 let rpID: string;
-let allowedOrigins: string[] = [];
+let trustedOrigins: string[] = [];
 
 try {
 	const url = new URL(baseURL);
@@ -31,27 +41,14 @@ try {
 	// For development, use localhost
 	rpID =
 		process.env.NODE_ENV === 'production'
-			? url.hostname
+			? url.hostname.replace(/^www\./, '') // Use base domain for rpID
 			: 'localhost';
-	
-	// In production, allow both www and non-www origins
+
+	// In production, trust all production domains
 	if (process.env.NODE_ENV === 'production') {
-		const hostname = url.hostname;
-		if (hostname.startsWith('www.')) {
-			// If baseURL has www, also allow without www
-			allowedOrigins = [
-				origin,
-				`${url.protocol}//${hostname.replace(/^www\./, '')}`,
-			];
-		} else {
-			// If baseURL doesn't have www, also allow with www
-			allowedOrigins = [
-				origin,
-				`${url.protocol}//www.${hostname}`,
-			];
-		}
+		trustedOrigins = [...PRODUCTION_DOMAINS];
 	} else {
-		allowedOrigins = [origin];
+		trustedOrigins = [origin, 'http://localhost:3000'];
 	}
 } catch {
 	// Fallback if URL parsing fails
@@ -61,25 +58,21 @@ try {
 			: 'http://localhost:3000';
 	rpID =
 		process.env.NODE_ENV === 'production'
-			? 'www.kyspreadslove.org'
+			? 'kyspreadslove.org'
 			: 'localhost';
-	
-	if (process.env.NODE_ENV === 'production') {
-		allowedOrigins = [
-			'https://www.kyspreadslove.org',
-			'https://kyspreadslove.org',
-		];
-	} else {
-		allowedOrigins = [origin];
-	}
+
+	trustedOrigins =
+		process.env.NODE_ENV === 'production'
+			? PRODUCTION_DOMAINS
+			: [origin];
 }
 
 if (process.env.NODE_ENV === 'development') {
-	console.log('[Better Auth] Passkey configuration:', {
+	console.log('[Better Auth] Configuration:', {
 		rpID,
 		origin,
 		baseURL,
-		allowedOrigins,
+		trustedOrigins,
 	});
 }
 
@@ -89,11 +82,12 @@ export const auth = betterAuth({
 	}),
 	baseURL,
 	secret: authSecret,
+	trustedOrigins,
 	plugins: [
 		passkey({
 			rpName: "Kylee's Blog",
 			rpID,
-			origin,
+			origin: trustedOrigins, // Allow passkeys from any trusted origin
 		}),
 	],
 	emailAndPassword: {
