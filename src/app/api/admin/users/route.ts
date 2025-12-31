@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getAuthenticatedUser } from '@/lib/auth-new';
 import { hasPermission } from '@/lib/rbac';
+import { validatePasswordStrength } from '@/lib/validation/password';
 import type { UserRole } from '@/types';
 
 // GET - List all users (admin only)
@@ -89,6 +90,18 @@ export async function POST(request: NextRequest) {
 		if (!email || !password) {
 			return NextResponse.json(
 				{ error: 'Email and password are required' },
+				{ status: 400 }
+			);
+		}
+
+		// Validate password strength
+		const passwordValidation = validatePasswordStrength(password);
+		if (!passwordValidation.valid) {
+			return NextResponse.json(
+				{
+					error: 'Password does not meet security requirements',
+					details: passwordValidation.errors,
+				},
 				{ status: 400 }
 			);
 		}

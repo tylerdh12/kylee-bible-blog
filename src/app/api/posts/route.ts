@@ -1,18 +1,50 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/auth-new';
+import { hasPermission } from '@/lib/rbac';
 import { DatabaseService } from '@/lib/services/database';
 import { sanitizeHtml, sanitizeText } from '@/lib/utils/sanitize';
+import { rateLimit, rateLimitConfigs } from '@/lib/utils/rate-limit';
 import type { PostsResponse } from '@/types';
 
 const db = DatabaseService.getInstance();
+const postsRateLimit = rateLimit(rateLimitConfigs.posts);
 
 export async function POST(request: NextRequest) {
 	try {
+		// Apply rate limiting
+		const rateLimitResult = postsRateLimit(request);
+		if (!rateLimitResult.success) {
+			return NextResponse.json(
+				{
+					error: 'Too many requests',
+					message: 'Rate limit exceeded. Please try again later.',
+					resetTime: rateLimitResult.resetTime,
+				},
+				{
+					status: 429,
+					headers: {
+						'X-RateLimit-Limit': rateLimitResult.limit.toString(),
+						'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+						'X-RateLimit-Reset': rateLimitResult.resetTime.toString(),
+						'Retry-After': Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000).toString(),
+					},
+				}
+			);
+		}
+
 		const user = await getAuthenticatedUser();
 		if (!user) {
 			return NextResponse.json(
 				{ error: 'Unauthorized' },
 				{ status: 401 }
+			);
+		}
+
+		// Check for write:posts permission
+		if (!hasPermission(user.role, 'write:posts')) {
+			return NextResponse.json(
+				{ error: 'Insufficient permissions' },
+				{ status: 403 }
 			);
 		}
 
