@@ -1,180 +1,105 @@
-import { render, screen, waitFor } from '@testing-library/react'
-import GoalsPage from '@/app/admin/goals/page'
+import { render, screen } from '@testing-library/react'
+import GoalsListClient from '@/app/admin/goals/goals-list-client'
+import type { Goal } from '@/types'
 
-// Mock Next.js navigation
-const mockPush = jest.fn()
-
+// Mock next/navigation
 jest.mock('next/navigation', () => ({
   useRouter: () => ({
-    push: mockPush,
+    push: jest.fn(),
   }),
   usePathname: () => '/admin/goals',
 }))
 
+// Mock the useCurrency hook
+jest.mock('@/hooks/use-currency', () => ({
+  useCurrency: () => ({
+    formatAmount: (amount: number) => `$${amount.toFixed(2)}`,
+    currency: 'USD',
+    setCurrency: jest.fn(),
+  }),
+}))
 
-const mockFetch = fetch as jest.MockedFunction<typeof fetch>
+describe('GoalsListClient', () => {
+  const mockGoals: Goal[] = [
+    {
+      id: '1',
+      title: 'Bible Study Materials',
+      description: 'Fund for new Bible study materials',
+      targetAmount: 500,
+      currentAmount: 200,
+      completed: false,
+      createdAt: '2024-01-01T00:00:00Z',
+      updatedAt: '2024-01-01T00:00:00Z',
+      deadline: null,
+      donations: [{ id: '1', amount: 200, goalId: '1', createdAt: '2024-01-01T00:00:00Z' }],
+    },
+    {
+      id: '2',
+      title: 'Church Building Fund',
+      description: 'Save for church expansion',
+      targetAmount: 10000,
+      currentAmount: 10000,
+      completed: true,
+      createdAt: '2024-01-15T00:00:00Z',
+      updatedAt: '2024-01-15T00:00:00Z',
+      deadline: '2024-12-31T00:00:00Z',
+      donations: [
+        { id: '2', amount: 5000, goalId: '2', createdAt: '2024-01-10T00:00:00Z' },
+        { id: '3', amount: 5000, goalId: '2', createdAt: '2024-01-15T00:00:00Z' },
+      ],
+    },
+  ]
 
-describe('GoalsPage', () => {
-  beforeEach(() => {
-    mockFetch.mockClear()
+  it('displays empty state when no goals exist', () => {
+    render(<GoalsListClient goals={[]} />)
+
+    expect(screen.getByText('No goals yet')).toBeInTheDocument()
+    expect(screen.getByText('Create Your First Goal')).toBeInTheDocument()
   })
 
-  it('shows loading state initially', () => {
-    mockFetch.mockImplementationOnce(() => new Promise(() => {}))
+  it('displays goals when they exist', () => {
+    render(<GoalsListClient goals={mockGoals} />)
 
-    render(<GoalsPage />)
+    expect(screen.getByText('Bible Study Materials')).toBeInTheDocument()
+    expect(screen.getByText('Fund for new Bible study materials')).toBeInTheDocument()
 
-    expect(screen.getByText('Loading goals...')).toBeInTheDocument()
+    expect(screen.getByText('Church Building Fund')).toBeInTheDocument()
+    expect(screen.getByText('Save for church expansion')).toBeInTheDocument()
   })
 
-  it('displays empty state when no goals exist', async () => {
-    // Mock auth check
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ authenticated: true, user: { id: '1', name: 'Test User' } }),
-    } as Response)
+  it('shows completed badge for completed goals', () => {
+    render(<GoalsListClient goals={mockGoals} />)
 
-    // Mock goals fetch
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ goals: [] }),
-    } as Response)
-
-    render(<GoalsPage />)
-
-    await waitFor(() => {
-      expect(screen.getByText('No goals yet')).toBeInTheDocument()
-      expect(screen.getByText('Create Your First Goal')).toBeInTheDocument()
-    })
+    expect(screen.getByText('Completed')).toBeInTheDocument()
   })
 
-  it.skip('displays goals when they exist', async () => {
-    const mockGoals = [
-      {
-        id: '1',
-        title: 'Bible Study Materials',
-        description: 'Fund for new Bible study materials',
-        targetAmount: 500,
-        currentAmount: 200,
-        completed: false,
-        createdAt: '2024-01-01T00:00:00Z',
-        donations: [{ id: '1', amount: 200 }]
-      },
-      {
-        id: '2',
-        title: 'Church Building Fund',
-        description: 'Save for church expansion',
-        targetAmount: 10000,
-        currentAmount: 10000,
-        completed: true,
-        createdAt: '2024-01-15T00:00:00Z',
-        deadline: '2024-12-31T00:00:00Z',
-        donations: [
-          { id: '2', amount: 5000 },
-          { id: '3', amount: 5000 }
-        ]
-      }
-    ]
+  it('displays page header with New Goal button', () => {
+    render(<GoalsListClient goals={[]} />)
 
-    // Mock auth check
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ authenticated: true, user: { id: '1', name: 'Test User' } }),
-    } as Response)
-
-    // Mock goals fetch
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ goals: mockGoals }),
-    } as Response)
-
-    render(<GoalsPage />)
-
-    await waitFor(() => {
-      expect(screen.getByText('Bible Study Materials')).toBeInTheDocument()
-      expect(screen.getByText('Fund for new Bible study materials')).toBeInTheDocument()
-      expect(screen.getByText('$200.00 / $500.00')).toBeInTheDocument()
-      expect(screen.getByText('40.0% complete')).toBeInTheDocument()
-
-      expect(screen.getByText('Church Building Fund')).toBeInTheDocument()
-      expect(screen.getByText('Save for church expansion')).toBeInTheDocument()
-      expect(screen.getByText('$10000.00 / $10000.00')).toBeInTheDocument()
-      expect(screen.getByText('100.0% complete')).toBeInTheDocument()
-      expect(screen.getByText('Completed')).toBeInTheDocument()
-
-      expect(screen.getByText('1 donation')).toBeInTheDocument()
-      expect(screen.getByText('2 donations')).toBeInTheDocument()
-    })
+    expect(screen.getByText('Goals')).toBeInTheDocument()
+    expect(screen.getByText('Manage your ministry goals')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /new goal/i })).toBeInTheDocument()
   })
 
-  it('handles fetch error gracefully', async () => {
-    // Mock auth check (successful)
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ authenticated: true, user: { id: '1', name: 'Test User' } }),
-    } as Response)
+  it('shows goal progress information', () => {
+    render(<GoalsListClient goals={mockGoals} />)
 
-    // Mock goals fetch (failed)
-    mockFetch.mockRejectedValueOnce(new Error('API Error'))
-
-    render(<GoalsPage />)
-
-    await waitFor(() => {
-      expect(screen.getByText('No goals yet')).toBeInTheDocument()
-    })
+    // Check for amount displays
+    expect(screen.getByText(/\$200\.00/)).toBeInTheDocument()
+    expect(screen.getByText(/\$500\.00/)).toBeInTheDocument()
   })
 
-  it.skip('displays page header and navigation', async () => {
-    // Mock auth check
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ authenticated: true, user: { id: '1', name: 'Test User' } }),
-    } as Response)
+  it('shows donation counts for goals', () => {
+    render(<GoalsListClient goals={mockGoals} />)
 
-    // Mock goals fetch
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ goals: [] }),
-    } as Response)
-
-    render(<GoalsPage />)
-
-    // Wait for the empty state to appear first (confirms component loaded)
-    await waitFor(() => {
-      expect(screen.getByText('No goals yet')).toBeInTheDocument()
-    })
-
-    // Then check for navigation elements
-    expect(screen.getByText(/Goals/)).toBeInTheDocument()
-    expect(screen.getByText('New Goal')).toBeInTheDocument()
-    expect(screen.getByText('Dashboard')).toBeInTheDocument()
+    expect(screen.getByText('1 donation')).toBeInTheDocument()
+    expect(screen.getByText('2 donations')).toBeInTheDocument()
   })
 
-  it.skip('calculates progress percentage correctly', async () => {
-    const mockGoals = [
-      {
-        id: '1',
-        title: 'Test Goal',
-        description: 'A test goal description',
-        targetAmount: 1000,
-        currentAmount: 250,
-        completed: false,
-        createdAt: '2024-01-01T00:00:00Z',
-        donations: [{ id: '1', amount: 250 }]
-      }
-    ]
+  it('displays edit buttons for each goal', () => {
+    render(<GoalsListClient goals={mockGoals} />)
 
-    // Mock goals fetch - GoalsPage only makes one call
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ goals: mockGoals }),
-    } as Response)
-
-    render(<GoalsPage />)
-
-    await waitFor(() => {
-      // Should show goal title
-      expect(screen.getByText('Test Goal')).toBeInTheDocument()
-    })
+    const editLinks = screen.getAllByRole('link', { name: /edit/i })
+    expect(editLinks).toHaveLength(2)
   })
 })
