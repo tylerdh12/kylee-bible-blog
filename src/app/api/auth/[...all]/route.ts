@@ -446,7 +446,7 @@ export async function POST(request: NextRequest) {
 					const requestOrigin = request.headers.get('origin') || request.headers.get('referer')?.split('/').slice(0, 3).join('/');
 					console.error('[Better Auth] Invalid origin error:', {
 						requestOrigin,
-						configuredOrigin: process.env.BETTER_AUTH_URL || process.env.NEXTAUTH_URL,
+						configuredOrigin: process.env.BETTER_AUTH_URL,
 						url: url.toString(),
 						host: url.host,
 						errorText: text,

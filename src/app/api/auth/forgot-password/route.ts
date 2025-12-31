@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
 
 			// Use better-auth's requestPasswordReset API
 			try {
-				const baseURL = process.env.BETTER_AUTH_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000';
+				const baseURL = process.env.BETTER_AUTH_URL || 'http://localhost:3000';
 				const resetUrl = `${baseURL}/admin/reset-password/confirm`;
 
 				await auth.api.requestPasswordReset({

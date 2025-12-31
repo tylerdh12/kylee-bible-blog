@@ -50,8 +50,7 @@ export async function GET() {
 			},
 			configuration: {
 				environment: envValid ? 'valid' : 'invalid',
-				nextauth: !!process.env.NEXTAUTH_SECRET,
-				jwt: !!process.env.JWT_SECRET,
+				betterAuth: !!process.env.BETTER_AUTH_SECRET,
 				database: !!process.env.DATABASE_URL,
 			},
 			routes: {
